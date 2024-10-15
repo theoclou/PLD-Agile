@@ -1,6 +1,13 @@
 1. Description of the Application
 
-#TODO
+Goal: Develop an application that optimizes delivery tours for bicycle couriers, focusing on sustainability.
+
+Main Features:
+  
+    Load and display city maps from XML files.
+    Input and manage delivery requests.
+    Compute the best delivery tour for selected couriers.
+    Handle multiple couriers and visualize tours on the map.
 
 2. Development Environment
 
