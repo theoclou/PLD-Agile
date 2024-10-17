@@ -5,13 +5,15 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import javax.swing.text.Segment;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 class Graph {
-    private Map<Intersection, List<Section>> adjencyList = new Map<>();
+    private Map<Intersection, List<Section>> adjacencyList = new Map<>();
 
     public void loadFromXml(String filePath) {
         try {
