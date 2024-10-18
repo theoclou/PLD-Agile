@@ -6,11 +6,14 @@ class Section {
     private double length;
     private String streetName;
 
-    public Section(Intersection origin, Intersection destination, String name, double length ) {
+    public Section() {}
+
+    public Section init(Intersection origin, Intersection destination, String name, double length ) {
         this.origin = origin;
         this.destination = destination;
         this.streetName = name;
         this.length = length;
+        return this;
     }
 
     // Getters and toString()

@@ -3,12 +3,10 @@ package com.pld.agile.model;
 public class DeliveryRequest {
     private Intersection deliveryAdress;
     private Courier courier;
-    private User user;
 
-    public DeliveryRequest(Intersection deliveryAdress, Courier courier, User user) {
+    public DeliveryRequest(Intersection deliveryAdress, Courier courier) {
         this.deliveryAdress = deliveryAdress;
         this.courier = courier;
-        this.user = user;
     }
 
     public Intersection getDeliveryAdress() {
@@ -27,11 +25,4 @@ public class DeliveryRequest {
         this.courier = courier;
     }
 
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
 }
