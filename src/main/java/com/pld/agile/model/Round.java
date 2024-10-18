@@ -27,6 +27,11 @@ public class Round {
         // de la liste
     }
 
+    public void loadRequests(String fileName){
+        //TODO
+        // Load the requests and create objects
+    }
+
 
 
 
