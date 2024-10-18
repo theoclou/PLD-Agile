@@ -3,8 +3,8 @@ import org.w3c.dom.NodeList;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
@@ -13,8 +13,8 @@ import org.w3c.dom.Element;
 
 
 public class Map {
-    private Set<Section> sections = new HashSet<>();
-    private Set<Intersection> intersections = new HashSet<>();
+    private List<Section> sections = new ArrayList<>();
+    private List<Intersection> intersections = new ArrayList<>();
 
     public void readXml(String filePath) {
         try {
@@ -62,11 +62,11 @@ public class Map {
         }
     }
 
-    public Set<Section> getSections() {
+    public List<Section> getSections() {
         return sections;
     }
 
-    public Set<Intersection> getIntersections() {
+    public List<Intersection> getIntersections() {
         return intersections;
     }
 }
