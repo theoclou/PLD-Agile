@@ -5,17 +5,15 @@ class Intersection {
     private double latitude;
     private double longitude;
 
+    public Intersection() {}
 
-    public Intersection() {
 
-    }
-    
-    public void initialisation(String id, double latitude, double longitude) {
+    public Intersection init(String id, double latitude, double longitude) {
         this.id = id;
         this.latitude = latitude;
         this.longitude = longitude;
+        return this;
     }
-
     // Getters and toString()
     public String getId() { return id; }
     public double getLatitude() { return latitude; }
