@@ -4,9 +4,8 @@ public class DeliveryRequest {
     private Intersection deliveryAdress;
     private Courier courier;
 
-    public DeliveryRequest(Intersection deliveryAdress, Courier courier) {
+    public DeliveryRequest(Intersection deliveryAdress) {
         this.deliveryAdress = deliveryAdress;
-        this.courier = courier;
     }
 
     public Intersection getDeliveryAdress() {

@@ -15,12 +15,13 @@ public class Round {
     private List<Courier> courierList;
     private List<DeliveryRequest> deliveryRequestList;
     private Map<Courier, DeliveryTour> tourAttribution;
+    private Plan plan;
 
     public Round() {}
 
-    public void init(List<Courier> courierList, List<DeliveryRequest> deliveryRequestList) {
+    public void init(List<Courier> courierList, Plan plan) {
         this.courierList = courierList;
-        this.deliveryRequestList = deliveryRequestList;
+        this.plan = plan;
     }
 
     public Map<Courier, DeliveryTour> getTourAttribution() {
@@ -54,7 +55,11 @@ public class Round {
                 String deliveryAdress = element.getAttribute("adresseLivraison");
 
                 // Create the DeliveryRequest Object
-                DeliveryRequest deliveryRequest = new DeliveryRequest(deliveryAdress);
+                Intersection intersection = plan.getIntersectionById(deliveryAdress);
+                if (intersection == null){
+                    throw new Exception("L'intersection '" + deliveryAdress + "' n'existe pas !");
+                }
+                DeliveryRequest deliveryRequest = new DeliveryRequest(intersection);
                 deliveryRequestList.add(deliveryRequest);
             }
         }
