@@ -1,8 +1,18 @@
+package com.pld.agile.model;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
-public class Graph {
-    private Set<Section> sections = new HashSet<>;
-    private Set<Intersection> intersections = new HashSet<>;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
+
+public class Map {
+    private Set<Section> sections = new HashSet<>();
+    private Set<Intersection> intersections = new HashSet<>();
 
     public void readXml(String filePath) {
         try {
@@ -36,7 +46,7 @@ public class Graph {
 
                 // Create the Section objects
                 Section section = new Section();
-                section.initialisation(originId,destinationId,name,length);
+                section.initialisation(originId, destinationId, name, length);
                 sections.add(section);
             }
         } catch (Exception e) {
