@@ -1,7 +1,15 @@
 package com.pld.agile.model;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.util.List;
 import java.util.Map;
+import java.io.File;
+import java.io.FileNotFoundException;
 
 public class Round {
     private List<Courier> courierList;
@@ -27,9 +35,32 @@ public class Round {
         // de la liste
     }
 
-    public void loadRequests(String fileName){
-        //TODO
-        // Load the requests and create objects
+    public void loadRequests(String filePath){
+        try{
+            File xmlFile = new File(filePath);
+            // Verifying if the file exists
+            if (!xmlFile.exists()){
+                throw new FileNotFoundException("Le fichier '" + filePath + "' est introuvable.");
+            }
+
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document document = builder.parse(xmlFile);
+
+            // Reading the Requests
+            NodeList requestsElements = document.getElementsByTagName("livraison");
+            for(int i = 0; i < requestsElements.getLength(); i++){
+                Element element = (Element) requestsElements.item(i);
+                String deliveryAdress = element.getAttribute("adresseLivraison");
+
+                // Create the DeliveryRequest Object
+                DeliveryRequest deliveryRequest = new DeliveryRequest(deliveryAdress);
+                deliveryRequestList.add(deliveryRequest);
+            }
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
     }
 
 
