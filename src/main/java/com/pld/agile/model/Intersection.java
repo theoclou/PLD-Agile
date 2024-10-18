@@ -1,6 +1,6 @@
 package com.pld.agile.model;
 
-class Intersection {
+public class Intersection {
     private String id;
     private double latitude;
     private double longitude;
@@ -10,7 +10,7 @@ class Intersection {
 
     }
     
-    public initialisation(String id, double latitude, double longitude) {
+    public void initialisation(String id, double latitude, double longitude) {
         this.id = id;
         this.latitude = latitude;
         this.longitude = longitude;

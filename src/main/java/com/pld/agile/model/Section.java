@@ -1,27 +1,31 @@
 package com.pld.agile.model;
 
-class Section {
-    private Intersection origin;
-    private Intersection destination;
+public class Section {
+    private int originId;
+    private int destinationId;
     private double length;
-    private String streetName;
+    private String name;
 
-    public Section(Intersection origin, Intersection destination, String name, double length ) {
-        this.origin = origin;
-        this.destination = destination;
-        this.streetName = name;
+    public Section() {
+
+    }
+
+    public void initialisation(int originId, int destinationId, String name, double length ) {
+        this.originId = originId;
+        this.destinationId = destinationId;
+        this.name = name;
         this.length = length;
     }
 
     // Getters and toString()
-    public Intersection getOrigin() { return origin; }
-    public Intersection getDestination() { return destination; }
+    public int getOrigin() { return originId; }
+    public int getDestination() { return destinationId; }
     public double getLength() { return length; }
-    public String getName() { return streetName; }
+    public String getName() { return name; }
 
     @Override
     public String toString() {
-        return "Section{origin='" + origin + "', destination='" + destination +
-                "', name=" + streetName + ", length='" + length + "'}";
+        return "Section{origin='" + originId + "', destination='" + destinationId +
+                "', name=" + name + ", length='" + length + "'}";
     }
 }

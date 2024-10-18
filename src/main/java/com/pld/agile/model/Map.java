@@ -1,12 +1,30 @@
+package com.pld.agile.model;
+import org.w3c.dom.NodeList;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 
-public class Graph {
-    private Set<Section> sections = new HashSet<>;
-    private Set<Intersection> intersections = new HashSet<>;
+public class Map {
+    private Set<Section> sections = new HashSet<>();
+    private Set<Intersection> intersections = new HashSet<>();
 
     public void readXml(String filePath) {
         try {
             File xmlFile = new File(filePath);
+
+            // Vérification si le fichier existe
+            if (!xmlFile.exists()) {
+                throw new FileNotFoundException("Le fichier '" + filePath + "' est introuvable.");
+            }
+
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.parse(xmlFile);
@@ -29,8 +47,8 @@ public class Graph {
             NodeList sectionElements = document.getElementsByTagName("troncon");
             for (int i = 0; i < sectionElements.getLength(); i++) {
                 Element element = (Element) sectionElements.item(i);
-                String originId = element.getAttribute("origine");
-                String destinationId = element.getAttribute("destination");
+                int originId = Integer.parseInt(element.getAttribute("origine"));
+                int destinationId = Integer.parseInt(element.getAttribute("destination"));
                 double length = Double.parseDouble(element.getAttribute("longueur"));
                 String name = element.getAttribute("nomRue");
 
@@ -42,5 +60,13 @@ public class Graph {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public Set<Section> getSections() {
+        return sections;
+    }
+
+    public Set<Intersection> getIntersections() {
+        return intersections;
     }
 }
