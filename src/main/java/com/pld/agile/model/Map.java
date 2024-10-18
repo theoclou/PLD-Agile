@@ -1,22 +1,30 @@
 package com.pld.agile.model;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
+import java.io.FileNotFoundException;
+import java.util.List;
+import java.util.ArrayList;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 
 public class Map {
-    private Set<Section> sections = new HashSet<>();
-    private Set<Intersection> intersections = new HashSet<>();
+    private List<Section> sections = new ArrayList<>();
+    private List<Intersection> intersections = new ArrayList<>();
 
     public void readXml(String filePath) {
         try {
             File xmlFile = new File(filePath);
+
+            // Vérification si le fichier existe
+            if (!xmlFile.exists()) {
+                throw new FileNotFoundException("Le fichier '" + filePath + "' est introuvable.");
+            }
+
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.parse(xmlFile);
@@ -39,18 +47,26 @@ public class Map {
             NodeList sectionElements = document.getElementsByTagName("troncon");
             for (int i = 0; i < sectionElements.getLength(); i++) {
                 Element element = (Element) sectionElements.item(i);
-                String originId = element.getAttribute("origine");
-                String destinationId = element.getAttribute("destination");
+                int originId = Integer.parseInt(element.getAttribute("origine"));
+                int destinationId = Integer.parseInt(element.getAttribute("destination"));
                 double length = Double.parseDouble(element.getAttribute("longueur"));
                 String name = element.getAttribute("nomRue");
 
                 // Create the Section objects
                 Section section = new Section();
-                section.initialisation(originId, destinationId, name, length);
+                section.initialisation(originId,destinationId,name,length);
                 sections.add(section);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public List<Section> getSections() {
+        return sections;
+    }
+
+    public List<Intersection> getIntersections() {
+        return intersections;
     }
 }
