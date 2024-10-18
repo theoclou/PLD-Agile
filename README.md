@@ -7,7 +7,7 @@ Main Features:
     Load and display city maps from XML files.
     Input and manage delivery requests.
     Compute the best delivery tour for selected couriers.
-    Handle multiple couriers and visualize tours on the map.
+    Handle multiple couriers and visualize tours on the plan.
 
 2. Development Environment
 

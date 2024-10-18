@@ -3,8 +3,10 @@ import org.w3c.dom.NodeList;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
@@ -12,9 +14,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 
-public class Map {
+public class Plan {
     private List<Section> sections = new ArrayList<>();
     private List<Intersection> intersections = new ArrayList<>();
+    private Map<String, Intersection> intersectionMap = new HashMap<>();
 
     public void readXml(String filePath) {
         try {
@@ -40,6 +43,7 @@ public class Map {
                 // Create the Intersection objects
                 Intersection intersection = new Intersection();
                 intersection.initialisation(id, latitude, longitude);
+                intersectionMap.put(id, intersection);
                 intersections.add(intersection);
             }
 
@@ -68,5 +72,8 @@ public class Map {
 
     public List<Intersection> getIntersections() {
         return intersections;
+    }
+    public Intersection getIntersectionById(String id) {
+        return intersectionMap.get(id);
     }
 }

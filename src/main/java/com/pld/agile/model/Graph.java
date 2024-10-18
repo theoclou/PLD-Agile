@@ -24,7 +24,7 @@ public class Graph {
         return result;
     }
 
-    public List<List<Section>> createMatrix(Map map){
+    public List<List<Section>> createMatrix(Plan plan){
         //TODO
         // IDK what the return type is
         List<List<Section>> result = new ArrayList<>();

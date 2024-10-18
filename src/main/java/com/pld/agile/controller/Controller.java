@@ -21,8 +21,8 @@ public class Controller {
 
     @PostMapping("/LoadMap")
     public String loadMap(@RequestBody String fileName) {
-        // Load the map into the Map object (or Graph IDK) but does not display it, displayMap is called later
-        return String.format("Map loaded from %s", fileName);
+        // Load the map into the Plan object (or Graph IDK) but does not display it, displayMap is called later
+        return String.format("Plan loaded from %s", fileName);
     }
 
     @GetMapping("/map")
