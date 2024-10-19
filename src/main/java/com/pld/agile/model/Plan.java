@@ -1,8 +1,12 @@
 package com.pld.agile.model;
+
 import org.w3c.dom.NodeList;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -11,7 +15,6 @@ import javax.xml.parsers.DocumentBuilder;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-
 public class Plan {
     private List<Section> sections = new ArrayList<>();
     private List<Intersection> intersections = new ArrayList<>();
@@ -19,6 +22,7 @@ public class Plan {
     public void readXml(String filePath) {
         try {
             File xmlFile = new File(filePath);
+
 
             // Vérification si le fichier existe
             if (!xmlFile.exists()) {
@@ -47,19 +51,36 @@ public class Plan {
             NodeList sectionElements = document.getElementsByTagName("troncon");
             for (int i = 0; i < sectionElements.getLength(); i++) {
                 Element element = (Element) sectionElements.item(i);
-                int originId = Integer.parseInt(element.getAttribute("origine"));
-                int destinationId = Integer.parseInt(element.getAttribute("destination"));
+                String originId = element.getAttribute("origine");
+                String destinationId = element.getAttribute("destination");
                 double length = Double.parseDouble(element.getAttribute("longueur"));
                 String name = element.getAttribute("nomRue");
 
                 // Create the Section objects
                 Section section = new Section();
-                section.initialisation(originId,destinationId,name,length);
+                section.initialisation(originId, destinationId, name, length);
                 sections.add(section);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        System.out.println("Nombre d'intersections : " + intersections.size());
+        System.out.println("Nombre de tronçons : " + sections.size());
+    }
+
+    // Méthode pour afficher le contenu du fichier XML
+    private void displayXmlContent(String filePath) {
+        StringBuilder content = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new FileReader(new File(filePath)))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                content.append(line).append("\n"); // Ajoute chaque ligne avec un saut de ligne
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Contenu du fichier XML :");
+        System.out.println(content.toString()); // Affiche le contenu
     }
 
     public List<Section> getSections() {
@@ -68,5 +89,14 @@ public class Plan {
 
     public List<Intersection> getIntersections() {
         return intersections;
+    }
+
+    public Intersection getIntersection(String id) {
+        for (Intersection intersection : intersections) {
+            if (intersection.getId().equals(id)) {
+                return intersection;
+            }
+        }
+        return null;
     }
 }

@@ -3,6 +3,8 @@ package com.pld.agile;
 import java.io.File;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.SpringApplication;
+
 
 import com.pld.agile.model.Intersection;
 import com.pld.agile.model.Plan;
@@ -13,8 +15,8 @@ public class Application {
 
 	public static void main(String[] args) {
 
-		//SpringApplication.run(Application.class, args);
-
+		SpringApplication.run(Application.class, args);
+		/*
 		System.out.println("Répertoire courant : " + new File(".").getAbsolutePath());
 		// Instanciation de la carte
 		Plan map = new Plan();
@@ -38,7 +40,7 @@ public class Application {
 		System.out.println("Sections:");
 		for (Section section : map.getSections()) {
 			System.out.println(section);
-		}
+		}*/
 	}
 }
 

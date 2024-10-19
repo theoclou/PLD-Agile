@@ -1,8 +1,8 @@
 package com.pld.agile.model;
 
 public class Section {
-    private int originId;
-    private int destinationId;
+    private String originId;
+    private String destinationId;
     private double length;
     private String name;
 
@@ -10,7 +10,7 @@ public class Section {
 
     }
 
-    public void initialisation(int originId, int destinationId, String name, double length ) {
+    public void initialisation(String originId, String destinationId, String name, double length ) {
         this.originId = originId;
         this.destinationId = destinationId;
         this.name = name;
@@ -18,8 +18,8 @@ public class Section {
     }
 
     // Getters and toString()
-    public int getOrigin() { return originId; }
-    public int getDestination() { return destinationId; }
+    public String getOrigin() { return originId; }
+    public String getDestination() { return destinationId; }
     public double getLength() { return length; }
     public String getName() { return name; }
 
