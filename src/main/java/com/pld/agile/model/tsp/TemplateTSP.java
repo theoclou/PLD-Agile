@@ -8,7 +8,7 @@ import java.util.Iterator;
 public abstract class TemplateTSP implements TSP {
 	private Integer[] bestSol;
 	protected Graph g;
-	private int bestSolCost;
+	private Double bestSolCost;
 	private int timeLimit;
 	private long startTime;
 	
@@ -22,8 +22,8 @@ public abstract class TemplateTSP implements TSP {
 		for (int i=1; i<g.getNbVertices(); i++) unvisited.add(i);
 		Collection<Integer> visited = new ArrayList<Integer>(g.getNbVertices());
 		visited.add(0); // The first visited vertex is 0
-		bestSolCost = Integer.MAX_VALUE;
-		branchAndBound(0, unvisited, visited, 0);
+		bestSolCost = Double.MAX_VALUE;
+		branchAndBound(0, unvisited, visited, 0.0);
 	}
 	
 	public Integer getSolution(int i){
@@ -32,10 +32,10 @@ public abstract class TemplateTSP implements TSP {
 		return -1;
 	}
 	
-	public int getSolutionCost(){
+	public Double getSolutionCost(){
 		if (g != null)
 			return bestSolCost;
-		return -1;
+		return -1.0;
 	}
 	
 	/**
@@ -64,9 +64,9 @@ public abstract class TemplateTSP implements TSP {
 	 * @param currentCost the cost of the path corresponding to <code>visited</code>
 	 */	
 	private void branchAndBound(int currentVertex, Collection<Integer> unvisited, 
-			Collection<Integer> visited, int currentCost){
+			Collection<Integer> visited, Double currentCost){
 		if (System.currentTimeMillis() - startTime > timeLimit) return;
-	    if (unvisited.size() == 0){ 
+	    if (unvisited.isEmpty()){ 
 	    	if (g.isArc(currentVertex,0)){ 
 	    		if (currentCost+g.getCost(currentVertex,0) < bestSolCost){ 
 	    			visited.toArray(bestSol);

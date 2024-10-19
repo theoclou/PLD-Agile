@@ -1,6 +1,7 @@
 package com.pld.agile.model;
 
 public class Courier {
+    @SuppressWarnings("FieldMayBeFinal")
     private  Integer id;
     private String name;
 

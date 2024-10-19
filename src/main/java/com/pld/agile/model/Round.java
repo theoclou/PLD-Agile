@@ -1,12 +1,14 @@
 package com.pld.agile.model;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Round {
-    private List<Courier> courierList;
-    private List<DeliveryRequest> deliveryRequestList;
-    private Map<Courier, DeliveryTour> tourAttribution;
+    private List<Courier> courierList=new ArrayList<>();
+    private List<DeliveryRequest> deliveryRequestList=new ArrayList<>();
+    private Map<Courier, DeliveryTour> tourAttribution= new HashMap<>();
 
     public Round() {}
 

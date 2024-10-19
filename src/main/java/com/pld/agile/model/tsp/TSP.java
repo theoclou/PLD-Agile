@@ -21,6 +21,6 @@ public interface TSP {
 	 * @return the total cost of the solution computed by <code>searchSolution</code> 
 	 * (-1 if <code>searcheSolution</code> has not been called yet).
 	 */
-	public int getSolutionCost();
+	public Double getSolutionCost();
 
 }

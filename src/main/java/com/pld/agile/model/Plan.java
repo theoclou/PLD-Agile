@@ -1,21 +1,38 @@
 package com.pld.agile.model;
 
-import org.w3c.dom.NodeList;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.DocumentBuilder;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 public class Plan {
+    @SuppressWarnings("FieldMayBeFinal")
     private List<Section> sections = new ArrayList<>();
+    @SuppressWarnings("FieldMayBeFinal")
     private List<Intersection> intersections = new ArrayList<>();
+    @SuppressWarnings("FieldMayBeFinal")
     private Map<String, Integer> indexes = new HashMap<>();
+    @SuppressWarnings("FieldMayBeFinal")
     private ArrayList<ArrayList<Double>> costsMatrix = new ArrayList<>();
 
+    public Plan() {
+    }
+
+    
+    @SuppressWarnings("UseSpecificCatch")
     public void readXml(String filePath) {
         try {
             File xmlFile = new File(filePath);
@@ -164,7 +181,7 @@ public class Plan {
         return path;
     }
 
-    public List<Integer> findShortestPath(int origin, int destination) {
+    private Map<String, Object> dijkstraAlgorithm(int origin, int destination) {
         int numNodes = costsMatrix.size();
 
         // Initialize required arrays and structures
@@ -190,93 +207,50 @@ public class Plan {
             updateNeighborDistances(currentNode, numNodes, distances, visited, previousNodes, priorityQueue,
                     costsMatrix);
         }
+
+        // Return the total distance and the previous nodes
+        Map<String, Object> result = new HashMap<>();
+        result.put("distance", distances[destination]);
+        result.put("previousNodes", previousNodes);
+        return result;
+    }
+
+    // Function to return the shortest path
+    public List<Integer> findShortestPath(int origin, int destination) {
+        Map<String, Object> result = dijkstraAlgorithm(origin, destination);
+        int[] previousNodes = (int[]) result.get("previousNodes");
         // Reconstruct and return the shortest path
         return reconstructPath(destination, origin, previousNodes);
     }
+
+    // Function to return the total distance
+    public double findShortestDistance(int origin, int destination) {
+        Map<String, Object> result = dijkstraAlgorithm(origin, destination);
+        double totalDistance = (double) result.get("distance");
+        // If unreachable, return -1
+        return totalDistance == Double.MAX_VALUE ? -1 : totalDistance;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Plan Details:\n");
+
+        // Print Cost Matrix
+        sb.append("Cost Matrix:\n");
+        for (int i = 0; i < costsMatrix.size(); i++) {
+            for (int j = 0; j < costsMatrix.get(i).size(); j++) {
+                double cost = costsMatrix.get(i).get(j);
+                if (cost == Double.MAX_VALUE) {
+                    sb.append(" ∞ ");
+                } else {
+                    sb.append(String.format("%6.2f", cost)).append(" ");
+                }
+            }
+            sb.append("\n");
+        }
+
+        return sb.toString();
+    }
+
 }
-
-
-
-
-
-
-
-
-
-
-
-
-    /*
-     * public List<Integer> findShortestPath(int origin, int destination) {
-     * int numNodes = costsMatrix.size();
-     * 
-     * // Distance array to store the shortest distance from the origin to each node
-     * double[] distances = new double[numNodes];
-     * // Array to track if the node has been processed
-     * boolean[] visited = new boolean[numNodes];
-     * // Array to store the previous node in the shortest path
-     * int[] previousNodes = new int[numNodes];
-     * 
-     * // Initialize distances as infinity, visited as false, and previous nodes as
-     * -1
-     * Arrays.fill(distances, Double.MAX_VALUE);
-     * Arrays.fill(visited, false);
-     * Arrays.fill(previousNodes, -1);
-     * 
-     * // Distance from origin to itself is 0
-     * distances[origin] = 0.0;
-     * 
-     * // Priority queue to get the node with the minimum distance
-     * PriorityQueue<Integer> priorityQueue = new
-     * PriorityQueue<>(Comparator.comparingDouble(node -> distances[node]));
-     * priorityQueue.add(origin);
-     * 
-     * while (!priorityQueue.isEmpty()) {
-     * // Get the node with the minimum distance
-     * int currentNode = priorityQueue.poll();
-     * 
-     * // If we reached the destination, stop
-     * if (currentNode == destination) {
-     * break;
-     * }
-     * 
-     * // Mark the node as visited
-     * visited[currentNode] = true;
-     * 
-     * // Explore the neighbors of the current node
-     * for (int neighbor = 0; neighbor < numNodes; neighbor++) {
-     * // Only consider unvisited nodes with a connection (non-infinite distance)
-     * if (!visited[neighbor] && costsMatrix.get(currentNode).get(neighbor) <
-     * Double.MAX_VALUE) {
-     * // Calculate the new distance
-     * double newDist = distances[currentNode] +
-     * costsMatrix.get(currentNode).get(neighbor);
-     * 
-     * // If a shorter path is found, update the distance and previous node
-     * if (newDist < distances[neighbor]) {
-     * distances[neighbor] = newDist;
-     * previousNodes[neighbor] = currentNode;
-     * priorityQueue.add(neighbor);
-     * }
-     * }
-     * }
-     * }
-     * 
-     * // Reconstruct the shortest path
-     * List<Integer> path = new ArrayList<>();
-     * for (int node = destination; node != -1; node = previousNodes[node]) {
-     * path.add(node);
-     * }
-     * Collections.reverse(path);
-     * 
-     * // If the destination is not reachable, the path will only contain the
-     * // destination node
-     * if (path.size() == 1 && path.get(0) != origin) {
-     * System.out.println("No path found between origin and destination.");
-     * return new ArrayList<>();
-     * }
-     * 
-     * return path;
-     * }
-     */
-    // Function to initialize the distances array
