@@ -3,11 +3,11 @@ package com.pld.agile.model;
 import java.util.*;
 
 public class Graph {
-    private Map<Intersection, List<Section>> adjacencyMatrixTSP;
+    private Plan<Intersection, List<Section>> adjacencyMatrixTSP;
 
     public Graph() {}
 
-    public Graph init(Map<Intersection, List<Section>> adjacencyMatrixTSP){
+    public Graph init(Plan<Intersection, List<Section>> adjacencyMatrixTSP){
         this.adjacencyMatrixTSP = adjacencyMatrixTSP;
         return this;
     }
@@ -24,7 +24,7 @@ public class Graph {
         return result;
     }
 
-    public List<List<Section>> createMatrix(Map map){
+    public List<List<Section>> createMatrix(Plan map){
         //TODO
         // IDK what the return type is
         List<List<Section>> result = new ArrayList<>();

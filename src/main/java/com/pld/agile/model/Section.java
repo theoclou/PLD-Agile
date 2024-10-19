@@ -8,18 +8,13 @@ class Section {
 
     public Section() {}
 
-    public Section init(Intersection origin, Intersection destination, String name, double length ) {
+    public void Section init(Intersection origin, Intersection destination, String name, double length ) {
         this.origin = origin;
         this.destination = destination;
         this.streetName = name;
         this.length = length;
-        return this;
     }
     
-
-    public Section() {
-    }
-
     // Getters and toString()
     public Intersection getOrigin() { return origin; }
     public Intersection getDestination() { return destination; }
@@ -32,9 +27,5 @@ class Section {
                 "', name=" + streetName + ", length='" + length + "'}";
     }
 
-
-    public void initialisation(String originId, String destinationId, String name, double length2) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'initialisation'");
-    }
+    
 }

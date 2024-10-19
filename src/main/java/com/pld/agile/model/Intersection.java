@@ -23,4 +23,5 @@ class Intersection {
     public String toString() {
         return "Intersection{id='" + id + "', latitude=" + latitude + ", longitude=" + longitude + "}";
     }
+    
 }
