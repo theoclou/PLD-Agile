@@ -12,7 +12,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 
-public class Map {
+public class Plan {
     private List<Section> sections = new ArrayList<>();
     private List<Intersection> intersections = new ArrayList<>();
 
