@@ -40,11 +40,11 @@ public class Application {
 		// System.out.println(plan);
 		int origin = 1;
 		int destination = 48;
-		List<Integer> vertices = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17);
+		List<Integer> vertices = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8,9);
 		TSP tsp = new TSP1();
 		Solver solver = new Solver(plan, vertices, tsp);
 		solver.createCompleteGraph();
-		int n = 18;
+		int n = 10;
 		long t = System.currentTimeMillis();
 		/*
 		 * ArrayList<Integer> visited = new ArrayList<>();
