@@ -1,12 +1,12 @@
 package com.pld.agile;
 
-import com.pld.agile.model.*;
-import org.springframework.boot.SpringApplication;
+import java.io.File;
+
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import com.pld.agile.model.Intersection;
+import com.pld.agile.model.Plan;
+import com.pld.agile.model.Section;
 
 @SpringBootApplication
 public class Application {
@@ -18,12 +18,12 @@ public class Application {
 
 		System.out.println("Répertoire courant : " + new File(".").getAbsolutePath());
 		// Instanciation de la carte
-		Plan plan = new Plan();
+		Plan map = new Plan();
 
 		// Lecture du fichier XML
 		String filePath = "src/data/petitPlan.xml"; // Remplacez par le chemin réel du fichier XML
 		try {
-			plan.readXml(filePath);
+			map.readXml(filePath);
 		} catch (Exception e) {
 			System.err.println("Erreur : " + e.getMessage());
 			System.exit(1);  // Arrêter le programme avec un code d'erreur
