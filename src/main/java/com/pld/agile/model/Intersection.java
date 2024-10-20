@@ -5,11 +5,9 @@ public class Intersection {
     private double latitude;
     private double longitude;
 
-
     public Intersection() {
 
     }
-    
     public void initialisation(String id, double latitude, double longitude) {
         this.id = id;
         this.latitude = latitude;
@@ -25,4 +23,5 @@ public class Intersection {
     public String toString() {
         return "Intersection{id='" + id + "', latitude=" + latitude + ", longitude=" + longitude + "}";
     }
+    
 }

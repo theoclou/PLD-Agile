@@ -20,4 +20,53 @@ public class DeliveryTour {
         this.route = route;
         this.arrivalTimes = arrivalTimes;
     }
+
+    public Courier getCourier() {
+        return this.courier;
+    }
+
+    public void setCourier(Courier courier) {
+        this.courier = courier;
+    }
+
+    public LocalTime getStartTime() {
+        return this.startTime;
+    }
+
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalTime getEndTime() {
+        return this.endTime;
+    }
+
+    public void setEndTime(LocalTime endTime) {
+        this.endTime = endTime;
+    }
+
+    public List<DeliveryRequest> getDeliveryRequests() {
+        return this.deliveryRequests;
+    }
+
+    public void setDeliveryRequests(List<DeliveryRequest> deliveryRequests) {
+        this.deliveryRequests = deliveryRequests;
+    }
+
+    public List<Section> getRoute() {
+        return this.route;
+    }
+
+    public void setRoute(List<Section> route) {
+        this.route = route;
+    }
+
+    public Map<Intersection,LocalTime> getArrivalTimes() {
+        return this.arrivalTimes;
+    }
+
+    public void setArrivalTimes(Map<Intersection,LocalTime> arrivalTimes) {
+        this.arrivalTimes = arrivalTimes;
+    }
+
 }

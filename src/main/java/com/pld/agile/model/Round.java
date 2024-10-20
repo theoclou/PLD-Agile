@@ -8,16 +8,18 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.io.File;
 import java.io.FileNotFoundException;
 
 public class Round {
-    private List<Courier> courierList;
-    private List<DeliveryRequest> deliveryRequestList;
-    private Map<Courier, DeliveryTour> tourAttribution;
     private Plan plan;
+    private List<Courier> courierList=new ArrayList<>();
+    private List<DeliveryRequest> deliveryRequestList=new ArrayList<>();
+    private Map<Courier, DeliveryTour> tourAttribution= new HashMap<>();
 
     public Round() {}
 
