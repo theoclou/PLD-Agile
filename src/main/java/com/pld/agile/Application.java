@@ -1,15 +1,14 @@
 package com.pld.agile;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import com.pld.agile.model.Courier;
 import com.pld.agile.model.Plan;
+import com.pld.agile.model.Round;
 import com.pld.agile.model.Solver;
 import com.pld.agile.model.tsp.TSP;
 import com.pld.agile.model.tsp.TSP1;

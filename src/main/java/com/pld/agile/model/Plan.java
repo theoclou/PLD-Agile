@@ -1,12 +1,7 @@
 package com.pld.agile.model;
-import org.w3c.dom.NodeList;
-
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -17,9 +12,10 @@ import java.util.PriorityQueue;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.DocumentBuilder;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 
@@ -110,8 +106,7 @@ public class Plan {
     public Intersection getIntersectionById(String id) {
         return intersectionMap.get(id);
     }
-}
-
+    
     // Reindex intersections based on their IDs
     public void reIndexIntersections() {
         int i = 0;
@@ -280,3 +275,4 @@ public class Plan {
     }
 
 }
+
