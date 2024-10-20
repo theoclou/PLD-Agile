@@ -51,4 +51,37 @@ public class Solver {
 				System.out.print(tsp.getSolution(i)+" ");
 			System.out.println("0");
     }
+
+    public List<Integer> getVertices() {
+        return this.vertices;
+    }
+
+    public void setVertices(List<Integer> vertices) {
+        this.vertices = vertices;
+    }
+
+    public ArrayList<ArrayList<Double>> getCompleteMatrix() {
+        return this.completeMatrix;
+    }
+
+    public void setCompleteMatrix(ArrayList<ArrayList<Double>> completeMatrix) {
+        this.completeMatrix = completeMatrix;
+    }
+
+    public Plan getPlan() {
+        return this.plan;
+    }
+
+    public void setPlan(Plan plan) {
+        this.plan = plan;
+    }
+
+    public TSP getTsp() {
+        return this.tsp;
+    }
+
+    public void setTsp(TSP tsp) {
+        this.tsp = tsp;
+    }
+
 }

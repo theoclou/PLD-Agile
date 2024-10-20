@@ -1,8 +1,11 @@
 package com.pld.agile;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -10,6 +13,7 @@ import com.pld.agile.model.Plan;
 import com.pld.agile.model.Solver;
 import com.pld.agile.model.tsp.TSP;
 import com.pld.agile.model.tsp.TSP1;
+import com.pld.agile.model.tspOptimized.BranchAndBound;
 
 @SpringBootApplication
 public class Application {
@@ -36,12 +40,32 @@ public class Application {
 		// System.out.println(plan);
 		int origin = 1;
 		int destination = 48;
-		List<Integer> vertices = Arrays.asList(1, 48, 49, 45, 2, 38, 92, 158, 17, 15, 33, 16, 5);
+		List<Integer> vertices = Arrays.asList(0, 1, 2, 3, 4);
 		TSP tsp = new TSP1();
 		Solver solver = new Solver(plan, vertices, tsp);
 		solver.createCompleteGraph();
+		int n = 5;
+		long t = System.currentTimeMillis();
+		/* ArrayList<Integer> visited = new ArrayList<>();
+		visited.add(0);
 
-		solver.solveTSP();
+		// Create the initial notVisited set with vertices 1 to n-1
+		Set<Integer> notVisited = new HashSet<>();
+		for (int i = 1; i < n; i++) {
+			notVisited.add(i);
+		} */
+		BranchAndBound bnb = new BranchAndBound();
+		bnb.setCostsMatrix(solver.getCompleteMatrix());
+		int[] visited = new int[n];
+		int[] notVisited = new int[n - 1];
+		visited[0] = 0;
+		for (int i = 0; i < n-1 ; i++) {
+			notVisited[i] = vertices.get(i+1);
+		}
+		bnb.finBestCost(visited, notVisited);
+		System.out.printf("n=%d nbCalls=%d time=%.3fs\n", n, bnb.getNbCalls(),
+				(System.currentTimeMillis() - t) / 1000.0);
+		// solver.solveTSP();
 
 		/*
 		 * // Affichage des intersections
@@ -60,21 +84,4 @@ public class Application {
 	}
 }
 
-// Si on part sur ThymeLeaf
-/*
- * @Bean
- * public ViewResolver viewResolver() {
- * ClassLoaderTemplateResolver templateResolver = new
- * ClassLoaderTemplateResolver();
- * templateResolver.setPrefix("templates/"); // Dossier des vues
- * templateResolver.setSuffix(".html"); // Extension des fichiers
- * templateResolver.setTemplateMode("HTML");
- * 
- * SpringTemplateEngine engine = new SpringTemplateEngine();
- * engine.setTemplateResolver(templateResolver);
- * 
- * ThymeleafViewResolver viewResolver = new ThymeleafViewResolver();
- * viewResolver.setTemplateEngine(engine);
- * return viewResolver;
- * }
- */
+
