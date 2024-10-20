@@ -1,70 +1,121 @@
 package com.pld.agile.model.tspOptimized;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
-
-import com.pld.agile.model.Plan;
+import java.util.Arrays;
+import java.util.Comparator;
 
 public class BranchAndBound {
     private long nbCalls = 0; // Number of calls to the recursive permut function
-    private Plan plan;
     private ArrayList<ArrayList<Double>> costsMatrix = new ArrayList<>();
-    private Double best = Double.MAX_VALUE;
-    
+    private double best = Double.MAX_VALUE;
+    private int[] bestPath; // To store the best path found
 
+    //  initiate the permutation process
+    public void findBestCost() {
+        int n = costsMatrix.size(); // Number of nodes
+        int[] visited = new int[n + 1]; // +1 to include the return to starting point
+        int[] notVisited = new int[n - 1]; // Exclude the starting node (0)
 
-
-    public void finBestCost(int[] visited, int[] notVisited) {
-        double distance = 0.0;
+        // Initialize visited and notVisited arrays
         visited[0] = 0; // Start from node 0
-        permut(visited, 1, notVisited, notVisited.length, distance);
-        System.out.println(best);
-    }
-
-
-
-
-
-    private void printTable(ArrayList<Integer> visited) {
-        for (int vertex : visited) {
-            System.out.print(vertex + " ");
+        for (int i = 1; i < n; i++) {
+            notVisited[i - 1] = i;
         }
-        System.out.println("0");
+
+        bestPath = new int[n + 1]; // +1 for the return to starting point
+
+        // Start the recursive permutation
+        permut(visited, 1, notVisited, n - 1, 0.0);
+
+        // Output the best cost and path
+        System.out.println("Best cost: " + best);
+        System.out.print("Best path: ");
+        for (int i = 0; i <= n; i++) {
+            System.out.print(bestPath[i] + " ");
+        }
+        System.out.println();
     }
 
+    private void permut(int[] visited, int nbVisited, int[] notVisited, int nbNotVisited, double distance) {
+        nbCalls++;
 
+        // eliminate paths exceeding current best distance
+        if (distance >= best) {
+            return;
+        }
 
+        // Base case: all nodes have been visited
+        if (nbNotVisited == 0) {
+            // Add distance to return to the starting point
+            distance += costsMatrix.get(visited[nbVisited - 1]).get(0);
+            if (distance < best) {
+                best = distance;
+                // Save the best path found
+                System.arraycopy(visited, 0, bestPath, 0, nbVisited);
+                bestPath[nbVisited] = 0; // Return to starting point
+            }
+            return;
+        }
+
+        // Create a temporary array for sorting the remaining nodes
+        Integer[] sortedNotVisited = new Integer[nbNotVisited];
+        for (int i = 0; i < nbNotVisited; i++) {
+            sortedNotVisited[i] = notVisited[i];
+        }
+
+        int lastVisited = visited[nbVisited - 1];
+
+        // Sort the remaining nodes based on cost from last visited node
+        Arrays.sort(sortedNotVisited, Comparator.comparingDouble(a -> costsMatrix.get(lastVisited).get(a)));
+
+        // Iterate over sorted nodes
+        for (int idx = 0; idx < nbNotVisited; idx++) {
+            int nextNode = sortedNotVisited[idx];
+            double newDistance = distance + costsMatrix.get(lastVisited).get(nextNode);
+
+            // Eliminate paths exceeding current best distance
+            if (newDistance >= best) {
+                continue;
+            }
+
+            //intersection check
+            boolean hasIntersection = containIntersection(nbVisited, lastVisited, nextNode, visited);
+            if (!hasIntersection) {
+                // Find the index of nextNode in notVisited
+                int indexInNotVisited = findIndex(notVisited, nextNode, nbNotVisited);
+                if (indexInNotVisited == -1) {
+                    continue; 
+                }
+
+                updateTables(visited, nbVisited, notVisited, nbNotVisited, nextNode, indexInNotVisited);
+
+                // Recursive call with updated counts
+                permut(visited, nbVisited + 1, notVisited, nbNotVisited - 1, newDistance);
+
+                restoreTables(notVisited, nbNotVisited, nextNode, indexInNotVisited);
+            }
+        }
+    }
 
     private boolean edgesIntersect(int i, int iNext, int j, int jNext) {
-        // cost of (v_i,v_i+1)
+        
         double edge1 = costsMatrix.get(i).get(iNext);
-        // cost of (v_j,v_j+1)
         double edge2 = costsMatrix.get(j).get(jNext);
 
-        // cost of (v_i, v_j)
         double cross1 = costsMatrix.get(i).get(j);
-
-        // cost of (v_i+1, v_j+1)
         double cross2 = costsMatrix.get(iNext).get(jNext);
 
         return edge1 + edge2 > cross1 + cross2;
     }
 
-
-
-
     private boolean containIntersection(int nbVisited, int lastVisited, int nextNode, int[] visited) {
         for (int j = 0; j < nbVisited - 1; j++) {
-            if (edgesIntersect(lastVisited, nextNode, visited[j], visited[j + 1])) {
+            if (edgesIntersect(visited[j], visited[j + 1], lastVisited, nextNode)) {
                 return true;
             }
         }
         return false;
     }
-
-
-
 
     private void updateTables(int[] visited, int nbVisited, int[] notVisited, int nbNotVisited, int nextNode, int i) {
         // Add nextNode to visited
@@ -73,75 +124,24 @@ public class BranchAndBound {
         // Swap nextNode with the last unvisited node
         notVisited[i] = notVisited[nbNotVisited - 1];
         notVisited[nbNotVisited - 1] = nextNode;
-
     }
 
-
-
-
-    private void restoreTables(int [] notVisited,int nbNotVisited,int nextNode,int i)
-    {
+    private void restoreTables(int[] notVisited, int nbNotVisited, int nextNode, int i) {
         // Swap back to restore original notVisited
         notVisited[nbNotVisited - 1] = notVisited[i];
         notVisited[i] = nextNode;
     }
 
-
-
-    private double calculateLowerBound(int[] notVisited, int nbNotVisited) {
-        double minEdge = Double.MAX_VALUE;
-        for (int i = 0; i < nbNotVisited; i++) {
-            int node = notVisited[i];
-            for (int j = 0; j < costsMatrix.size(); j++) {
-                if (minEdge >= costsMatrix.get(node).get(j) && node != j) {
-                    minEdge = costsMatrix.get(node).get(j);
-                }
+    private int findIndex(int[] array, int value, int length) {
+        for (int idx = 0; idx < length; idx++) {
+            if (array[idx] == value) {
+                return idx;
             }
         }
-        return minEdge;
-    }
-    
-
-
-
-
-    private void permut(int[] visited, int nbVisited, int[] notVisited, int nbNotVisited, double distance) {
-        nbCalls++;
-        if (distance >= best) {
-            return;
-        }
-        // Base case: all nodes have been visited
-        if (nbNotVisited == 0) {
-            // Add distance to return to the starting point
-            distance += costsMatrix.get(visited[nbVisited - 1]).get(0);
-            if (distance < best) {
-                best = distance;
-            }
-            return;
-        }
-        for (int i = 0; i < nbNotVisited; i++) {
-            int nextNode = notVisited[i];
-            int lastVisited = visited[nbVisited - 1];
-            double newDistance = distance + costsMatrix.get(lastVisited).get(nextNode);
-            if (newDistance >= best) {
-                continue;
-            }
-            // Edge intersection check
-            boolean hasIntersection = containIntersection(nbVisited, lastVisited, nextNode, visited);
-            if (!hasIntersection) {
-                updateTables(visited, nbVisited, notVisited, nbNotVisited, nextNode, i);
-                // Recursive call with updated counts
-                permut(visited, nbVisited + 1, notVisited, nbNotVisited - 1, newDistance);
-                restoreTables( notVisited, nbNotVisited, nextNode, i);
-            }
-        }
+        return -1;
     }
 
-
-
-
-
-
+    // Getters and setters
     public ArrayList<ArrayList<Double>> getCostsMatrix() {
         return this.costsMatrix;
     }
@@ -160,5 +160,4 @@ public class BranchAndBound {
 
     public BranchAndBound() {
     }
-
 }
