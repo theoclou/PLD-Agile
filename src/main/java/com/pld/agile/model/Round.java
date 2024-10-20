@@ -6,6 +6,8 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.io.File;
@@ -22,6 +24,8 @@ public class Round {
     public void init(List<Courier> courierList, Plan plan) {
         this.courierList = courierList;
         this.plan = plan;
+        this.deliveryRequestList = new ArrayList<DeliveryRequest>();
+        this.tourAttribution = new HashMap<Courier, DeliveryTour>();
     }
 
     public Map<Courier, DeliveryTour> getTourAttribution() {
