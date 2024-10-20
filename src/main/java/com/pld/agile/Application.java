@@ -15,7 +15,6 @@ public class Application {
 
 		//SpringApplication.run(Application.class, args);
 
-		System.out.println("Répertoire courant : " + new File(".").getAbsolutePath());
 		// Instanciation de la carte
 		Plan map = new Plan();
 

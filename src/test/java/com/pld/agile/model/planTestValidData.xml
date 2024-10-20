@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<reseau>
+    <noeud id="25175791" latitude="45.75406" longitude="4.857418"/>
+    <noeud id="2129259178" latitude="45.750404" longitude="4.8744674"/>
+    <noeud id="26086130" latitude="45.75871" longitude="4.8704023"/>
+    <troncon destination="25175778" longueur="69.979805" nomRue="Rue Danton" origine="25175791"/>
+    <troncon destination="2117622723" longueur="136.00636" nomRue="Rue de l'Abondance" origine="25175791"/>
+</reseau>
