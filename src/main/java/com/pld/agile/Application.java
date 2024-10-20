@@ -33,7 +33,7 @@ public class Application {
 		Round round = new Round();
 		List<Courier> couriers = new ArrayList<>();
 		round.init(couriers, plan);
-		String requestPath = "src/data/demandeGrand9.xml";
+		String requestPath = "src/data/demandePetit2.xml";
 		try{
 			round.loadRequests(requestPath);
 		}catch (Exception e){
