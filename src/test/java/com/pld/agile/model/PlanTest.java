@@ -42,7 +42,7 @@ class PlanTest {
         assertEquals(2, sections.size(), "Incorrect number of section.");
 
         Section section = sections.stream()
-                .filter(s -> s.getOrigin() == 25175791 && s.getDestination() == 25175778)
+                .filter(s -> "25175791".equals(s.getOrigin()) && "25175778".equals(s.getDestination()))
                 .findFirst()
                 .orElse(null);
 

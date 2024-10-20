@@ -1,7 +1,8 @@
 package com.pld.agile.model;
 
 public class Courier {
-    private Integer id;
+    @SuppressWarnings("FieldMayBeFinal")
+    private  Integer id;
     private String name;
 
     public Courier(Integer id, String name) {
@@ -10,11 +11,11 @@ public class Courier {
     }
 
     public Integer getId() {
-        return id;
+        return this.id;
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public void setName(String name) {

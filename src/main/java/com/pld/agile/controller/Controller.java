@@ -1,6 +1,7 @@
 package com.pld.agile.controller;
 
 import com.pld.agile.model.DeliveryRequest;
+import com.pld.agile.model.Round;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,8 +22,8 @@ public class Controller {
 
     @PostMapping("/LoadMap")
     public String loadMap(@RequestBody String fileName) {
-        // Load the map into the Map object (or Graph IDK) but does not display it, displayMap is called later
-        return String.format("Map loaded from %s", fileName);
+        // Load the map into the Plan object (or Graph IDK) but does not display it, displayMap is called later
+        return String.format("Plan loaded from %s", fileName);
     }
 
     @GetMapping("/map")
@@ -60,5 +61,6 @@ public class Controller {
         // Validate the DeliveryRequest with the id given in the body
         return String.format("Delivery request validated: %s", deliveryRequestId);
     }
+
 
 }
