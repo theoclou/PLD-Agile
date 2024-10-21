@@ -1,29 +1,21 @@
-package com.pld.agile;
+package com.pld.agile.model.tspOptimized;
 
-import java.util.ArrayList;
+
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.SpringApplication;
-
-
-import com.pld.agile.model.Courier;
 import com.pld.agile.model.Plan;
-import com.pld.agile.model.Round;
 import com.pld.agile.model.Solver;
 import com.pld.agile.model.tsp.TSP;
 import com.pld.agile.model.tsp.TSP1;
-import com.pld.agile.model.tspOptimized.BranchAndBound;
 
-@SpringBootApplication
-public class Application {
-	//TODO
-	//Faire test en JUnit
-	public static void main(String[] args) {
+public class runBnB {
+    public static void main(String[] args) {
 
-		//SpringApplication.run(Application.class, args);
-    
+		// SpringApplication.run(Application.class, args);
+
+		System.out.println("Répertoire courant : " + new File(".").getAbsolutePath());
 		// Instanciation de la carte
 		Plan plan = new Plan();
 
@@ -42,7 +34,8 @@ public class Application {
 		int origin = 1;
 		int destination = 48;
 		List<Integer> vertices = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8,9);
-		TSP tsp = new TSP1();
+		TSP tsp;
+        tsp = new TSP1();
 		Solver solver = new Solver(plan, vertices, tsp);
 		solver.createCompleteGraph();
 		int n = 10;
@@ -50,7 +43,7 @@ public class Application {
 		/*
 		 * ArrayList<Integer> visited = new ArrayList<>();
 		 * visited.add(0);
-		 *
+		 * 
 		 * // Create the initial notVisited set with vertices 1 to n-1
 		 * Set<Integer> notVisited = new HashSet<>();
 		 * for (int i = 1; i < n; i++) {
@@ -70,27 +63,17 @@ public class Application {
 				(System.currentTimeMillis() - t) / 1000.0);
 		solver.solveTSP();
 
-		// Création Round
-		Round round = new Round();
-		List<Courier> couriers = new ArrayList<>();
-		round.init(couriers, plan);
-		String requestPath = "src/data/demandePetit2.xml";
-		try{
-			round.loadRequests(requestPath);
-		}catch (Exception e){
-			System.err.println("Erreur : " + e.getMessage());
-		}
+		// Affichage des intersections
+		// System.out.println("Intersections:");
+		// for (Intersection intersection : plan.getIntersections()) {
+		// 	System.out.println(intersection);
+		// }
 
-//		// Affichage des intersections
-//		System.out.println("Intersections:");
-//		for (Intersection intersection : plan.getIntersections()) {
-//			System.out.println(intersection);
-//		}
-//
-//		// Affichage des sections
-//		System.out.println("Sections:");
-//		for (Section section : plan.getSections()) {
-//			System.out.println(section);
-//		}
+		// // Affichage des sections
+		// System.out.println("Sections:");
+		// for (Section section : plan.getSections()) {
+		// 	System.out.println(section);
+		// }
+
 	}
 }
