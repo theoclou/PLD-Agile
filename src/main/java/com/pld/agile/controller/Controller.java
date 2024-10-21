@@ -13,6 +13,7 @@ import com.pld.agile.model.Round;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,14 +55,37 @@ public class Controller {
     @GetMapping("/map")
     public Map<String, Object> displayMap() {
         Map<String, Object> response = new HashMap<>();
-        List<Intersection> intersections = map.getIntersections(); // Récupérer les intersections
-        List<Section> sections = map.getSections(); // Récupérer les sections
 
-        response.put("intersections", intersections); // Ajouter les intersections à la réponse
-        response.put("sections", sections); // Ajouter les sections à la réponse
+        List<Intersection> intersections = map.getIntersections();
+        List<Section> sections = map.getSections();
 
-        return response; // Retourner les données sous forme de JSON
+        // Construct list for the front
+        List<Map<String, Object>> detailedSections = new ArrayList<>();
+
+        for (Section section : sections) {
+            String originId = section.getOrigin();
+            String destinationId = section.getDestination();
+
+            Intersection originIntersection = map.getIntersectionById(originId);
+            Intersection destinationIntersection = map.getIntersectionById(destinationId);
+
+            if (originIntersection != null && destinationIntersection != null) {
+                Map<String, Object> sectionDetails = new HashMap<>();
+                sectionDetails.put("origin", originIntersection);
+                sectionDetails.put("destination", destinationIntersection);
+                sectionDetails.put("length", section.getLength());
+                sectionDetails.put("name", section.getName());
+
+                detailedSections.add(sectionDetails);
+            }
+        }
+
+        response.put("intersections", intersections);
+        response.put("sections", detailedSections);
+
+        return response;
     }
+
 
     @PostMapping("/compute")
     public String computeTours() {

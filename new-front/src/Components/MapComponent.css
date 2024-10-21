@@ -1,0 +1,79 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100%;
+    background-color: #cac7c7;
+}
+
+.title {
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 4.5rem;
+    color: #333;
+}
+.map {
+    width: 100%;
+    width : 50%;
+    height: 50%; /* Vous pouvez ajuster cette valeur selon vos besoins */
+}
+
+.buttonContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 15px;
+}
+
+.button {
+    padding: 10px 15px;
+    font-size: 1rem;
+    color: white;
+    background-color: #3d5978;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-right: 10px;
+}
+
+.button:hover {
+    background-color: #485d77;
+}
+
+.inputField {
+    padding: 5px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    transition: border-color 0.3s ease;
+}
+
+.inputField:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+.courierCounter {
+    margin: 0 10px;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.custom-file-upload {
+    display: inline-block;
+    padding: 10px 15px;
+    cursor: pointer;
+    background-color: #3d5978;
+    color: white;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.custom-file-upload:hover {
+    background-color: #485d77;
+}

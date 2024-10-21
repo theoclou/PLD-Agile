@@ -22,8 +22,9 @@ public class Application {
 	//Faire test en JUnit
 	public static void main(String[] args) {
 
-		//SpringApplication.run(Application.class, args);
-    
+		// Launch App
+		SpringApplication.run(Application.class, args);
+
 		// Instanciation de la carte
 		Plan plan = new Plan();
 

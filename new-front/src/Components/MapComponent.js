@@ -2,19 +2,24 @@ import React, { useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Rectangle, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import './MapComponent.css'; // Import du fichier CSS
 
 const MapComponent = () => {
     const [data, setData] = useState({ intersections: [], sections: [] });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [bounds, setBounds] = useState(null);
-    const [mapLoaded, setMapLoaded] = useState(false); // Pour suivre si la carte est chargée
-    const mapRef = useRef(null); // Référence à la carte
+    const [mapLoaded, setMapLoaded] = useState(false);
+    const [nombreLivreurs, setNombreLivreurs] = useState(2);
+    const [file1, setFile1] = useState(null);
+    const [fileName1, setFileName1] = useState('Choose a File');
+    const [file2, setFile2] = useState(null);
+    const [fileName2, setFileName2] = useState('Choose a File');
+    const mapRef = useRef(null);
 
-    // Fonction pour fetch les données lors du clic sur le bouton Load Map
     const handleFetchData = async () => {
-        setLoading(true); // Active le chargement
-        setError(null);   // Réinitialise les erreurs
+        setLoading(true);
+        setError(null);
 
         try {
             const response = await fetch('http://localhost:8080/map');
@@ -24,7 +29,6 @@ const MapComponent = () => {
             const result = await response.json();
             setData(result);
 
-            // Calculer les coordonnées minimales et maximales
             const latitudes = result.intersections.map(i => i.latitude);
             const longitudes = result.intersections.map(i => i.longitude);
 
@@ -33,28 +37,19 @@ const MapComponent = () => {
             const minLng = Math.min(...longitudes);
             const maxLng = Math.max(...longitudes);
 
-            // Ajouter une marge de 0.001
             const margin = 0.001;
             setBounds([
                 [minLat - margin, minLng - margin],
                 [maxLat + margin, maxLng + margin]
             ]);
-            setMapLoaded(true); // Active le statut de la carte chargée
+            setMapLoaded(true);
         } catch (error) {
             setError(error.message);
         } finally {
-            setLoading(false); // Désactive le chargement après la requête
+            setLoading(false);
         }
     };
 
-    // Fonction pour centrer la carte sur le rectangle bleu
-    const handleCenterMap = () => {
-        if (mapRef.current && bounds) {
-            mapRef.current.fitBounds(bounds); // Centre la carte sur le rectangle
-        }
-    };
-
-    // Créer une icône noire personnalisée
     const blackIcon = L.divIcon({
         className: 'black-marker',
         html: '<div style="width: 12px; height: 12px; background-color: darkred; border-radius: 50%;"></div>',
@@ -63,38 +58,105 @@ const MapComponent = () => {
         popupAnchor: [0, -10],
     });
 
+    const handleIncrease = () => {
+        setNombreLivreurs(prevCount => prevCount + 1);
+    };
+
+    const handleDecrease = () => {
+        if (nombreLivreurs > 2) {
+            setNombreLivreurs(prevCount => prevCount - 1);
+        }
+    };
+
+    const handleFileChange1 = (event) => {
+        const selectedFile = event.target.files[0];
+        setFile1(selectedFile);
+        if (selectedFile) {
+            setFileName1(selectedFile.name);
+        } else {
+            setFileName1('Choose a File');
+        }
+    };
+
+    const handleFileChange2 = (event) => {
+        const selectedFile = event.target.files[0];
+        setFile2(selectedFile);
+        if (selectedFile) {
+            setFileName2(selectedFile.name);
+        } else {
+            setFileName2('Choose a File');
+        }
+    };
+
     return (
-        <div style={styles.container}>
-            <h1 style={styles.title}>Pick'One</h1>
-            <div style={styles.buttonContainer}>
-                <button style={styles.button} onClick={handleFetchData}>
+        <div className="container">
+            <h1 className="title">Pick'One</h1>
+
+            <br />
+            <br />
+
+            <div className="buttonContainer">
+                <button className="button" onClick={handleFetchData}>
                     Load Map
                 </button>
+                ---->
+                <input type="file" id="file-upload-1" className="inputField" style={{ display: 'none' }} onChange={handleFileChange1} />
+                <label htmlFor="file-upload-1" className="custom-file-upload">
+                    {fileName1}
+                </label>
+            </div>
+
+            <div className="buttonContainer">
                 <button
-                    style={styles.button}
-                    onClick={handleCenterMap}
-                    disabled={!mapLoaded} // Le bouton est désactivé tant que la carte n'est pas chargée
+                    className="button"
+                    disabled={!mapLoaded}
                 >
                     Load Delivery
+                </button>
+                ---->
+                <input type="file" id="file-upload-2" className="inputField" style={{ display: 'none' }} onChange={handleFileChange2} />
+                <label htmlFor="file-upload-2" className="custom-file-upload">
+                    {fileName2}
+                </label>
+            </div>
+
+            <div className="buttonContainer">
+                <button
+                    className="button"
+                    disabled={!mapLoaded}
+                >
+                    Compute
+                </button>
+            </div>
+
+            <br />
+
+            <div className="buttonContainer">
+                <button className="button" onClick={handleDecrease}>
+                    -
+                </button>
+                <span className="courierCounter">
+                    Couriers: {nombreLivreurs}
+                </span>
+                <button className="button" onClick={handleIncrease}>
+                    +
                 </button>
             </div>
 
             {loading && <div>Loading...</div>}
             {error && <div>Error: {error}</div>}
 
-            {/* Afficher la carte seulement lorsque mapLoaded est true */}
             {mapLoaded && (
                 <MapContainer
                     bounds={bounds || [[48.8566, 2.3522], [48.8566, 2.3522]]}
-                    style={styles.map}
-                    whenCreated={mapInstance => { mapRef.current = mapInstance; }} // Stocker la référence à la carte
+                    className="map"
+                    whenCreated={mapInstance => { mapRef.current = mapInstance; }}
                 >
                     <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution='&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     />
 
-                    {/* Afficher les marqueurs et sections si les données sont disponibles */}
                     {data.intersections.map((intersection) => (
                         <Marker
                             key={intersection.id}
@@ -110,11 +172,8 @@ const MapComponent = () => {
                     ))}
 
                     {data.sections.map((section, index) => {
-                        const originId = section.origin;
-                        const destinationId = section.destination;
-
-                        const originIntersection = data.intersections.find(i => i.id === originId);
-                        const destinationIntersection = data.intersections.find(i => i.id === destinationId);
+                        const originIntersection = section.origin;
+                        const destinationIntersection = section.destination;
 
                         if (originIntersection && destinationIntersection) {
                             const latLngs = [
@@ -140,39 +199,6 @@ const MapComponent = () => {
             )}
         </div>
     );
-};
-
-// Styles en ligne pour le composant
-const styles = {
-    container: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100vh',
-        width: '100%',
-    },
-    title: {
-        marginBottom: '2%',
-        textAlign: 'center',
-        fontSize: '60px',
-    },
-    buttonContainer: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        width: '100%',
-        maxWidth: '400px',
-        marginBottom: '10px',
-    },
-    button: {
-        padding: '10px 20px',
-        fontSize: '16px',
-    },
-    map: {
-        height: '80vh',
-        width: '100%',
-        border: '2px solid black',
-    },
 };
 
 export default MapComponent;
