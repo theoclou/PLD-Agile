@@ -6,6 +6,7 @@ import java.util.List;
 import com.pld.agile.model.tsp.CompleteGraph;
 import com.pld.agile.model.tsp.Graph;
 import com.pld.agile.model.tsp.TSP;
+import com.pld.agile.model.tsp.TSP1;
 
 public class Solver {
     // private Plan<Intersection, ArrayList<Section>> adjacencyMatrixTSP;
@@ -15,11 +16,16 @@ public class Solver {
     private Plan plan;
     private TSP tsp;
 
-    public Solver(Plan plan, List<Integer> vertices,TSP tsp) {
-        this.plan = new Plan();
+    public Solver(Plan plan, List<Integer> vertices, TSP tsp) {
         this.plan = plan;
         this.vertices = vertices;
         this.tsp=tsp;
+    }
+
+    public Solver init(){
+        plan.reIndexIntersections();
+        plan.makeCostsMatrix();
+        return this;
     }
 
     // fills the matrix with values to create a complete graph

@@ -176,7 +176,6 @@ public class Plan {
         // Initialize the adjacency matrix with the size of the intersections
         initializeCostsMatrix();
         fillCostsMAtrix();
-
     }
 
     private double[] initializeDistances(int numNodes, int origin) {

@@ -1,5 +1,6 @@
 package com.pld.agile.model;
 
+import com.pld.agile.model.tspOptimized.BranchAndBound;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -40,6 +41,10 @@ public class Round {
         // lancer un calcul de graph, créer un DeliveryTour avec le résultat, l'affecter
         // à un Courier et mettre à jour TourAttribution, puis supprimer les DeliveryRequest qu'on a utilisé
         // de la liste
+        BranchAndBound bnb = new BranchAndBound();
+        //Solver solver = new Solver();
+
+
     }
 
     public void loadRequests(String filePath){
