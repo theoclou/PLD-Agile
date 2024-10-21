@@ -5,8 +5,10 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import com.pld.agile.model.BnBStrategy;
 import com.pld.agile.model.Plan;
 import com.pld.agile.model.Solver;
+import com.pld.agile.model.TspStrategy;
 import com.pld.agile.model.tsp.TSP;
 import com.pld.agile.model.tsp.TSP1;
 
@@ -32,10 +34,7 @@ public class runBnB {
 		plan.makeCostsMatrix();
 
 		List<Integer> vertices = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8,9, 10 ,11);
-		TSP tsp;
-        tsp = new TSP1();
-		Solver solver = new Solver(plan, vertices, tsp);
-		solver.createCompleteGraph();
+		Solver solver = new Solver(plan, vertices, new TspStrategy()).init();
 		int n = 12;
 		long t = System.currentTimeMillis();
 		/*
@@ -50,13 +49,11 @@ public class runBnB {
 		 */
 
 		//v1
-		solver.solveTSP();
+		solver.solve();
 		//v2
-		BranchAndBound bnb = new BranchAndBound();
-		bnb.setCostsMatrix(solver.getCompleteMatrix());
-
-		bnb.findBestCost();
-		System.out.printf("n=%d nbCalls=%d time=%.3fs\n", n, bnb.getNbCalls(),
+		Solver solverbnb = new Solver(plan, vertices, new BnBStrategy()).init();
+		solverbnb.solve();
+		System.out.printf("n=%d time=%.3fs\n", n,
 				(System.currentTimeMillis() - t) / 1000.0);
 
 

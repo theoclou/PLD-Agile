@@ -14,12 +14,12 @@ public class Solver {
     @SuppressWarnings("FieldMayBeFinal")
     private ArrayList<ArrayList<Double>> completeMatrix = new ArrayList<>();
     private Plan plan;
-    private TSP tsp;
+    private SolvingStrategy solvingStrategy;
 
-    public Solver(Plan plan, List<Integer> vertices, TSP tsp) {
+    public Solver(Plan plan, List<Integer> vertices, SolvingStrategy solvingStrategy) {
         this.plan = plan;
         this.vertices = vertices;
-        this.tsp=tsp;
+        this.solvingStrategy=solvingStrategy;
     }
 
     public Solver init(){
@@ -33,6 +33,7 @@ public class Solver {
 
     public void createCompleteGraph() {
         int size = vertices.size();
+        System.out.printf("i=%d", vertices.size());
         for (int i = 0; i < size; i++) {
             ArrayList<Double> row = new ArrayList<>();
             for (int j = 0; j < size; j++) {
@@ -46,17 +47,9 @@ public class Solver {
             completeMatrix.add(row);
         }
     }
-    public void solveTSP()
+    public void solve()
     {
-        int nbVertices=vertices.size();
-        Graph g = new CompleteGraph(nbVertices,completeMatrix);
-			long startTime = System.currentTimeMillis();
-			tsp.searchSolution(20000, g);
-			System.out.print("Solution of cost "+tsp.getSolutionCost()+" found in "
-					+(System.currentTimeMillis() - startTime)+"ms : ");
-			for (int i=0; i<nbVertices; i++)
-				System.out.print(tsp.getSolution(i)+" ");
-			System.out.println("0");
+        solvingStrategy.solve(completeMatrix);
     }
 
     public List<Integer> getVertices() {
@@ -83,12 +76,12 @@ public class Solver {
         this.plan = plan;
     }
 
-    public TSP getTsp() {
-        return this.tsp;
+    public List<Integer> getBestPath(){
+        return solvingStrategy.getBestPath();
     }
 
-    public void setTsp(TSP tsp) {
-        this.tsp = tsp;
+    public double getBestCost(){
+        return solvingStrategy.getBestCost();
     }
 
 }

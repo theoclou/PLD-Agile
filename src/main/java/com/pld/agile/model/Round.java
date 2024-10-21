@@ -42,20 +42,17 @@ public class Round {
         // lancer un calcul de graph, créer un DeliveryTour avec le résultat, l'affecter
         // à un Courier et mettre à jour TourAttribution, puis supprimer les DeliveryRequest qu'on a utilisé
         // de la liste
-        //TODO mettre deliveryRequestList en int
         List<Integer> indexedID= new ArrayList<Integer>();
         for (DeliveryRequest deliveryRequest : deliveryRequestList) {
             indexedID.add(Integer.parseInt(deliveryRequest.getDeliveryAdress().getId()));
         }
-        Solver solver = new Solver(plan, indexedID, new TSP1()).init();
-        solver.createCompleteGraph();
         //v1
-        solver.solveTSP();
+        Solver solverTSP = new Solver(plan, indexedID, new TspStrategy()).init();
+        solverTSP.solve();
 
         //v2
-        BranchAndBound bnb = new BranchAndBound();
-        bnb.setCostsMatrix(solver.getCompleteMatrix());
-        bnb.findBestCost();
+        Solver solverBNB = new Solver(plan, indexedID, new BnBStrategy()).init();
+        solverBNB.solve();
     }
 
     public void loadRequests(String filePath){

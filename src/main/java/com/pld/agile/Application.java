@@ -4,14 +4,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.pld.agile.model.*;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.SpringApplication;
 
 
-import com.pld.agile.model.Courier;
-import com.pld.agile.model.Plan;
-import com.pld.agile.model.Round;
-import com.pld.agile.model.Solver;
 import com.pld.agile.model.tsp.TSP;
 import com.pld.agile.model.tsp.TSP1;
 import com.pld.agile.model.tspOptimized.BranchAndBound;
@@ -44,7 +41,7 @@ public class Application {
 		int destination = 48;
 		List<Integer> vertices = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8,9);
 		TSP tsp = new TSP1();
-		Solver solver = new Solver(plan, vertices, tsp);
+		Solver solver = new Solver(plan, vertices, new TspStrategy());
 		solver.createCompleteGraph();
 		int n = 10;
 		long t = System.currentTimeMillis();
@@ -69,7 +66,7 @@ public class Application {
 		bnb.findBestCost();
 		System.out.printf("n=%d nbCalls=%d time=%.3fs\n", n, bnb.getNbCalls(),
 				(System.currentTimeMillis() - t) / 1000.0);
-		solver.solveTSP();
+		solver.solve();
 
 		// Création Round
 		Round round = new Round();
