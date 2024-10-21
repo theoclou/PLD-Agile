@@ -1,5 +1,6 @@
 package com.pld.agile.model;
 
+import com.pld.agile.model.tsp.TSP1;
 import com.pld.agile.model.tspOptimized.BranchAndBound;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -41,10 +42,20 @@ public class Round {
         // lancer un calcul de graph, créer un DeliveryTour avec le résultat, l'affecter
         // à un Courier et mettre à jour TourAttribution, puis supprimer les DeliveryRequest qu'on a utilisé
         // de la liste
+        //TODO mettre deliveryRequestList en int
+        List<Integer> indexedID= new ArrayList<Integer>();
+        for (DeliveryRequest deliveryRequest : deliveryRequestList) {
+            indexedID.add(Integer.parseInt(deliveryRequest.getDeliveryAdress().getId()));
+        }
+        Solver solver = new Solver(plan, indexedID, new TSP1()).init();
+        solver.createCompleteGraph();
+        //v1
+        solver.solveTSP();
+
+        //v2
         BranchAndBound bnb = new BranchAndBound();
-        //Solver solver = new Solver();
-
-
+        bnb.setCostsMatrix(solver.getCompleteMatrix());
+        bnb.findBestCost();
     }
 
     public void loadRequests(String filePath){

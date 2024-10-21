@@ -30,15 +30,13 @@ public class runBnB {
 		//// testing the TSP method on the whole map
 		plan.reIndexIntersections();
 		plan.makeCostsMatrix();
-		// System.out.println(plan);
-		int origin = 1;
-		int destination = 48;
-		List<Integer> vertices = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8,9);
+
+		List<Integer> vertices = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8,9, 10 ,11);
 		TSP tsp;
         tsp = new TSP1();
 		Solver solver = new Solver(plan, vertices, tsp);
 		solver.createCompleteGraph();
-		int n = 10;
+		int n = 12;
 		long t = System.currentTimeMillis();
 		/*
 		 * ArrayList<Integer> visited = new ArrayList<>();
@@ -50,18 +48,17 @@ public class runBnB {
 		 * notVisited.add(i);
 		 * }
 		 */
+
+		//v1
+		solver.solveTSP();
+		//v2
 		BranchAndBound bnb = new BranchAndBound();
 		bnb.setCostsMatrix(solver.getCompleteMatrix());
-		int[] visited = new int[n];
-		int[] notVisited = new int[n - 1];
-		visited[0] = 0;
-		for (int i = 0; i < n - 1; i++) {
-			notVisited[i] = vertices.get(i + 1);
-		}
+
 		bnb.findBestCost();
 		System.out.printf("n=%d nbCalls=%d time=%.3fs\n", n, bnb.getNbCalls(),
 				(System.currentTimeMillis() - t) / 1000.0);
-		solver.solveTSP();
+
 
 		// Affichage des intersections
 		// System.out.println("Intersections:");
