@@ -1,6 +1,11 @@
 package com.pld.agile.model;
+import org.w3c.dom.NodeList;
+
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,7 +22,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
 
 public class Plan {
     @SuppressWarnings("FieldMayBeFinal")
@@ -94,6 +98,23 @@ public class Plan {
             e.printStackTrace();
             throw e;
         }
+        System.out.println("Nombre d'intersections : " + intersections.size());
+        System.out.println("Nombre de tronçons : " + sections.size());
+    }
+
+    // Méthode pour afficher le contenu du fichier XML
+    private void displayXmlContent(String filePath) {
+        StringBuilder content = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new FileReader(new File(filePath)))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                content.append(line).append("\n"); // Ajoute chaque ligne avec un saut de ligne
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Contenu du fichier XML :");
+        System.out.println(content.toString()); // Affiche le contenu
     }
 
     public List<Section> getSections() {
@@ -103,6 +124,7 @@ public class Plan {
     public List<Intersection> getIntersections() {
         return intersections;
     }
+
     public Intersection getIntersectionById(String id) {
         return intersectionMap.get(id);
     }
@@ -275,4 +297,3 @@ public class Plan {
     }
 
 }
-
