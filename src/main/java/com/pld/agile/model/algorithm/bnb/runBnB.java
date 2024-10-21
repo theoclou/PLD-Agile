@@ -1,16 +1,14 @@
-package com.pld.agile.model.tspOptimized;
+package com.pld.agile.model.algorithm.bnb;
 
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import com.pld.agile.model.BnBStrategy;
-import com.pld.agile.model.Plan;
+import com.pld.agile.model.strategy.BnBStrategy;
+import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.Solver;
-import com.pld.agile.model.TspStrategy;
-import com.pld.agile.model.tsp.TSP;
-import com.pld.agile.model.tsp.TSP1;
+import com.pld.agile.model.strategy.TspStrategy;
 
 public class runBnB {
     public static void main(String[] args) {

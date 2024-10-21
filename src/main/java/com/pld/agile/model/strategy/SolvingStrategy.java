@@ -1,4 +1,4 @@
-package com.pld.agile.model;
+package com.pld.agile.model.strategy;
 
 import java.util.ArrayList;
 import java.util.List;

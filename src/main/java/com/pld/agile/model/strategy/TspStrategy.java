@@ -1,9 +1,9 @@
-package com.pld.agile.model;
+package com.pld.agile.model.strategy;
 
-import com.pld.agile.model.tsp.CompleteGraph;
-import com.pld.agile.model.tsp.Graph;
-import com.pld.agile.model.tsp.TSP;
-import com.pld.agile.model.tsp.TSP1;
+import com.pld.agile.model.graph.CompleteGraph;
+import com.pld.agile.model.graph.Graph;
+import com.pld.agile.model.algorithm.tsp.TSP;
+import com.pld.agile.model.algorithm.tsp.TSP1;
 
 import java.util.ArrayList;
 import java.util.List;

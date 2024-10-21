@@ -1,15 +1,15 @@
-package com.pld.agile.model;
+package com.pld.agile.model.entity;
 
-import com.pld.agile.model.tsp.TSP1;
-import com.pld.agile.model.tspOptimized.BranchAndBound;
+import com.pld.agile.model.strategy.BnBStrategy;
+import com.pld.agile.model.graph.Plan;
+import com.pld.agile.model.Solver;
+import com.pld.agile.model.strategy.TspStrategy;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

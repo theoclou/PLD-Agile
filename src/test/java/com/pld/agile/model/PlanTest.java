@@ -1,5 +1,8 @@
 package com.pld.agile.model;
 
+import com.pld.agile.model.entity.Intersection;
+import com.pld.agile.model.entity.Section;
+import com.pld.agile.model.graph.Plan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

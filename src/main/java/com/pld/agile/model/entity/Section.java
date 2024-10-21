@@ -1,4 +1,4 @@
-package com.pld.agile.model;
+package com.pld.agile.model.entity;
 
 public class Section {
     private String originId;

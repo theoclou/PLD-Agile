@@ -1,12 +1,10 @@
 package com.pld.agile.model;
 
+import com.pld.agile.model.graph.Plan;
+import com.pld.agile.model.strategy.SolvingStrategy;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import com.pld.agile.model.tsp.CompleteGraph;
-import com.pld.agile.model.tsp.Graph;
-import com.pld.agile.model.tsp.TSP;
-import com.pld.agile.model.tsp.TSP1;
 
 public class Solver {
     // private Plan<Intersection, ArrayList<Section>> adjacencyMatrixTSP;

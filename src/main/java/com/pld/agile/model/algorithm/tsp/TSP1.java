@@ -1,4 +1,6 @@
-package com.pld.agile.model.tsp;
+package com.pld.agile.model.algorithm.tsp;
+
+import com.pld.agile.model.graph.Graph;
 
 import java.util.Collection;
 import java.util.Iterator;

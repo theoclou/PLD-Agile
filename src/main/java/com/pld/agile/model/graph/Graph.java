@@ -1,4 +1,4 @@
-package com.pld.agile.model.tsp;
+package com.pld.agile.model.graph;
 
 public interface Graph {
 	/**

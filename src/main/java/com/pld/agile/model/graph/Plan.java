@@ -1,4 +1,6 @@
-package com.pld.agile.model;
+package com.pld.agile.model.graph;
+import com.pld.agile.model.entity.Section;
+import com.pld.agile.model.entity.Intersection;
 import org.w3c.dom.NodeList;
 
 import java.io.File;
@@ -20,7 +22,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class Plan {

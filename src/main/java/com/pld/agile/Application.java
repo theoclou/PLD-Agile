@@ -5,13 +5,17 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.pld.agile.model.*;
+import com.pld.agile.model.entity.Courier;
+import com.pld.agile.model.entity.Round;
+import com.pld.agile.model.graph.Plan;
+import com.pld.agile.model.strategy.TspStrategy;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.SpringApplication;
 
 
-import com.pld.agile.model.tsp.TSP;
-import com.pld.agile.model.tsp.TSP1;
-import com.pld.agile.model.tspOptimized.BranchAndBound;
+import com.pld.agile.model.algorithm.tsp.TSP;
+import com.pld.agile.model.algorithm.tsp.TSP1;
+import com.pld.agile.model.algorithm.bnb.BranchAndBound;
 
 @SpringBootApplication
 public class Application {

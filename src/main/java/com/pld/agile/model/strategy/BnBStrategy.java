@@ -1,11 +1,11 @@
-package com.pld.agile.model;
+package com.pld.agile.model.strategy;
 
-import com.pld.agile.model.tspOptimized.BranchAndBound;
+import com.pld.agile.model.algorithm.bnb.BranchAndBound;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BnBStrategy implements SolvingStrategy{
+public class BnBStrategy implements SolvingStrategy {
     private BranchAndBound bnb;
     private List<Integer> bestPath;
     private double bestCost;

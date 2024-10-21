@@ -1,18 +1,11 @@
 package com.pld.agile.controller;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import com.pld.agile.model.DeliveryRequest;
-import com.pld.agile.model.Intersection;
-import com.pld.agile.model.Plan;
-import com.pld.agile.model.Section;
-import com.pld.agile.model.Round;
+import com.pld.agile.model.entity.DeliveryRequest;
+import com.pld.agile.model.entity.Intersection;
+import com.pld.agile.model.graph.Plan;
+import com.pld.agile.model.entity.Section;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

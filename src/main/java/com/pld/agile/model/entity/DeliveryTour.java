@@ -1,4 +1,4 @@
-package com.pld.agile.model;
+package com.pld.agile.model.entity;
 
 import java.time.LocalTime;
 import java.util.List;

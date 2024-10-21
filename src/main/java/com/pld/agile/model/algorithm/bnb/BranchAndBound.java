@@ -1,4 +1,4 @@
-package com.pld.agile.model.tspOptimized;
+package com.pld.agile.model.algorithm.bnb;
 
 import java.util.ArrayList;
 import java.util.Arrays;
