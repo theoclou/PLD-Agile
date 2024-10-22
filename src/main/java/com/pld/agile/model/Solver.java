@@ -23,8 +23,6 @@ public class Solver {
     }
 
     public Solver init(){
-        plan.reIndexIntersections();
-        plan.makeCostsMatrix();
         this.createCompleteGraph();
         return this;
     }

@@ -31,6 +31,7 @@ public class Plan {
     private Map<String, Intersection> intersectionMap = new HashMap<>();
     @SuppressWarnings("FieldMayBeFinal")
     private Map<String, Integer> indexes = new HashMap<>();
+    private Map<Integer, String> reverseIndexes = new HashMap<>();
     @SuppressWarnings("FieldMayBeFinal")
     private ArrayList<ArrayList<Double>> costsMatrix = new ArrayList<>();
 
@@ -128,6 +129,10 @@ public class Plan {
     public Intersection getIntersectionById(String id) {
         return intersectionMap.get(id);
     }
+    public Integer getIndexById(String id) {
+        return indexes.get(id);
+    }
+    public String getIdByIndex(Integer index) { return reverseIndexes.get(index); }
     
     // Reindex intersections based on their IDs
     public void reIndexIntersections() {
@@ -135,6 +140,7 @@ public class Plan {
         for (Intersection intersection : intersections) {
             String id = intersection.getId();
             indexes.put(id, i);
+            reverseIndexes.put(i, id);
             i += 1;
         }
     }
