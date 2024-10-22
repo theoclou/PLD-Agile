@@ -31,9 +31,7 @@ public class Round {
     public Round() {}
 
     public void init(Integer CourierQuantity, Plan plan) {
-        for (int i = 0; i< CourierQuantity; i++) {
-            courierList.add(new Courier(i));
-        }
+        this.courierList = new ArrayList<>();
         this.plan = plan;
         this.plan.reIndexIntersections();
         this.plan.makeCostsMatrix();
@@ -51,8 +49,6 @@ public class Round {
         // lancer un calcul de graph, créer un DeliveryTour avec le résultat, l'affecter
         // à un Courier et mettre à jour TourAttribution, puis supprimer les DeliveryRequest qu'on a utilisé
         // de la liste
-        List<Integer> indexedID= new ArrayList<Integer>();
-
         List<DeliveryRequest> remainingDeliveries = new ArrayList<>(deliveryRequestList);
 
         int baseDeliveriesPerCourier = remainingDeliveries.size() / courierList.size();
@@ -62,6 +58,7 @@ public class Round {
 
         for (Courier courier : courierList) {
             List<Integer> courierDeliveryIndices = new ArrayList<>();
+            //TODO : change the attribution method to get something more efficient
 
             // Number of deliveries for this Courier
             int deliveriesForThisCourier = baseDeliveriesPerCourier + (extraDeliveries > 0 ? 1 : 0);
@@ -74,7 +71,7 @@ public class Round {
             }
 
             //Solve the courier tour
-            Solver solver= new Solver(plan, indexedID, new BnBStrategy()).init();
+            Solver solver= new Solver(plan, courierDeliveryIndices, new BnBStrategy()).init();
             solver.solve();
 
             double bestCost = solver.getBestCost();
@@ -95,7 +92,9 @@ public class Round {
 
 
             DeliveryTour courierDeliveryTour = new DeliveryTour(courier,endTime, courierDeliveryRequests, route, arrivalTimes);
+            tourAttribution.put(courier, courierDeliveryTour);
 
+            remainingDeliveries.removeAll(courierDeliveryRequests);
             extraDeliveries--;
         }
     }
@@ -140,6 +139,29 @@ public class Round {
 
     public Plan getPlan() {
         return plan;
+    }
+
+    public void setCourierList(int CourierQuantity) {
+        courierList.clear();
+        for (int i = 0; i< CourierQuantity; i++) {
+            courierList.add(new Courier(i));
+        }
+    }
+
+    public void addDeliveryRequest(DeliveryRequest deliveryRequest) {
+        deliveryRequestList.add(deliveryRequest);
+    }
+
+    public void addDeliveryRequest(List<DeliveryRequest> deliveryRequestList) {
+        this.deliveryRequestList.addAll(deliveryRequestList);
+    }
+
+    public void removeDeliveryRequest(DeliveryRequest deliveryRequest) {
+        deliveryRequestList.remove(deliveryRequest);
+    }
+
+    public void removeDeliveryRequest(List<DeliveryRequest> deliveryRequestList) {
+        this.deliveryRequestList.removeAll(deliveryRequestList);
     }
 
     public List<Courier> getCourierList() {
