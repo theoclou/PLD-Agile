@@ -4,13 +4,14 @@ import com.pld.agile.model.entity.DeliveryRequest;
 import com.pld.agile.model.entity.Intersection;
 import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.entity.Section;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.Files;
@@ -25,13 +26,6 @@ public class Controller {
 
     // Chargement du fichier XML au démarrage de l'application
     public Controller() {
-        String filePath = "src/data/petitPlan.xml"; // Remplacez par le chemin réel du fichier XML
-        try {
-            map.readXml(filePath);
-        } catch (Exception e) {
-            System.err.println("Erreur lors de la lecture du fichier XML : " + e.getMessage());
-            System.exit(1);  // Arrêter le programme avec un code d'erreur
-        }
     }
 
     @PostMapping("/setCourier")
@@ -45,28 +39,24 @@ public class Controller {
     }
 
     @PostMapping("/loadMap")
-    public String loadMap(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Map<String, String>> loadMap(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
-            return "File upload failed: No file selected.";
+            return ResponseEntity.badRequest().body(Collections.singletonMap("message", "File upload failed: No file selected."));
         }
 
-        // Save temporary the file on the server
+        map.resetMap();
+
         try {
-            String filePath = "src/data/" + file.getOriginalFilename(); // Change the path
-            Path path = Paths.get(filePath);
-            Files.write(path, file.getBytes());
-
-            // Load the map with the new file
-            map.readXml(filePath.toString());
-
-            return String.format("Plan loaded from %s", filePath);
+            map.readXmlbyFile(file);
+            if (map.getIntersections().size() > 0) {
+                return ResponseEntity.ok(Collections.singletonMap("message", "Plan loaded successfully."));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("error", "No valid intersections loaded. Please check the file."));
+            }
         } catch (IOException e) {
-            // if an error occurs when writing of the file
-            return "File upload failed: " + e.getMessage();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("message", "File upload failed: " + e.getMessage()));
         } catch (Exception e) {
-            // if an error occurs whe loading the map
-            return "Error loading map: " + e.getMessage();
-
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("message", "Error loading map: " + e.getMessage()));
         }
     }
 

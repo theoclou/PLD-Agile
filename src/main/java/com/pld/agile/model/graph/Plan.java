@@ -17,6 +17,7 @@ import javax.management.InstanceNotFoundException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.springframework.web.multipart.MultipartFile;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -141,6 +142,12 @@ public class Plan {
         }
         System.out.println("Contenu du fichier XML :");
         System.out.println(content.toString()); // Affiche le contenu
+    }
+
+    public void resetMap() {
+        intersectionMap.clear();
+        intersections.clear();
+        sections.clear();
     }
 
     public List<Section> getSections() {
@@ -350,5 +357,79 @@ public class Plan {
 
         return sb.toString();
     }
+
+
+    //--------------------------------------------------------------------------------------
+
+    public void readXmlbyFile(MultipartFile file) throws Exception {
+        File tempFile = null;
+        try {
+            // Convert MultipartFile to a temporary file
+            tempFile = File.createTempFile("uploaded-", ".xml");
+            file.transferTo(tempFile);
+
+            // Parse the XML document
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document document = builder.parse(tempFile);
+
+            // Read intersections
+            NodeList intersectionElements = document.getElementsByTagName("noeud");
+            for (int i = 0; i < intersectionElements.getLength(); i++) {
+                Element element = (Element) intersectionElements.item(i);
+                String id = element.getAttribute("id");
+                double latitude = Double.parseDouble(element.getAttribute("latitude"));
+                double longitude = Double.parseDouble(element.getAttribute("longitude"));
+
+                Intersection intersection = new Intersection();
+                intersection.initialisation(id, latitude, longitude);
+                intersectionMap.put(id, intersection);
+                intersections.add(intersection);
+            }
+
+            // Read sections
+            NodeList sectionElements = document.getElementsByTagName("troncon");
+            for (int i = 0; i < sectionElements.getLength(); i++) {
+                Element element = (Element) sectionElements.item(i);
+                String originId = element.getAttribute("origine");
+                String destinationId = element.getAttribute("destination");
+                double length = Double.parseDouble(element.getAttribute("longueur"));
+                String name = element.getAttribute("nomRue");
+
+                Section section = new Section();
+                section.initialisation(originId, destinationId, name, length);
+                sections.add(section);
+            }
+
+            // Validate that all sections have valid intersections
+            for (Section section : sections) {
+                boolean originFound = intersections.stream().anyMatch(i -> i.getId().equals(section.getOrigin()));
+                boolean destinationFound = intersections.stream().anyMatch(i -> i.getId().equals(section.getDestination()));
+                if (!originFound || !destinationFound) {
+                    throw new InstanceNotFoundException("The XML file is missing required origin or destination intersections.");
+                }
+            }
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            resetMap(); // Clear data on file not found
+            throw e;
+        } catch (SAXException e) {
+            resetMap(); // Clear data on XML parsing error
+            throw new Exception("Malformed XML file: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            resetMap(); // Clear data on numeric parsing error
+            throw new NumberFormatException("Invalid numeric value: " + e.getMessage());
+        } finally {
+            // Cleanup temporary file in case of exception
+            if (tempFile != null && tempFile.exists()) {
+                tempFile.delete();
+            }
+        }
+
+        System.out.println("Number of intersections: " + intersections.size());
+        System.out.println("Number of sections: " + sections.size());
+    }
+
 
 }

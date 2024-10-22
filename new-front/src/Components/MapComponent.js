@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Rectangle, Polyline } from 'react-leaflet';
-import L from 'leaflet';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { MapContainer, TileLayer, Polyline, Popup, useMap } from 'react-leaflet';
+import CustomMarker from './CustomMarker';
 import 'leaflet/dist/leaflet.css';
-import './MapComponent.css'; // Import du fichier CSS
+import './MapComponent.css';
 
 const MapComponent = () => {
     const [data, setData] = useState({ intersections: [], sections: [] });
@@ -10,161 +10,100 @@ const MapComponent = () => {
     const [error, setError] = useState(null);
     const [bounds, setBounds] = useState(null);
     const [mapLoaded, setMapLoaded] = useState(false);
-    const [numberCouriers, setNumberCouriers] = useState(2);
-    const [file1, setFile1] = useState(null);
-    const [fileName1, setFileName1] = useState('Choose a File');
-    const [file2, setFile2] = useState(null);
-    const [fileName2, setFileName2] = useState('Choose a File');
-    const mapRef = useRef(null);
+    const [zoom, setZoom] = useState(8);
+    const mapRef = useRef(); // Référence pour le composant MapContainer
 
-    const handleFetchData = async () => {
+    const handleFetchData = useCallback(async () => {
         setLoading(true);
         setError(null);
 
         try {
             const response = await fetch('http://localhost:8080/map');
-            if (!response.ok) {
-                throw new Error('Error during data recuperation');
-            }
+            if (!response.ok) throw new Error('Error during data retrieval');
+
             const result = await response.json();
-            setData(result);
+            if (result && result.intersections) {
+                setData(result);
+                const latitudes = result.intersections.map(i => i.latitude);
+                const longitudes = result.intersections.map(i => i.longitude);
+                const newBounds = [
+                    [Math.min(...latitudes), Math.min(...longitudes)],
+                    [Math.max(...latitudes), Math.max(...longitudes)]
+                ];
+                setBounds(newBounds);
+                setMapLoaded(true);
 
-            const latitudes = result.intersections.map(i => i.latitude);
-            const longitudes = result.intersections.map(i => i.longitude);
-
-            const minLat = Math.min(...latitudes);
-            const maxLat = Math.max(...latitudes);
-            const minLng = Math.min(...longitudes);
-            const maxLng = Math.max(...longitudes);
-
-            const margin = 0.001;
-            setBounds([
-                [minLat - margin, minLng - margin],
-                [maxLat + margin, maxLng + margin]
-            ]);
-            setMapLoaded(true);
+                // Centre la carte sur les nouveaux bounds
+                if (mapRef.current) {
+                    mapRef.current.fitBounds(newBounds);
+                }
+            } else {
+                throw new Error('Invalid data format from server');
+            }
         } catch (error) {
             setError(error.message);
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const blackIcon = L.divIcon({
-        className: 'black-marker',
-        html: '<div style="width: 12px; height: 12px; background-color: darkred; border-radius: 50%;"></div>',
-        iconSize: [12, 12],
-        iconAnchor: [6, 6],
-        popupAnchor: [0, -10],
-    });
-
-    const handleIncrease = () => {
-        setNumberCouriers(prevCount => prevCount + 1);
-    };
-
-    const handleDecrease = () => {
-        if (numberCouriers > 2) {
-            setNumberCouriers(prevCount => prevCount - 1);
-        }
-    };
-
-    const handleFileChange1 = (event) => {
+    const handleFileChange = async (event) => {
         const selectedFile = event.target.files[0];
-        setFile1(selectedFile);
-        if (selectedFile) {
-            setFileName1(selectedFile.name);
 
-            // Create a FormData to send the file to the backend
+        if (selectedFile) {
             const formData = new FormData();
             formData.append("file", selectedFile);
 
-            // Send the file to the backend with POST
-            fetch('http://localhost:8080/loadMap', {
-                method: 'POST',
-                body: formData,
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to upload file');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("File loaded successfully:", data);
-                })
-                .catch(error => {
-                    console.error("Error uploading file:", error);
+            try {
+                const response = await fetch('http://localhost:8080/loadMap', {
+                    method: 'POST',
+                    body: formData,
                 });
-            handleFetchData();
-        } else {
-            setFileName1('Choose a File');
-        }
-
-    };
-
-    const handleFileChange2 = (event) => {
-        const selectedFile = event.target.files[0];
-        setFile2(selectedFile);
-        if (selectedFile) {
-            setFileName2(selectedFile.name);
-        } else {
-            setFileName2('Choose a File');
+                if (!response.ok) throw new Error('Failed to upload file, try again');
+                await handleFetchData();
+            } catch (error) {
+                setError(error.message);
+            }
         }
     };
+
+    const memoizedIntersections = useMemo(() => data.intersections, [data]);
+    const memoizedSections = useMemo(() => data.sections, [data]);
+
+    const ZoomListener = () => {
+        const map = useMap();
+
+        useEffect(() => {
+            const handleZoomEnd = () => {
+                const currentZoom = map.getZoom();
+                setZoom(currentZoom);
+            };
+
+            map.on('zoomend', handleZoomEnd);
+            return () => {
+                map.off('zoomend', handleZoomEnd);
+            };
+        }, [map]);
+
+        return null;
+    };
+
+    const filteredIntersections = useMemo(() => {
+        const minZoomForIntersections = 18; // Zoom threshold for displaying intersections
+
+        if (zoom >= minZoomForIntersections) {
+            return memoizedIntersections;
+        }
+
+        return [];
+    }, [zoom, memoizedIntersections]);
 
     return (
         <div className="container">
             <h1 className="title">Pick'One</h1>
-
-            <br />
-            <br />
-
             <div className="buttonContainer">
-                <button className="button" onClick={handleFetchData}>
-                    Load Map
-                </button>
-                ---->
-                <input type="file" id="file-upload-1" className="inputField" style={{ display: 'none' }} onChange={handleFileChange1} />
-                <label htmlFor="file-upload-1" className="custom-file-upload">
-                    {fileName1}
-                </label>
-            </div>
-
-            <div className="buttonContainer">
-                <button
-                    className="button"
-                    disabled={!mapLoaded}
-                >
-                    Load Delivery
-                </button>
-                ---->
-                <input type="file" id="file-upload-2" className="inputField" style={{ display: 'none' }} onChange={handleFileChange2} />
-                <label htmlFor="file-upload-2" className="custom-file-upload">
-                    {fileName2}
-                </label>
-            </div>
-
-            <div className="buttonContainer">
-                <button
-                    className="button"
-                    disabled={!mapLoaded}
-                >
-                    Compute
-                </button>
-            </div>
-
-            <br />
-
-            <div className="buttonContainer">
-                <button className="button" onClick={handleDecrease}>
-                    -
-                </button>
-                <span className="courierCounter">
-                    Couriers: {numberCouriers}
-                </span>
-                <button className="button" onClick={handleIncrease}>
-                    +
-                </button>
+                <input type="file" id="file-upload-1" className="inputField" style={{ display: 'none' }} onChange={handleFileChange} />
+                <label htmlFor="file-upload-1" className="custom-file-upload">LoadMap</label>
             </div>
 
             {loading && <div>Loading...</div>}
@@ -172,30 +111,27 @@ const MapComponent = () => {
 
             {mapLoaded && (
                 <MapContainer
+                    ref={mapRef} // Ajoute la référence ici
                     bounds={bounds || [[48.8566, 2.3522], [48.8566, 2.3522]]}
+                    zoom={zoom}
                     className="map"
-                    whenCreated={mapInstance => { mapRef.current = mapInstance; }}
                 >
                     <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution='&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     />
-
-                    {data.intersections.map((intersection) => (
-                        <Marker
-                            key={intersection.id}
-                            position={[intersection.latitude, intersection.longitude]}
-                            icon={blackIcon}
-                        >
+                    <ZoomListener />
+                    {filteredIntersections.map((intersection) => (
+                        <CustomMarker key={intersection.id} intersection={intersection}>
                             <Popup>
                                 Intersection ID: {intersection.id}<br />
                                 Latitude: {intersection.latitude}<br />
                                 Longitude: {intersection.longitude}
                             </Popup>
-                        </Marker>
+                        </CustomMarker>
                     ))}
 
-                    {data.sections.map((section, index) => {
+                    {memoizedSections.map((section, index) => {
                         const originIntersection = section.origin;
                         const destinationIntersection = section.destination;
 
@@ -217,8 +153,6 @@ const MapComponent = () => {
                         }
                         return null;
                     })}
-
-                    {bounds && <Rectangle bounds={bounds} color="blue" fillOpacity={0.1} />}
                 </MapContainer>
             )}
         </div>
