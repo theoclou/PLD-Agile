@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/*class RoundTest {
+class RoundTest {
 
     @Test
     public void testLoadRequests_ValidFile() throws Exception {
@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
         plan.addIntersection(intersection3);
 
         // Initialiser le round avec le plan
-        round.init(new ArrayList<>(), plan);
+        round.init(2, plan);
 
         // Charger le fichier XML valide
         round.loadRequests("src/test/java/com/pld/agile/model/entity/roundTestValidData.xml");
@@ -46,7 +46,7 @@ import static org.junit.jupiter.api.Assertions.*;
     public void testLoadRequests_FileNotFound() throws Exception {
         Round round = new Round();
         Plan plan = new Plan();
-        round.init(new ArrayList<>(), plan);
+        round.init(2, plan);
 
         // Test if an exception is thrown in case of file not found
         Exception exception = assertThrows(FileNotFoundException.class, () -> round.loadRequests("non_existent_file.xml"));
@@ -76,7 +76,7 @@ import static org.junit.jupiter.api.Assertions.*;
         plan.addIntersection(intersection1); // Missing 1368674802 et 26084216
 
         // Initialiser le round avec le plan
-        round.init(new ArrayList<>(), plan);
+        round.init(2, plan);
 
         // Capturer l'exception
         Exception exception = assertThrows(InstanceNotFoundException.class, () -> {
@@ -87,4 +87,4 @@ import static org.junit.jupiter.api.Assertions.*;
         assertTrue(exception.getMessage().contains("The intersection '1368674802' doesn't exist !"));
     }
 
-}*/
+}
