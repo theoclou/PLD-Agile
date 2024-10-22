@@ -1,10 +1,12 @@
 package com.pld.agile.model;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.strategy.SolvingStrategy;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Solver {
     // private Plan<Intersection, ArrayList<Section>> adjacencyMatrixTSP;
@@ -17,10 +19,10 @@ public class Solver {
     public Solver(Plan plan, List<Integer> vertices, SolvingStrategy solvingStrategy) {
         this.plan = plan;
         this.vertices = vertices;
-        this.solvingStrategy=solvingStrategy;
+        this.solvingStrategy = solvingStrategy;
     }
 
-    public Solver init(){
+    public Solver init() {
         plan.reIndexIntersections();
         plan.makeCostsMatrix();
         this.createCompleteGraph();
@@ -28,7 +30,6 @@ public class Solver {
     }
 
     // fills the matrix with values to create a complete graph
-
     public void createCompleteGraph() {
         int size = vertices.size();
         System.out.printf("i=%d", vertices.size());
@@ -45,8 +46,8 @@ public class Solver {
             completeMatrix.add(row);
         }
     }
-    public void solve()
-    {
+
+    public void solve() {
         solvingStrategy.solve(completeMatrix);
     }
 
@@ -74,12 +75,47 @@ public class Solver {
         this.plan = plan;
     }
 
-    public List<Integer> getBestPath(){
+    public List<Integer> getBestPath() {
         return solvingStrategy.getBestPath();
     }
 
-    public double getBestCost(){
+    public double getBestCost() {
         return solvingStrategy.getBestCost();
     }
+
+    public List<Integer> getBestPossiblePath() {
+        List<Integer> bestPath = getBestPath();
+        int servedPoints = (int) pointsToBeServed().get("served");
+        List<Integer> bestPathSubList = bestPath.subList(0, servedPoints + 1);
+        return bestPathSubList;
+    }
+
+    public double getBestPossibleCost() {
+        double cost = (double) pointsToBeServed().get("cost");
+        return cost;
+    }
+
+    private Map<String, Object> pointsToBeServed() {
+        List<Integer> bestPath = getBestPath();
+        double currentCost = 0;
+        int servedPoints = 0;
+        double speed = 1500.0;
+        double possibleCost = 0;
+        while (currentCost / speed + servedPoints / 12.0 < 8 && servedPoints < bestPath.size() - 1) {
+            int currentPosition = bestPath.get(servedPoints);
+            int nextPosition = bestPath.get(servedPoints + 1);
+            currentCost += completeMatrix.get(currentPosition).get(nextPosition);
+            if (currentCost / speed + servedPoints / 12.0 < 8 && servedPoints < bestPath.size() - 1) {
+                servedPoints += 1;
+            }
+            possibleCost = currentCost;
+        }
+        Map<String, Object> points = new HashMap<>();
+        points.put("served", servedPoints);
+        points.put("cost", possibleCost);
+        return points;
+    }
+
+    
 
 }

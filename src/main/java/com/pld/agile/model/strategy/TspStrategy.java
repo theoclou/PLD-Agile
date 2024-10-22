@@ -20,14 +20,17 @@ public class TspStrategy implements SolvingStrategy {
 
     @Override
     public void solve(ArrayList<ArrayList<Double>> completeMatrix) {
-        int nbVertices = completeMatrix.size(); //TODO verifier
+        int nbVertices = completeMatrix.size(); // TODO verifier
         Graph g = new CompleteGraph(nbVertices, completeMatrix);
         long startTime = System.currentTimeMillis();
         tsp.searchSolution(20000, g);
         System.out.print("Solution of cost " + tsp.getSolutionCost() + " found in "
                 + (System.currentTimeMillis() - startTime) + "ms : ");
-        for (int i = 0; i < nbVertices; i++)
-            System.out.print(tsp.getSolution(i) + " ");
+        for (int i = 0; i < nbVertices; i++) {
+            int iSol = tsp.getSolution(i);
+            System.out.print(iSol + " ");
+            bestPath.add(iSol);
+        }
         System.out.println("0");
     }
 

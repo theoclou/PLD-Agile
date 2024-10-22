@@ -1,17 +1,16 @@
 package com.pld.agile.model.algorithm.bnb;
 
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import com.pld.agile.model.strategy.BnBStrategy;
-import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.Solver;
+import com.pld.agile.model.graph.Plan;
+import com.pld.agile.model.strategy.BnBStrategy;
 import com.pld.agile.model.strategy.TspStrategy;
 
 public class runBnB {
-    public static void main(String[] args) {
+	public static void main(String[] args) {
 
 		// SpringApplication.run(Application.class, args);
 
@@ -27,14 +26,10 @@ public class runBnB {
 			System.err.println("Erreur : " + e.getMessage());
 			System.exit(1); // Arrêter le programme avec un code d'erreur
 		}
-		//// testing the TSP method on the whole map
-		plan.reIndexIntersections();
-		plan.makeCostsMatrix();
 
-		List<Integer> vertices = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8,9, 10 ,11);
+		List<Integer> vertices = Arrays.asList(0, 1, 2, 3, 4, 5);
 		Solver solver = new Solver(plan, vertices, new TspStrategy()).init();
-		int n = 12;
-		long t = System.currentTimeMillis();
+		int n = 6;
 		/*
 		 * ArrayList<Integer> visited = new ArrayList<>();
 		 * visited.add(0);
@@ -46,26 +41,19 @@ public class runBnB {
 		 * }
 		 */
 
-		//v1
+		// v1
+		long t1 = System.currentTimeMillis();
 		solver.solve();
-		//v2
-		Solver solverbnb = new Solver(plan, vertices, new BnBStrategy()).init();
+		System.out.printf("n=%d time=%.3fs\n", n,
+				(System.currentTimeMillis() - t1) / 1000.0);
+		// v2
+		long t2 = System.currentTimeMillis();
+
+		Solver solverbnb = new Solver(plan, vertices, new BnBStrategy());
+		solverbnb.createCompleteGraph();
 		solverbnb.solve();
 		System.out.printf("n=%d time=%.3fs\n", n,
-				(System.currentTimeMillis() - t) / 1000.0);
-
-
-		// Affichage des intersections
-		// System.out.println("Intersections:");
-		// for (Intersection intersection : plan.getIntersections()) {
-		// 	System.out.println(intersection);
-		// }
-
-		// // Affichage des sections
-		// System.out.println("Sections:");
-		// for (Section section : plan.getSections()) {
-		// 	System.out.println(section);
-		// }
+				(System.currentTimeMillis() - t2) / 1000.0);
 
 	}
 }

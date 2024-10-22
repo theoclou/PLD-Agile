@@ -25,7 +25,7 @@ public class BnBStrategy implements SolvingStrategy {
     public List<Integer> getBestPath() {
         return bestPath;
     }
-
+    
     @Override
     public double getBestCost() {
         return bestCost;

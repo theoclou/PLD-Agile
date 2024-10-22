@@ -1,11 +1,7 @@
 package com.pld.agile.model.graph;
-import com.pld.agile.model.entity.Section;
-import com.pld.agile.model.entity.Intersection;
-import org.w3c.dom.NodeList;
-
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,7 +18,11 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import com.pld.agile.model.entity.Intersection;
+import com.pld.agile.model.entity.Section;
 
 public class Plan {
     @SuppressWarnings("FieldMayBeFinal")
@@ -32,8 +32,12 @@ public class Plan {
     private Map<String, Intersection> intersectionMap = new HashMap<>();
     @SuppressWarnings("FieldMayBeFinal")
     private Map<String, Integer> indexes = new HashMap<>();
+    private Map<Integer, String> reverseIndexes = new HashMap<>();
+
     @SuppressWarnings("FieldMayBeFinal")
     private ArrayList<ArrayList<Double>> costsMatrix = new ArrayList<>();
+    private ArrayList<Integer> tour=new ArrayList<>();
+    private ArrayList<String> IntersectionsTour=new ArrayList<>();
 
     public Plan() {
     }
@@ -137,6 +141,12 @@ public class Plan {
             String id = intersection.getId();
             indexes.put(id, i);
             i += 1;
+        }
+    }
+    private void reverseIndexation()
+    {
+        for (Map.Entry<String, Integer> pair : indexes.entrySet()) {
+            reverseIndexes.put(pair.getValue(),pair.getKey());
         }
     }
 
@@ -273,7 +283,21 @@ public class Plan {
         // If unreachable, return -1
         return totalDistance == Double.MAX_VALUE ? -1 : totalDistance;
     }
-
+    public void constructTour(List<Integer> path)
+    {
+        for (int i=0;i<path.size()-1;i++)
+        {
+            tour.addAll(findShortestPath(i, i+1));
+        }
+    }
+    public List<String> makeIntersectionsTour()
+    {
+        for (Integer point : tour) {
+            String intersectionId=reverseIndexes.get(point);
+            IntersectionsTour.add(intersectionId);
+        }
+        return IntersectionsTour;
+    }
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
