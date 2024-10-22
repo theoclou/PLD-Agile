@@ -22,9 +22,7 @@ public class Solver {
         this.solvingStrategy = solvingStrategy;
     }
 
-    public Solver init() {
-        plan.reIndexIntersections();
-        plan.makeCostsMatrix();
+    public Solver init(){
         this.createCompleteGraph();
         return this;
     }
@@ -116,6 +114,6 @@ public class Solver {
         return points;
     }
 
-    
+
 
 }

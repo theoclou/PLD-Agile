@@ -159,13 +159,18 @@ public class Plan {
         intersections.add(intersection);
         intersectionMap.put(intersection.getId(), intersection);
     }
-    
+    public Integer getIndexById(String id) {
+        return indexes.get(id);
+    }
+    public String getIdByIndex(Integer index) { return reverseIndexes.get(index); }
+
     // Reindex intersections based on their IDs
     public void reIndexIntersections() {
         int i = 0;
         for (Intersection intersection : intersections) {
             String id = intersection.getId();
             indexes.put(id, i);
+            reverseIndexes.put(i, id);
             i += 1;
         }
     }

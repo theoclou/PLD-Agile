@@ -75,7 +75,7 @@ public class Application {
 		// Création Round
 		Round round = new Round();
 		List<Courier> couriers = new ArrayList<>();
-		round.init(couriers, plan);
+		round.init(2, plan);
 		String requestPath = "src/data/demandePetit2.xml";
 		try{
 			round.loadRequests(requestPath);
