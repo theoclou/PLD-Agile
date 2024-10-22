@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 
+import javax.management.InstanceNotFoundException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -93,13 +94,33 @@ public class Plan {
                     throw new NumberFormatException("Invalid numeric value in a section: " + e.getMessage());
                 }
             }
+
+            for (int i=0; i<sections.size(); i++) {
+                Boolean originFind = false;
+                Boolean destinationFind = false;
+                for (int j=0; j<intersections.size(); j++) {
+                    if (intersections.get(j).getId().equals(sections.get(i).getOrigin())) {
+                        originFind = true;
+                    }
+                    if (intersections.get(j).getId().equals(sections.get(i).getDestination())) {
+                        destinationFind = true;
+                    }
+                }
+                if (!originFind || !destinationFind) {
+                    throw new InstanceNotFoundException("The XML file is missing required origin or destination intersections.");
+                }
+            }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             throw e; // Propagate exception if file not found
         } catch (SAXException e) {
             // Captures errors related to malformed XML parsing
-            throw new Exception("Fichier XML mal formé : " + e.getMessage());
+            throw new Exception("Malformed XML file : " + e.getMessage());
         } catch (NumberFormatException e) {
+            e.printStackTrace();
+            throw e;
+        }
+        catch (InstanceNotFoundException e) {
             e.printStackTrace();
             throw e;
         }
@@ -132,6 +153,11 @@ public class Plan {
 
     public Intersection getIntersectionById(String id) {
         return intersectionMap.get(id);
+    }
+
+    public void addIntersection(Intersection intersection) {
+        intersections.add(intersection);
+        intersectionMap.put(intersection.getId(), intersection);
     }
     
     // Reindex intersections based on their IDs

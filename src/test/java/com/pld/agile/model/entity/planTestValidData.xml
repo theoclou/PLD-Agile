@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<reseau>
+    <noeud id="21992980" latitude="45.748535" longitude="4.862575"/>
+    <noeud id="21993013" latitude="45.74786" longitude="4.8624663"/>
+    <noeud id="208822503" latitude="45.76229" longitude="4.869225"/>
+    <noeud id="54803125" latitude="45.762478" longitude="4.870813"/>
+    <troncon destination="21992980" longueur="75.947624" nomRue="Petite Rue de Monplaisir" origine="21993013"/>
+    <troncon destination="208822503" longueur="124.96992" nomRue="Rue Saint-Sidoine" origine="54803125"/>
+</reseau>

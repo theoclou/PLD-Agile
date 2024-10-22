@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<demandeDeLivraisons>
+    <entrepot adresse="25327124" heureDepart="08:00"/>
+    <livraison adresseEnlevement="26464256" adresseLivraison="239603
+    <livraison adresseEnlevement="984553611" adresseLivraison="1368674802" dureeEnlevement="60" dureeLivraison="480"/>
+    <livraison adresseEnlevement="1678996781" adresseLivraison="26084216" dureeEnlevement="420" dureeLivraison="600"/>
+</demandeDeLivraisons>

@@ -10,7 +10,7 @@ const MapComponent = () => {
     const [error, setError] = useState(null);
     const [bounds, setBounds] = useState(null);
     const [mapLoaded, setMapLoaded] = useState(false);
-    const [nombreLivreurs, setNombreLivreurs] = useState(2);
+    const [numberCouriers, setNumberCouriers] = useState(2);
     const [file1, setFile1] = useState(null);
     const [fileName1, setFileName1] = useState('Choose a File');
     const [file2, setFile2] = useState(null);
@@ -24,7 +24,7 @@ const MapComponent = () => {
         try {
             const response = await fetch('http://localhost:8080/map');
             if (!response.ok) {
-                throw new Error('Erreur lors de la récupération des données');
+                throw new Error('Error during data recuperation');
             }
             const result = await response.json();
             setData(result);
@@ -59,12 +59,12 @@ const MapComponent = () => {
     });
 
     const handleIncrease = () => {
-        setNombreLivreurs(prevCount => prevCount + 1);
+        setNumberCouriers(prevCount => prevCount + 1);
     };
 
     const handleDecrease = () => {
-        if (nombreLivreurs > 2) {
-            setNombreLivreurs(prevCount => prevCount - 1);
+        if (numberCouriers > 2) {
+            setNumberCouriers(prevCount => prevCount - 1);
         }
     };
 
@@ -73,9 +73,33 @@ const MapComponent = () => {
         setFile1(selectedFile);
         if (selectedFile) {
             setFileName1(selectedFile.name);
+
+            // Create a FormData to send the file to the backend
+            const formData = new FormData();
+            formData.append("file", selectedFile);
+
+            // Send the file to the backend with POST
+            fetch('http://localhost:8080/loadMap', {
+                method: 'POST',
+                body: formData,
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to upload file');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("File loaded successfully:", data);
+                })
+                .catch(error => {
+                    console.error("Error uploading file:", error);
+                });
+            handleFetchData();
         } else {
             setFileName1('Choose a File');
         }
+
     };
 
     const handleFileChange2 = (event) => {
@@ -136,7 +160,7 @@ const MapComponent = () => {
                     -
                 </button>
                 <span className="courierCounter">
-                    Couriers: {nombreLivreurs}
+                    Couriers: {numberCouriers}
                 </span>
                 <button className="button" onClick={handleIncrease}>
                     +
