@@ -5,11 +5,16 @@ import com.pld.agile.model.entity.Intersection;
 import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.entity.Section;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.Files;
+import java.io.IOException;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -39,10 +44,30 @@ public class Controller {
         return "Here are the Couriers";
     }
 
-    @PostMapping("/LoadMap")
-    public String loadMap(@RequestBody String fileName) {
-        // Load the map into the Plan object (or Graph IDK) but does not display it, displayMap is called later
-        return String.format("Plan loaded from %s", fileName);
+    @PostMapping("/loadMap")
+    public String loadMap(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return "File upload failed: No file selected.";
+        }
+
+        // Save temporary the file on the server
+        try {
+            String filePath = "src/data/" + file.getOriginalFilename(); // Change the path
+            Path path = Paths.get(filePath);
+            Files.write(path, file.getBytes());
+
+            // Load the map with the new file
+            map.readXml(filePath.toString());
+
+            return String.format("Plan loaded from %s", filePath);
+        } catch (IOException e) {
+            // if an error occurs when writing of the file
+            return "File upload failed: " + e.getMessage();
+        } catch (Exception e) {
+            // if an error occurs whe loading the map
+            return "Error loading map: " + e.getMessage();
+
+        }
     }
 
     @GetMapping("/map")
