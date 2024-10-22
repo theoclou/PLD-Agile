@@ -10,7 +10,7 @@ const MapComponent = () => {
     const [error, setError] = useState(null);
     const [bounds, setBounds] = useState(null);
     const [mapLoaded, setMapLoaded] = useState(false);
-    const [nombreLivreurs, setNombreLivreurs] = useState(2);
+    const [numberCouriers, setNumberCouriers] = useState(2);
     const [file1, setFile1] = useState(null);
     const [fileName1, setFileName1] = useState('Choose a File');
     const [file2, setFile2] = useState(null);
@@ -59,12 +59,12 @@ const MapComponent = () => {
     });
 
     const handleIncrease = () => {
-        setNombreLivreurs(prevCount => prevCount + 1);
+        setNumberCouriers(prevCount => prevCount + 1);
     };
 
     const handleDecrease = () => {
-        if (nombreLivreurs > 2) {
-            setNombreLivreurs(prevCount => prevCount - 1);
+        if (numberCouriers > 2) {
+            setNumberCouriers(prevCount => prevCount - 1);
         }
     };
 
@@ -136,7 +136,7 @@ const MapComponent = () => {
                     -
                 </button>
                 <span className="courierCounter">
-                    Couriers: {nombreLivreurs}
+                    Couriers: {numberCouriers}
                 </span>
                 <button className="button" onClick={handleIncrease}>
                     +
