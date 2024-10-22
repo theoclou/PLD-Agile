@@ -24,7 +24,7 @@ const MapComponent = () => {
         try {
             const response = await fetch('http://localhost:8080/map');
             if (!response.ok) {
-                throw new Error('Erreur lors de la récupération des données');
+                throw new Error('Error during data recuperation');
             }
             const result = await response.json();
             setData(result);
@@ -73,9 +73,33 @@ const MapComponent = () => {
         setFile1(selectedFile);
         if (selectedFile) {
             setFileName1(selectedFile.name);
+
+            // Create a FormData to send the file to the backend
+            const formData = new FormData();
+            formData.append("file", selectedFile);
+
+            // Send the file to the backend with POST
+            fetch('http://localhost:8080/loadMap', {
+                method: 'POST',
+                body: formData,
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to upload file');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("File loaded successfully:", data);
+                })
+                .catch(error => {
+                    console.error("Error uploading file:", error);
+                });
+            handleFetchData();
         } else {
             setFileName1('Choose a File');
         }
+
     };
 
     const handleFileChange2 = (event) => {
