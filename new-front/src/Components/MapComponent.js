@@ -1,21 +1,25 @@
-import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Polyline, Popup, useMap } from 'react-leaflet';
-import CustomMarker from './CustomMarker';
+import React, { useState, useCallback, useRef } from 'react';
+import MapDisplay from './MapDisplay';
+import FileUploadButton from './FileUploadButton';
+import Popup from './Popup';
+import LoadDeliveryButton from './LoadDeliveryButton';
+import CourierCounter from './CourierCounter';
 import 'leaflet/dist/leaflet.css';
 import './MapComponent.css';
 
 const MapComponent = () => {
     const [data, setData] = useState({ intersections: [], sections: [] });
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
     const [bounds, setBounds] = useState(null);
     const [mapLoaded, setMapLoaded] = useState(false);
     const [zoom, setZoom] = useState(8);
     const mapRef = useRef(); // Référence pour le composant MapContainer
+    const [popupVisible, setPopupVisible] = useState(false);
+    const [popupMessage, setPopupMessage] = useState('');
+    const [courierCount, setCourierCount] = useState(2); // État pour le nombre de courriers
 
     const handleFetchData = useCallback(async () => {
         setLoading(true);
-        setError(null);
 
         try {
             const response = await fetch('http://localhost:8080/map');
@@ -41,7 +45,8 @@ const MapComponent = () => {
                 throw new Error('Invalid data format from server');
             }
         } catch (error) {
-            setError(error.message);
+            setPopupMessage(error.message);
+            setPopupVisible(true); // Affiche le pop-up
         } finally {
             setLoading(false);
         }
@@ -62,98 +67,53 @@ const MapComponent = () => {
                 if (!response.ok) throw new Error('Failed to upload file, try again');
                 await handleFetchData();
             } catch (error) {
-                setError(error.message);
+                setPopupMessage(error.message);
+                setPopupVisible(true);
             }
         }
     };
 
-    const memoizedIntersections = useMemo(() => data.intersections, [data]);
-    const memoizedSections = useMemo(() => data.sections, [data]);
-
-    const ZoomListener = () => {
-        const map = useMap();
-
-        useEffect(() => {
-            const handleZoomEnd = () => {
-                const currentZoom = map.getZoom();
-                setZoom(currentZoom);
-            };
-
-            map.on('zoomend', handleZoomEnd);
-            return () => {
-                map.off('zoomend', handleZoomEnd);
-            };
-        }, [map]);
-
-        return null;
+    const handleClosePopup = () => {
+        setPopupVisible(false);
     };
 
-    const filteredIntersections = useMemo(() => {
-        const minZoomForIntersections = 18; // Zoom threshold for displaying intersections
-
-        if (zoom >= minZoomForIntersections) {
-            return memoizedIntersections;
+    const handleLoadDelivery = async () => {
+        console.log("Load Delivery button clicked!");
+        try {
+            await fetch('http://localhost:8080/courriers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ count: courierCount }), // Envoie le nombre de courriers
+            });
+        } catch (error) {
+            console.error("Error updating courier count:", error);
         }
-
-        return [];
-    }, [zoom, memoizedIntersections]);
+    };
 
     return (
         <div className="container">
             <h1 className="title">Pick'One</h1>
-            <div className="buttonContainer">
-                <input type="file" id="file-upload-1" className="inputField" style={{ display: 'none' }} onChange={handleFileChange} />
-                <label htmlFor="file-upload-1" className="custom-file-upload">LoadMap</label>
-            </div>
+            <FileUploadButton onFileChange={handleFileChange} />
+
+            <LoadDeliveryButton onLoadDelivery={handleLoadDelivery} />
+
+            <CourierCounter count={courierCount} setCount={setCourierCount} /> {/* Passer le state et setter */}
 
             {loading && <div>Loading...</div>}
-            {error && <div>Error: {error}</div>}
 
             {mapLoaded && (
-                <MapContainer
-                    ref={mapRef} // Ajoute la référence ici
-                    bounds={bounds || [[48.8566, 2.3522], [48.8566, 2.3522]]}
+                <MapDisplay
+                    data={data}
+                    bounds={bounds}
                     zoom={zoom}
-                    className="map"
-                >
-                    <TileLayer
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        attribution='&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    />
-                    <ZoomListener />
-                    {filteredIntersections.map((intersection) => (
-                        <CustomMarker key={intersection.id} intersection={intersection}>
-                            <Popup>
-                                Intersection ID: {intersection.id}<br />
-                                Latitude: {intersection.latitude}<br />
-                                Longitude: {intersection.longitude}
-                            </Popup>
-                        </CustomMarker>
-                    ))}
+                    setZoom={setZoom}
+                />
+            )}
 
-                    {memoizedSections.map((section, index) => {
-                        const originIntersection = section.origin;
-                        const destinationIntersection = section.destination;
-
-                        if (originIntersection && destinationIntersection) {
-                            const latLngs = [
-                                [originIntersection.latitude, originIntersection.longitude],
-                                [destinationIntersection.latitude, destinationIntersection.longitude]
-                            ];
-
-                            return (
-                                <Polyline
-                                    key={index}
-                                    positions={latLngs}
-                                    color="red"
-                                    weight={2}
-                                    opacity={1}
-                                />
-                            );
-                        }
-                        return null;
-                    })}
-                </MapContainer>
+            {popupVisible && (
+                <Popup message={popupMessage} onClose={handleClosePopup} />
             )}
         </div>
     );

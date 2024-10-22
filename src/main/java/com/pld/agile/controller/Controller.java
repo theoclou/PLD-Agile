@@ -23,17 +23,21 @@ public class Controller {
 
     // Instanciation de la carte
     private Plan map = new Plan();
+    private int numberOfCouriers;
 
     // Chargement du fichier XML au démarrage de l'application
     public Controller() {
     }
 
-    @PostMapping("/setCourier")
-    public String addCourier(@RequestBody Integer courierNumber) {
-        return String.format("Number of couriers set, we now have %d couriers.", courierNumber);
+    // POST pour mettre à jour le nombre de courriers
+    @PostMapping("/courriers")
+    public ResponseEntity<Void> updateCouriers(@RequestBody Map<String, Integer> payload) {
+        numberOfCouriers = payload.get("count");
+        System.out.println("Update courriers : " + numberOfCouriers);
+        return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/getCouriers")
+    @GetMapping("/Courriers")
     public String getCouriers() {
         return "Here are the Couriers";
     }
