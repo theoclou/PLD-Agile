@@ -7,7 +7,9 @@ import com.pld.agile.model.strategy.TspStrategy;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
+import javax.management.InstanceNotFoundException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.util.ArrayList;
@@ -55,12 +57,12 @@ public class Round {
         solverBNB.solve();
     }
 
-    public void loadRequests(String filePath){
+    public void loadRequests(String filePath) throws Exception {
         try{
             File xmlFile = new File(filePath);
             // Verifying if the file exists
             if (!xmlFile.exists()){
-                throw new FileNotFoundException("Le fichier '" + filePath + "' est introuvable.");
+                throw new FileNotFoundException("The file '" + filePath + "' is not found.");
             }
 
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -76,18 +78,32 @@ public class Round {
                 // Create the DeliveryRequest Object
                 Intersection intersection = plan.getIntersectionById(deliveryAdress);
                 if (intersection == null){
-                    throw new Exception("L'intersection '" + deliveryAdress + "' n'existe pas !");
+                    throw new InstanceNotFoundException("The intersection '" + deliveryAdress + "' doesn't exist !");
                 }
                 DeliveryRequest deliveryRequest = new DeliveryRequest(intersection);
                 deliveryRequestList.add(deliveryRequest);
             }
-        }
-        catch(Exception e){
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
+            throw e; // Propagate exception if file not found
+        } catch (SAXException e) {
+            // Captures errors related to malformed XML parsing
+            throw new Exception("Malformed XML file : : " + e.getMessage());
+        } catch (InstanceNotFoundException e) {
+            e.printStackTrace();
+            throw e;
         }
     }
 
+    public Plan getPlan() {
+        return plan;
+    }
 
+    public List<Courier> getCourierList() {
+        return courierList;
+    }
 
-
+    public List<DeliveryRequest> getDeliveryRequestList() {
+        return deliveryRequestList;
+    }
 }
