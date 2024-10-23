@@ -95,8 +95,10 @@ const MapComponent = () => {
         const selectedFile = event.target.files[0];
 
         if (selectedFile) {
+            console.log(`File Name: ${selectedFile.name}`);
             const formData = new FormData();
             formData.append("file", selectedFile);
+
 
             try {
                 const response = await fetch('http://localhost:8080/loadDelivery', {

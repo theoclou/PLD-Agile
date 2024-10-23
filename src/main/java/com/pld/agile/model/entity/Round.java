@@ -4,6 +4,7 @@ import com.pld.agile.model.strategy.BnBStrategy;
 import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.Solver;
 import com.pld.agile.model.strategy.TspStrategy;
+import org.springframework.web.multipart.MultipartFile;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.io.File;
 import java.io.FileNotFoundException;
+
 
 public class Round {
     private static final double COURIER_SPEED = 15.0; // km/h
@@ -133,6 +135,54 @@ public class Round {
         } catch (InstanceNotFoundException e) {
             e.printStackTrace();
             throw e;
+        }
+    }
+
+    public void loadRequestsByfile(MultipartFile file) throws Exception {
+        File xmlFile = null;
+        try{
+            xmlFile = File.createTempFile("tempFile", ".xml");
+            file.transferTo(xmlFile);
+
+
+
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document document = builder.parse(xmlFile);
+
+            // Reading the Requests
+            NodeList requestsElements = document.getElementsByTagName("livraison");
+
+            for(int i = 0; i < requestsElements.getLength(); i++){
+                Element element = (Element) requestsElements.item(i);
+                System.out.println("1");
+                String deliveryAdress = element.getAttribute("adresseLivraison");
+                System.out.println("delivery Add" + deliveryAdress);
+                // Create the DeliveryRequest Object
+                Intersection intersection = plan.getIntersectionById(deliveryAdress);
+                System.out.println("3");
+                if (intersection == null){
+                    throw new InstanceNotFoundException("The intersection '" + deliveryAdress + "' doesn't exist !");
+                }
+                System.out.println("4");
+                DeliveryRequest deliveryRequest = new DeliveryRequest(intersection);
+                System.out.println("5");
+                deliveryRequestList.add(deliveryRequest);
+                System.out.println("6");
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            throw e; // Propagate exception if file not found
+        } catch (SAXException e) {
+            // Captures errors related to malformed XML parsing
+            throw new Exception("Malformed XML file : : " + e.getMessage());
+        } catch (InstanceNotFoundException e) {
+            e.printStackTrace();
+            throw e;
+        } finally {
+            if (xmlFile != null && xmlFile.exists()) {
+                xmlFile.delete();
+            }
         }
     }
 
