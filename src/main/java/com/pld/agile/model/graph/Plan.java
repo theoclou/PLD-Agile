@@ -129,20 +129,20 @@ public class Plan {
         System.out.println("Nombre de tronçons : " + sections.size());
     }
 
-    // Méthode pour afficher le contenu du fichier XML
-    private void displayXmlContent(String filePath) {
-        StringBuilder content = new StringBuilder();
-        try (BufferedReader br = new BufferedReader(new FileReader(new File(filePath)))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                content.append(line).append("\n"); // Ajoute chaque ligne avec un saut de ligne
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        System.out.println("Contenu du fichier XML :");
-        System.out.println(content.toString()); // Affiche le contenu
-    }
+    // // Méthode pour afficher le contenu du fichier XML
+    // private void displayXmlContent(String filePath) {
+    //     StringBuilder content = new StringBuilder();
+    //     try (BufferedReader br = new BufferedReader(new FileReader(new File(filePath)))) {
+    //         String line;
+    //         while ((line = br.readLine()) != null) {
+    //             content.append(line).append("\n"); // Ajoute chaque ligne avec un saut de ligne
+    //         }
+    //     } catch (IOException e) {
+    //         e.printStackTrace();
+    //     }
+    //     System.out.println("Contenu du fichier XML :");
+    //     System.out.println(content.toString()); // Affiche le contenu
+    // }
 
     public void resetMap() {
         intersectionMap.clear();
@@ -172,7 +172,7 @@ public class Plan {
     public String getIdByIndex(Integer index) { return reverseIndexes.get(index); }
 
     // Reindex intersections based on their IDs
-    public void reIndexIntersections() {
+    private void reIndexIntersections() {
         int i = 0;
         for (Intersection intersection : intersections) {
             String id = intersection.getId();
@@ -187,7 +187,6 @@ public class Plan {
             reverseIndexes.put(pair.getValue(),pair.getKey());
         }
     }
-
     // Initialize the cost matrix 0 or infinity values
     private void initializeCostsMatrix() {
         int size = intersections.size();
@@ -221,12 +220,18 @@ public class Plan {
         }
     }
 
-    public void makeCostsMatrix() {
+    private void makeCostsMatrix() {
         // Initialize the adjacency matrix with the size of the intersections
         initializeCostsMatrix();
         fillCostsMAtrix();
     }
-
+    public void preprocessData()
+    {
+        reIndexIntersections();
+        reverseIndexation();
+        makeCostsMatrix();
+    }
+    
     private double[] initializeDistances(int numNodes, int origin) {
         double[] distances = new double[numNodes];
         Arrays.fill(distances, Double.MAX_VALUE);
@@ -321,14 +326,15 @@ public class Plan {
         // If unreachable, return -1
         return totalDistance == Double.MAX_VALUE ? -1 : totalDistance;
     }
-    public void constructTour(List<Integer> path)
+    private void constructTour(List<Integer> path)
     {
         for (int i=0;i<path.size()-1;i++)
         {
             tour.addAll(findShortestPath(i, i+1));
         }
     }
-    public List<String> makeIntersectionsTour()
+
+    private List<String> makeIntersectionsTour()
     {
         for (Integer point : tour) {
             String intersectionId=reverseIndexes.get(point);
@@ -336,6 +342,24 @@ public class Plan {
         }
         return IntersectionsTour;
     }
+
+
+    public List<String> computeTour(List<Integer> path)
+    {
+        constructTour(path);
+        List<String>finalResult =makeIntersectionsTour();
+        System.out.println(finalResult);
+        return finalResult;
+    }
+
+
+
+
+
+
+
+
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

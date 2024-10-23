@@ -22,7 +22,7 @@ public class Solver {
         this.solvingStrategy = solvingStrategy;
     }
 
-    public Solver init(){
+    public Solver init() {
         this.createCompleteGraph();
         return this;
     }
