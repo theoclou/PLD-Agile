@@ -29,6 +29,7 @@ const MapComponent = () => {
       const result = await response.json();
       if (result && result.intersections) {
         setMapData(result);
+        setDeliveryData({ deliveries: [] });
         const latitudes = result.intersections.map((i) => i.latitude);
         const longitudes = result.intersections.map((i) => i.longitude);
         const newBounds = [

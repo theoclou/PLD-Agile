@@ -71,7 +71,8 @@ public class Controller {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(Collections.singletonMap("message", "File upload failed: No file selected."));
         }
-        //TODO
+        //TODO empty the delivery request list to avoid duplicates
+
         try {
             //Create response object
             Map<String, Object> response = new HashMap<>();
@@ -79,11 +80,7 @@ public class Controller {
             round.loadRequestsByfile(file);
             List<DeliveryRequest> deliveryRequestList = round.getDeliveryRequestList();
             System.out.println("Delivery request list size: " + deliveryRequestList.size());
-            List<Intersection> intersections = new ArrayList<>();
-            for (DeliveryRequest deliveryRequest : deliveryRequestList) {
-                intersections.add(deliveryRequest.getDeliveryAdress());
-            }
-            response.put("intersectionList", intersections);
+            response.put("deliveries", deliveryRequestList);
             response.put("message", "Delivery points loaded successfully");
             return ResponseEntity.ok(response);
         } catch (IOException e) {

@@ -14,10 +14,7 @@ import javax.management.InstanceNotFoundException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 
@@ -108,6 +105,7 @@ public class Round {
                 throw new FileNotFoundException("The file '" + filePath + "' is not found.");
             }
 
+
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.parse(xmlFile);
@@ -145,6 +143,7 @@ public class Round {
             file.transferTo(xmlFile);
 
 
+            List<DeliveryRequest> tempDeliveryRequestList = new ArrayList<>();  // Temporary list to avoid modifying the list if an error occurs
 
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
@@ -152,37 +151,34 @@ public class Round {
 
             // Reading the Requests
             NodeList requestsElements = document.getElementsByTagName("livraison");
+            if (requestsElements.getLength() == 0){
+                throw new NoSuchElementException("No delivery requests found in the file.");
+            }
 
             for(int i = 0; i < requestsElements.getLength(); i++){
                 Element element = (Element) requestsElements.item(i);
-                System.out.println("1");
                 String deliveryAdress = element.getAttribute("adresseLivraison");
-                System.out.println("1.5");
-                Map<String, Intersection> indexInter = plan.getIntersectionMap();
-                for (Map.Entry<String, Intersection> entry : indexInter.entrySet()) {
-                    System.out.println("2");
-                    System.out.println(entry.getKey() + " = " + entry.getValue());
+
+                if (plan == null){
+                    throw new InstanceNotFoundException("No plan loaded. Please load a plan before loading delivery requests.");
                 }
-                System.out.println("delivery Add" + deliveryAdress);
                 // Create the DeliveryRequest Object
                 Intersection intersection = plan.getIntersectionById(deliveryAdress);
-                System.out.println("3");
                 if (intersection == null){
                     throw new InstanceNotFoundException("The intersection '" + deliveryAdress + "' doesn't exist !");
                 }
-                System.out.println("4");
                 DeliveryRequest deliveryRequest = new DeliveryRequest(intersection);
-                System.out.println("5");
-                deliveryRequestList.add(deliveryRequest);
-                System.out.println("6");
+                tempDeliveryRequestList.add(deliveryRequest);
             }
+            deliveryRequestList = tempDeliveryRequestList;
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             throw e; // Propagate exception if file not found
         } catch (SAXException e) {
             // Captures errors related to malformed XML parsing
             throw new Exception("Malformed XML file : : " + e.getMessage());
-        } catch (InstanceNotFoundException e) {
+        } catch (InstanceNotFoundException | NoSuchElementException e) {
             e.printStackTrace();
             throw e;
         } finally {
