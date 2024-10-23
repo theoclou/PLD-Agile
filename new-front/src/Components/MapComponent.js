@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef } from "react";
 import MapDisplay from "./MapDisplay";
 import FileUploadButton from "./FileUploadButton";
-import Popup from "./Popup";
+import ErrorPopup from "./ErrorPopup";
 import LoadDeliveryButton from "./LoadDeliveryButton";
 import CourierCounter from "./CourierCounter";
 import "leaflet/dist/leaflet.css";
@@ -141,7 +141,7 @@ const MapComponent = () => {
       )}
 
       {popupVisible && (
-        <Popup message={popupMessage} onClose={handleClosePopup} />
+        <ErrorPopup message={popupMessage} onClose={handleClosePopup} />
       )}
     </div>
   );
