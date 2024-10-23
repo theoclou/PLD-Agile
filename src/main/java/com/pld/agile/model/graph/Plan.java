@@ -607,4 +607,7 @@ public class Plan {
         System.out.println("Number of sections: " + sections.size());
     }
 
+    public Map<String, Intersection> getIntersectionMap() {
+        return intersectionMap;
+    }
 }

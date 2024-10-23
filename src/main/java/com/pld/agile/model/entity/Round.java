@@ -4,6 +4,7 @@ import com.pld.agile.model.strategy.BnBStrategy;
 import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.Solver;
 import com.pld.agile.model.strategy.TspStrategy;
+import org.springframework.web.multipart.MultipartFile;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -13,10 +14,7 @@ import javax.management.InstanceNotFoundException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 /**
@@ -128,6 +126,7 @@ public class Round {
                 throw new FileNotFoundException("The file '" + filePath + "' is not found.");
             }
 
+
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.parse(xmlFile);
@@ -162,6 +161,59 @@ public class Round {
      *
      * @return the plan
      */
+
+    public void loadRequestsByfile(MultipartFile file) throws Exception {
+        File xmlFile = null;
+        try{
+            xmlFile = File.createTempFile("tempFile", ".xml");
+            file.transferTo(xmlFile);
+
+
+            List<DeliveryRequest> tempDeliveryRequestList = new ArrayList<>();  // Temporary list to avoid modifying the list if an error occurs
+
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document document = builder.parse(xmlFile);
+
+            // Reading the Requests
+            NodeList requestsElements = document.getElementsByTagName("livraison");
+            if (requestsElements.getLength() == 0){
+                throw new NoSuchElementException("No delivery requests found in the file.");
+            }
+
+            for(int i = 0; i < requestsElements.getLength(); i++){
+                Element element = (Element) requestsElements.item(i);
+                String deliveryAdress = element.getAttribute("adresseLivraison");
+
+                if (plan == null){
+                    throw new InstanceNotFoundException("No plan loaded. Please load a plan before loading delivery requests.");
+                }
+                // Create the DeliveryRequest Object
+                Intersection intersection = plan.getIntersectionById(deliveryAdress);
+                if (intersection == null){
+                    throw new InstanceNotFoundException("The intersection '" + deliveryAdress + "' doesn't exist !");
+                }
+                DeliveryRequest deliveryRequest = new DeliveryRequest(intersection);
+                tempDeliveryRequestList.add(deliveryRequest);
+            }
+            deliveryRequestList = tempDeliveryRequestList;
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            throw e; // Propagate exception if file not found
+        } catch (SAXException e) {
+            // Captures errors related to malformed XML parsing
+            throw new Exception("Malformed XML file : : " + e.getMessage());
+        } catch (InstanceNotFoundException | NoSuchElementException e) {
+            e.printStackTrace();
+            throw e;
+        } finally {
+            if (xmlFile != null && xmlFile.exists()) {
+                xmlFile.delete();
+            }
+        }
+    }
+
     public Plan getPlan() {
         return plan;
     }

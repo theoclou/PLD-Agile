@@ -5,12 +5,12 @@ const LoadDeliveryButton = ({ onFileChange }) => {
     <div className="buttonContainer">
       <input
         type="file"
-        id="file-upload-1"
+        id="file-upload-2"
         className="inputField"
         style={{ display: 'none' }}
         onChange={onFileChange}
       />
-      <label htmlFor="file-upload-1" className="custom-file-upload">Load Delivery</label>
+      <label htmlFor="file-upload-2" className="custom-file-upload">Load Delivery</label>
     </div>
   );
 };

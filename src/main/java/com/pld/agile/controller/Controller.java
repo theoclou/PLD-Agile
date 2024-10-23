@@ -2,8 +2,10 @@ package com.pld.agile.controller;
 
 import com.pld.agile.model.entity.DeliveryRequest;
 import com.pld.agile.model.entity.Intersection;
+import com.pld.agile.model.entity.Round;
 import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.entity.Section;
+import com.pld.agile.model.entity.Round;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +24,8 @@ import java.io.IOException;
 public class Controller {
 
     private Plan map = new Plan();
-    private int numberOfCouriers;
+    private Round round = new Round();
+    private int numberOfCouriers = 2;
 
     public Controller() {
     }
@@ -49,6 +52,8 @@ public class Controller {
 
         try {
             map.readXmlbyFile(file);
+            round = new Round();
+            round.init(numberOfCouriers, map);
             if (map.getIntersections().size() > 0) {
                 return ResponseEntity.ok(Collections.singletonMap("message", "Plan loaded successfully."));
             } else {
@@ -61,26 +66,29 @@ public class Controller {
         }
     }
 
-    /*@PostMapping("/loadDelivery")
-    public ResponseEntity<Map<String, String>> loadDelivery(@RequestParam("file") MultipartFile file) {
+    @PostMapping("/loadDelivery")
+    public ResponseEntity<Map<String, Object>> loadDelivery(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(Collections.singletonMap("message", "File upload failed: No file selected."));
         }
+        //TODO empty the delivery request list to avoid duplicates
 
-        //TODO
-        /*try {
-            map.readXmlbyFile(file);
-            if (map.getIntersections().size() > 0) {
-                return ResponseEntity.ok(Collections.singletonMap("message", "Plan loaded successfully."));
-            } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("error", "No valid intersections loaded. Please check the file."));
-            }
+        try {
+            //Create response object
+            Map<String, Object> response = new HashMap<>();
+            System.out.println("File received: " + file.getOriginalFilename());
+            round.loadRequestsByfile(file);
+            List<DeliveryRequest> deliveryRequestList = round.getDeliveryRequestList();
+            System.out.println("Delivery request list size: " + deliveryRequestList.size());
+            response.put("deliveries", deliveryRequestList);
+            response.put("message", "Delivery points loaded successfully");
+            return ResponseEntity.ok(response);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("message", "File upload failed: " + e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("message", "Error loading map: " + e.getMessage()));
         }
-    }*/
+    }
 
     @GetMapping("/map")
     public Map<String, Object> displayMap() {
