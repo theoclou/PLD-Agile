@@ -33,8 +33,6 @@ public class Round {
     public void init(Integer CourierQuantity, Plan plan) {
         this.courierList = new ArrayList<>();
         this.plan = plan;
-        this.plan.reIndexIntersections();
-        this.plan.makeCostsMatrix();
         this.deliveryRequestList = new ArrayList<DeliveryRequest>();
         this.tourAttribution = new HashMap<Courier, DeliveryTour>();
     }
