@@ -13,8 +13,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.SpringApplication;
 
 
-import com.pld.agile.model.algorithm.tsp.TSP;
-import com.pld.agile.model.algorithm.tsp.TSP1;
+
 import com.pld.agile.model.algorithm.bnb.BranchAndBound;
 
 @SpringBootApplication
@@ -37,40 +36,25 @@ public class Application {
 			System.err.println("Erreur : " + e.getMessage());
 			System.exit(1); // Arrêter le programme avec un code d'erreur
 		}
-		//// testing the TSP method on the whole map
-		plan.reIndexIntersections();
-		plan.makeCostsMatrix();
-		// System.out.println(plan);
-		int origin = 1;
-		int destination = 48;
+		
+		plan.preprocessData();
 		List<Integer> vertices = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8,9);
-		TSP tsp = new TSP1();
 		Solver solver = new Solver(plan, vertices, new TspStrategy());
 		solver.createCompleteGraph();
 		int n = 10;
 		long t = System.currentTimeMillis();
-		/*
-		 * ArrayList<Integer> visited = new ArrayList<>();
-		 * visited.add(0);
-		 *
-		 * // Create the initial notVisited set with vertices 1 to n-1
-		 * Set<Integer> notVisited = new HashSet<>();
-		 * for (int i = 1; i < n; i++) {
-		 * notVisited.add(i);
-		 * }
-		 */
+		
 		BranchAndBound bnb = new BranchAndBound();
 		bnb.setCostsMatrix(solver.getCompleteMatrix());
-		int[] visited = new int[n];
-		int[] notVisited = new int[n - 1];
-		visited[0] = 0;
-		for (int i = 0; i < n - 1; i++) {
-			notVisited[i] = vertices.get(i + 1);
-		}
+		
 		bnb.findBestCost();
 		System.out.printf("n=%d nbCalls=%d time=%.3fs\n", n, bnb.getNbCalls(),
 				(System.currentTimeMillis() - t) / 1000.0);
 		solver.solve();
+		List<Integer> bestPath=solver.getBestPath();
+		plan.computeTour(bestPath);
+		System.out.println("finished here");
+
 
 		// Création Round
 		Round round = new Round();
@@ -82,17 +66,5 @@ public class Application {
 		}catch (Exception e){
 			System.err.println("Erreur : " + e.getMessage());
 		}
-
-//		// Affichage des intersections
-//		System.out.println("Intersections:");
-//		for (Intersection intersection : plan.getIntersections()) {
-//			System.out.println(intersection);
-//		}
-//
-//		// Affichage des sections
-//		System.out.println("Sections:");
-//		for (Section section : plan.getSections()) {
-//			System.out.println(section);
-//		}
 	}
 }
