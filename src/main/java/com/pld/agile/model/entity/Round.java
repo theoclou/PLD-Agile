@@ -157,6 +157,12 @@ public class Round {
                 Element element = (Element) requestsElements.item(i);
                 System.out.println("1");
                 String deliveryAdress = element.getAttribute("adresseLivraison");
+                System.out.println("1.5");
+                Map<String, Intersection> indexInter = plan.getIntersectionMap();
+                for (Map.Entry<String, Intersection> entry : indexInter.entrySet()) {
+                    System.out.println("2");
+                    System.out.println(entry.getKey() + " = " + entry.getValue());
+                }
                 System.out.println("delivery Add" + deliveryAdress);
                 // Create the DeliveryRequest Object
                 Intersection intersection = plan.getIntersectionById(deliveryAdress);

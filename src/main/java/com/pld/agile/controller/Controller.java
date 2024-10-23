@@ -25,7 +25,7 @@ public class Controller {
 
     private Plan map = new Plan();
     private Round round = new Round();
-    private int numberOfCouriers;
+    private int numberOfCouriers = 2;
 
     public Controller() {
     }
@@ -52,6 +52,8 @@ public class Controller {
 
         try {
             map.readXmlbyFile(file);
+            round = new Round();
+            round.init(numberOfCouriers, map);
             if (map.getIntersections().size() > 0) {
                 return ResponseEntity.ok(Collections.singletonMap("message", "Plan loaded successfully."));
             } else {
@@ -65,15 +67,25 @@ public class Controller {
     }
 
     @PostMapping("/loadDelivery")
-    public ResponseEntity<Map<String, String>> loadDelivery(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Map<String, Object>> loadDelivery(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(Collections.singletonMap("message", "File upload failed: No file selected."));
         }
         //TODO
         try {
+            //Create response object
+            Map<String, Object> response = new HashMap<>();
             System.out.println("File received: " + file.getOriginalFilename());
             round.loadRequestsByfile(file);
-            return ResponseEntity.ok(Collections.singletonMap("message", "Delivery points loaded successfully"));
+            List<DeliveryRequest> deliveryRequestList = round.getDeliveryRequestList();
+            System.out.println("Delivery request list size: " + deliveryRequestList.size());
+            List<Intersection> intersections = new ArrayList<>();
+            for (DeliveryRequest deliveryRequest : deliveryRequestList) {
+                intersections.add(deliveryRequest.getDeliveryAdress());
+            }
+            response.put("intersectionList", intersections);
+            response.put("message", "Delivery points loaded successfully");
+            return ResponseEntity.ok(response);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("message", "File upload failed: " + e.getMessage()));
         } catch (Exception e) {
