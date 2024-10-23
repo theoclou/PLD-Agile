@@ -12,14 +12,12 @@ import com.pld.agile.model.strategy.TspStrategy;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.SpringApplication;
 
-
-
 import com.pld.agile.model.algorithm.bnb.BranchAndBound;
 
 @SpringBootApplication
 public class Application {
-	//TODO
-	//Faire test en JUnit
+	// TODO
+	// Faire test en JUnit
 	public static void main(String[] args) {
 
 		// Launch App
@@ -34,34 +32,37 @@ public class Application {
 			System.err.println("Erreur : " + e.getMessage());
 			System.exit(1); // Arrêter le programme avec un code d'erreur
 		}
-		
+
 		plan.preprocessData();
-		List<Integer> vertices = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8,9);
+		List<Integer> vertices = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+		/*
+		 * If using a list of ids use instead this :
+		 * List<Integer> vertices =plan.formatInput(List<String> idIntersections)
+		 */
 		Solver solver = new Solver(plan, vertices, new TspStrategy());
 		solver.createCompleteGraph();
 		int n = 10;
 		long t = System.currentTimeMillis();
-		
+
 		BranchAndBound bnb = new BranchAndBound();
 		bnb.setCostsMatrix(solver.getCompleteMatrix());
-		
+
 		bnb.findBestCost();
 		System.out.printf("n=%d nbCalls=%d time=%.3fs\n", n, bnb.getNbCalls(),
 				(System.currentTimeMillis() - t) / 1000.0);
 		solver.solve();
-		List<Integer> bestPath=solver.getBestPath();
+		List<Integer> bestPath = solver.getBestPath();
 		plan.computeTour(bestPath);
 		System.out.println("finished here");
-
 
 		// Création Round
 		Round round = new Round();
 		List<Courier> couriers = new ArrayList<>();
 		round.init(2, plan);
 		String requestPath = "src/data/demandePetit2.xml";
-		try{
+		try {
 			round.loadRequests(requestPath);
-		}catch (Exception e){
+		} catch (Exception e) {
 			System.err.println("Erreur : " + e.getMessage());
 		}
 	}

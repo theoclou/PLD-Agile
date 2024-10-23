@@ -354,7 +354,15 @@ public class Plan {
 
 
 
-
+    public List<Integer> formatInput(List<String> idIntersections)
+    {
+        List<Integer> formattedInput=new  ArrayList<>();
+        for (String id : idIntersections)
+        {
+            formattedInput.add(indexes.get(id));
+        }
+        return formattedInput;
+    }
 
 
 
