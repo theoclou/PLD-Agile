@@ -2,11 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import './CourierCounter.css';
 
-CourierCounter.propTypes = {
-  count: PropTypes.number.isRequired,
-  setCount: PropTypes.func.isRequired,
-};
-
 const CourierCounter = ({ count, setCount }) => {
   const increment = () => {
     if (count < 10) {
@@ -29,4 +24,8 @@ const CourierCounter = ({ count, setCount }) => {
   );
 };
 
+CourierCounter.propTypes = {
+  count: PropTypes.number.isRequired,
+  setCount: PropTypes.func.isRequired,
+};
 export default CourierCounter;

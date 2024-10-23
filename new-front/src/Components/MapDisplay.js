@@ -4,13 +4,6 @@ import { MapContainer, TileLayer, Polyline, Popup, useMap } from 'react-leaflet'
 import CustomMarker from './CustomMarker';
 import PropTypes from 'prop-types';
 
-MapDisplay.propTypes = {
-  data: PropTypes.object.isRequired,
-  bounds: PropTypes.array,
-  zoom: PropTypes.number.isRequired,
-  setZoom: PropTypes.func.isRequired,
-};
-
 const MapDisplay = ({ data, bounds, zoom, setZoom }) => {
   const memoizedIntersections = useMemo(() => data.intersections, [data]);
   const memoizedSections = useMemo(() => data.sections, [data]);
@@ -87,6 +80,13 @@ const MapDisplay = ({ data, bounds, zoom, setZoom }) => {
       })}
     </MapContainer>
   );
+};
+
+MapDisplay.propTypes = {
+  data: PropTypes.object.isRequired,
+  bounds: PropTypes.array,
+  zoom: PropTypes.number.isRequired,
+  setZoom: PropTypes.func.isRequired,
 };
 
 export default MapDisplay;

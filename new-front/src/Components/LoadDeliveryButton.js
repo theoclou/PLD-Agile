@@ -1,10 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-LoadDeliveryButton.propTypes = {
-  onLoadDelivery: PropTypes.func.isRequired,
-};
-
 const LoadDeliveryButton = ({ onFileChange }) => {
   return (
     <div className="buttonContainer">
@@ -20,6 +16,10 @@ const LoadDeliveryButton = ({ onFileChange }) => {
       </label>
     </div>
   );
+};
+
+LoadDeliveryButton.propTypes = {
+  onFileChange: PropTypes.func.isRequired,
 };
 
 export default LoadDeliveryButton;

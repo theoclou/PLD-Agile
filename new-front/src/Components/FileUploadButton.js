@@ -2,10 +2,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-FileUploadButton.propTypes = {
-  onFileChange: PropTypes.func.isRequired,
-};
-
 const FileUploadButton = ({ onFileChange }) => {
   return (
     <div className="buttonContainer">
@@ -21,6 +17,10 @@ const FileUploadButton = ({ onFileChange }) => {
       </label>
     </div>
   );
+};
+
+FileUploadButton.propTypes = {
+  onFileChange: PropTypes.func.isRequired,
 };
 
 export default FileUploadButton;
