@@ -1,7 +1,7 @@
 // MapDisplay.js
 import React, { useMemo, useEffect } from "react";
 import { MapContainer, TileLayer, Polyline, useMap } from "react-leaflet";
-import CustomMarker from "./CustomMarker";
+import MapMarker from "./MapMarker";
 import DeliveryPointMarker from "./DeliveryPointMarker";
 
 const MapDisplay = ({ mapData, deliveryData, bounds, zoom, setZoom }) => {
@@ -61,7 +61,7 @@ const MapDisplay = ({ mapData, deliveryData, bounds, zoom, setZoom }) => {
       />
       <ZoomListener />
       {filteredIntersections.map((intersection) => (
-        <CustomMarker key={intersection.id} intersection={intersection} />
+        <MapMarker key={intersection.id} intersection={intersection} />
       ))}
       {memoizedDeliveries.map((delivery) => (
         <DeliveryPointMarker key={delivery.id} delivery={delivery} />

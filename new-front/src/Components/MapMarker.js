@@ -1,6 +1,7 @@
 import React from "react";
 import { Marker, Popup } from "react-leaflet";
 import L from "leaflet";
+import PropTypes from "prop-types";
 
 // Définir l'icône en dehors du composant pour éviter de la recréer à chaque rendu
 const blackIcon = L.divIcon({
@@ -12,7 +13,7 @@ const blackIcon = L.divIcon({
 });
 
 // Composant CustomMarker optimisé
-const CustomMarker = React.memo(({ intersection }) => {
+const MapMarker = React.memo(({ intersection }) => {
   return (
     <Marker
       position={[intersection.latitude, intersection.longitude]}
@@ -29,4 +30,16 @@ const CustomMarker = React.memo(({ intersection }) => {
   );
 });
 
-export default CustomMarker;
+// Props Validation
+MapMarker.propTypes = {
+  intersection: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    latitude: PropTypes.number.isRequired,
+    longitude: PropTypes.number.isRequired,
+  }).isRequired,
+};
+
+// Display name definition
+MapMarker.displayName = "MapMarker";
+
+export default MapMarker;
