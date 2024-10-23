@@ -1,4 +1,5 @@
 package com.pld.agile.model.graph;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -9,9 +10,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 
 import javax.management.InstanceNotFoundException;
 import javax.xml.parsers.DocumentBuilder;
@@ -38,14 +41,14 @@ public class Plan {
 
     @SuppressWarnings("FieldMayBeFinal")
     private ArrayList<ArrayList<Double>> costsMatrix = new ArrayList<>();
-    private ArrayList<Integer> tour=new ArrayList<>();
-    private ArrayList<String> IntersectionsTour=new ArrayList<>();
+    private ArrayList<Integer> tour = new ArrayList<>();
+    private ArrayList<String> IntersectionsTour = new ArrayList<>();
 
     public Plan() {
     }
 
     @SuppressWarnings("UseSpecificCatch")
-    public void readXml(String filePath) throws Exception{
+    public void readXml(String filePath) throws Exception {
         try {
             File xmlFile = new File(filePath);
 
@@ -96,10 +99,10 @@ public class Plan {
                 }
             }
 
-            for (int i=0; i<sections.size(); i++) {
+            for (int i = 0; i < sections.size(); i++) {
                 Boolean originFind = false;
                 Boolean destinationFind = false;
-                for (int j=0; j<intersections.size(); j++) {
+                for (int j = 0; j < intersections.size(); j++) {
                     if (intersections.get(j).getId().equals(sections.get(i).getOrigin())) {
                         originFind = true;
                     }
@@ -108,7 +111,8 @@ public class Plan {
                     }
                 }
                 if (!originFind || !destinationFind) {
-                    throw new InstanceNotFoundException("The XML file is missing required origin or destination intersections.");
+                    throw new InstanceNotFoundException(
+                            "The XML file is missing required origin or destination intersections.");
                 }
             }
         } catch (FileNotFoundException e) {
@@ -120,8 +124,7 @@ public class Plan {
         } catch (NumberFormatException e) {
             e.printStackTrace();
             throw e;
-        }
-        catch (InstanceNotFoundException e) {
+        } catch (InstanceNotFoundException e) {
             e.printStackTrace();
             throw e;
         }
@@ -131,17 +134,19 @@ public class Plan {
 
     // // Méthode pour afficher le contenu du fichier XML
     // private void displayXmlContent(String filePath) {
-    //     StringBuilder content = new StringBuilder();
-    //     try (BufferedReader br = new BufferedReader(new FileReader(new File(filePath)))) {
-    //         String line;
-    //         while ((line = br.readLine()) != null) {
-    //             content.append(line).append("\n"); // Ajoute chaque ligne avec un saut de ligne
-    //         }
-    //     } catch (IOException e) {
-    //         e.printStackTrace();
-    //     }
-    //     System.out.println("Contenu du fichier XML :");
-    //     System.out.println(content.toString()); // Affiche le contenu
+    // StringBuilder content = new StringBuilder();
+    // try (BufferedReader br = new BufferedReader(new FileReader(new
+    // File(filePath)))) {
+    // String line;
+    // while ((line = br.readLine()) != null) {
+    // content.append(line).append("\n"); // Ajoute chaque ligne avec un saut de
+    // ligne
+    // }
+    // } catch (IOException e) {
+    // e.printStackTrace();
+    // }
+    // System.out.println("Contenu du fichier XML :");
+    // System.out.println(content.toString()); // Affiche le contenu
     // }
 
     public void resetMap() {
@@ -166,10 +171,14 @@ public class Plan {
         intersections.add(intersection);
         intersectionMap.put(intersection.getId(), intersection);
     }
+
     public Integer getIndexById(String id) {
         return indexes.get(id);
     }
-    public String getIdByIndex(Integer index) { return reverseIndexes.get(index); }
+
+    public String getIdByIndex(Integer index) {
+        return reverseIndexes.get(index);
+    }
 
     // Reindex intersections based on their IDs
     private void reIndexIntersections() {
@@ -181,12 +190,13 @@ public class Plan {
             i += 1;
         }
     }
-    private void reverseIndexation()
-    {
+
+    private void reverseIndexation() {
         for (Map.Entry<String, Integer> pair : indexes.entrySet()) {
-            reverseIndexes.put(pair.getValue(),pair.getKey());
+            reverseIndexes.put(pair.getValue(), pair.getKey());
         }
     }
+
     // Initialize the cost matrix 0 or infinity values
     private void initializeCostsMatrix() {
         int size = intersections.size();
@@ -225,13 +235,13 @@ public class Plan {
         initializeCostsMatrix();
         fillCostsMAtrix();
     }
-    public void preprocessData()
-    {
+
+    public void preprocessData() {
         reIndexIntersections();
         reverseIndexation();
         makeCostsMatrix();
     }
-    
+
     private double[] initializeDistances(int numNodes, int origin) {
         double[] distances = new double[numNodes];
         Arrays.fill(distances, Double.MAX_VALUE);
@@ -326,47 +336,40 @@ public class Plan {
         // If unreachable, return -1
         return totalDistance == Double.MAX_VALUE ? -1 : totalDistance;
     }
-    private void constructTour(List<Integer> path)
-    {
-        for (int i=0;i<path.size()-1;i++)
-        {
-            tour.addAll(findShortestPath(i, i+1));
+
+    private void constructTour(List<Integer> path) {
+        for (int i = 0; i < path.size() - 1; i++) {
+            tour.addAll(findShortestPath(i, i + 1));
         }
+        Set<Integer> uniqueTour = new HashSet<>(tour);
+
+        // Convert back to a list 
+        tour = new ArrayList<>(uniqueTour);
+        tour.add(tour.get(0));
     }
 
-    private List<String> makeIntersectionsTour()
-    {
+    private List<String> makeIntersectionsTour() {
         for (Integer point : tour) {
-            String intersectionId=reverseIndexes.get(point);
+            String intersectionId = reverseIndexes.get(point);
             IntersectionsTour.add(intersectionId);
         }
         return IntersectionsTour;
     }
 
-
-    public List<String> computeTour(List<Integer> path)
-    {
+    public List<String> computeTour(List<Integer> path) {
         constructTour(path);
-        List<String>finalResult =makeIntersectionsTour();
+        List<String> finalResult = makeIntersectionsTour();
         System.out.println(finalResult);
         return finalResult;
     }
 
-
-
-    public List<Integer> formatInput(List<String> idIntersections)
-    {
-        List<Integer> formattedInput=new  ArrayList<>();
-        for (String id : idIntersections)
-        {
+    public List<Integer> formatInput(List<String> idIntersections) {
+        List<Integer> formattedInput = new ArrayList<>();
+        for (String id : idIntersections) {
             formattedInput.add(indexes.get(id));
         }
         return formattedInput;
     }
-
-
-
-
 
     @Override
     public String toString() {
@@ -390,8 +393,7 @@ public class Plan {
         return sb.toString();
     }
 
-
-    //--------------------------------------------------------------------------------------
+    // --------------------------------------------------------------------------------------
 
     public void readXmlbyFile(MultipartFile file) throws Exception {
         File tempFile = null;
@@ -436,9 +438,11 @@ public class Plan {
             // Validate that all sections have valid intersections
             for (Section section : sections) {
                 boolean originFound = intersections.stream().anyMatch(i -> i.getId().equals(section.getOrigin()));
-                boolean destinationFound = intersections.stream().anyMatch(i -> i.getId().equals(section.getDestination()));
+                boolean destinationFound = intersections.stream()
+                        .anyMatch(i -> i.getId().equals(section.getDestination()));
                 if (!originFound || !destinationFound) {
-                    throw new InstanceNotFoundException("The XML file is missing required origin or destination intersections.");
+                    throw new InstanceNotFoundException(
+                            "The XML file is missing required origin or destination intersections.");
                 }
             }
 
@@ -462,6 +466,5 @@ public class Plan {
         System.out.println("Number of intersections: " + intersections.size());
         System.out.println("Number of sections: " + sections.size());
     }
-
 
 }

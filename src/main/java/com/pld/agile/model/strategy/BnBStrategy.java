@@ -23,7 +23,7 @@ public class BnBStrategy implements SolvingStrategy {
 
     @Override
     public List<Integer> getBestPath() {
-        return bestPath;
+        return bnb.getBestPath();
     }
     
     @Override

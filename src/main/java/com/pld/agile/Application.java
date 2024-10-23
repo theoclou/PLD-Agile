@@ -9,10 +9,12 @@ import com.pld.agile.model.entity.Courier;
 import com.pld.agile.model.entity.Round;
 import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.strategy.TspStrategy;
+
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.SpringApplication;
 
 import com.pld.agile.model.algorithm.bnb.BranchAndBound;
+import com.pld.agile.model.strategy.BnBStrategy;
 
 @SpringBootApplication
 public class Application {
@@ -34,14 +36,14 @@ public class Application {
 		}
 
 		plan.preprocessData();
-		List<Integer> vertices = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+		List<Integer> vertices = Arrays.asList(0, 256, 233,127);
 		/*
 		 * If using a list of ids use instead this :
 		 * List<Integer> vertices =plan.formatInput(List<String> idIntersections)
 		 */
-		Solver solver = new Solver(plan, vertices, new TspStrategy());
+		Solver solver = new Solver(plan, vertices, new BnBStrategy());
 		solver.createCompleteGraph();
-		int n = 10;
+		int n = 3;
 		long t = System.currentTimeMillis();
 
 		BranchAndBound bnb = new BranchAndBound();
@@ -53,7 +55,6 @@ public class Application {
 		solver.solve();
 		List<Integer> bestPath = solver.getBestPath();
 		plan.computeTour(bestPath);
-		System.out.println("finished here");
 
 		// Création Round
 		Round round = new Round();

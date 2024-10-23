@@ -99,7 +99,7 @@ public class Solver {
         int servedPoints = 0;
         double speed = 1500.0;
         double possibleCost = 0;
-        while (currentCost / speed + servedPoints / 12.0 < 8 && servedPoints < bestPath.size() - 1) {
+        while (currentCost / speed + servedPoints / 12.0 < 8 && servedPoints < bestPath.size() ) {
             int currentPosition = bestPath.get(servedPoints);
             int nextPosition = bestPath.get(servedPoints + 1);
             currentCost += completeMatrix.get(currentPosition).get(nextPosition);

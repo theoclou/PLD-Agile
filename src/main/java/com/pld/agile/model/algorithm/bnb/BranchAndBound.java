@@ -3,6 +3,8 @@ package com.pld.agile.model.algorithm.bnb;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class BranchAndBound {
     private long nbCalls = 0; // Number of calls to the recursive permut function
@@ -10,7 +12,7 @@ public class BranchAndBound {
     private double best = Double.MAX_VALUE;
     private int[] bestPath; // To store the best path found
 
-    //  initiate the permutation process
+    // initiate the permutation process
     public void findBestCost() {
         int n = costsMatrix.size(); // Number of nodes
         int[] visited = new int[n + 1]; // +1 to include the return to starting point
@@ -78,13 +80,13 @@ public class BranchAndBound {
                 continue;
             }
 
-            //intersection check
+            // intersection check
             boolean hasIntersection = containIntersection(nbVisited, lastVisited, nextNode, visited);
             if (!hasIntersection) {
                 // Find the index of nextNode in notVisited
                 int indexInNotVisited = findIndex(notVisited, nextNode, nbNotVisited);
                 if (indexInNotVisited == -1) {
-                    continue; 
+                    continue;
                 }
 
                 updateTables(visited, nbVisited, notVisited, nbNotVisited, nextNode, indexInNotVisited);
@@ -98,7 +100,7 @@ public class BranchAndBound {
     }
 
     private boolean edgesIntersect(int i, int iNext, int j, int jNext) {
-        
+
         double edge1 = costsMatrix.get(i).get(iNext);
         double edge2 = costsMatrix.get(j).get(jNext);
 
@@ -159,5 +161,12 @@ public class BranchAndBound {
     }
 
     public BranchAndBound() {
+    }
+
+    public List<Integer> getBestPath() {
+        List<Integer> integerList = Arrays.stream(this.bestPath) // Convert int[] to IntStream
+                .boxed() // Convert IntStream to Stream<Integer>
+                .collect(Collectors.toList());
+        return integerList;
     }
 }
