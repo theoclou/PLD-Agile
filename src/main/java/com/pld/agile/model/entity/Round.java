@@ -19,7 +19,11 @@ import java.util.List;
 import java.util.Map;
 import java.io.File;
 import java.io.FileNotFoundException;
-
+/**
+ * The {@code Round} class represents a round of deliveries managed by a fleet of couriers.
+ * It manages the assignment of delivery requests to couriers, computes delivery tours,
+ * and tracks the delivery information.
+ */
 public class Round {
     private static final double COURIER_SPEED = 15.0; // km/h
 
@@ -29,7 +33,12 @@ public class Round {
     private Map<Courier, DeliveryTour> tourAttribution= new HashMap<>();
 
     public Round() {}
-
+    /**
+     * Initializes the round with the specified number of couriers and a plan.
+     *
+     * @param CourierQuantity the number of couriers to initialize
+     * @param plan            the {@code Plan} object containing intersections and sections
+     */
     public void init(Integer CourierQuantity, Plan plan) {
         for (int i = 0; i< CourierQuantity; i++) {
             courierList.add(new Courier(i));
@@ -38,11 +47,19 @@ public class Round {
         this.deliveryRequestList = new ArrayList<DeliveryRequest>();
         this.tourAttribution = new HashMap<Courier, DeliveryTour>();
     }
-
+    /**
+     * Returns the map of courier assignments to delivery tours.
+     *
+     * @return a map where each {@code Courier} is assigned a {@code DeliveryTour}
+     */
     public Map<Courier, DeliveryTour> getTourAttribution() {
         return tourAttribution;
     }
 
+    /**
+     * Computes and assigns delivery tours to couriers. This method uses a solver to compute
+     * the best route for each courier based on the delivery requests.
+     */
     public void computeRound(){
         // TODO
         // Tant que la liste de Delivery Request n'est pas vide, on va
@@ -97,7 +114,12 @@ public class Round {
             extraDeliveries--;
         }
     }
-
+    /**
+     * Loads delivery requests from an XML file.
+     *
+     * @param filePath the path to the XML file
+     * @throws Exception if the file cannot be found or parsed, or if delivery addresses are invalid
+     */
     public void loadRequests(String filePath) throws Exception {
         try{
             File xmlFile = new File(filePath);
@@ -135,15 +157,27 @@ public class Round {
             throw e;
         }
     }
-
+    /**
+     * Returns the {@code Plan} object associated with this round.
+     *
+     * @return the plan
+     */
     public Plan getPlan() {
         return plan;
     }
-
+    /**
+     * Returns the list of couriers for this round.
+     *
+     * @return the list of {@code Courier} objects
+     */
     public List<Courier> getCourierList() {
         return courierList;
     }
-
+    /**
+     * Returns the list of delivery requests for this round.
+     *
+     * @return the list of {@code DeliveryRequest} objects
+     */
     public List<DeliveryRequest> getDeliveryRequestList() {
         return deliveryRequestList;
     }
