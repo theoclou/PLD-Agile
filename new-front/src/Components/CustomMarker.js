@@ -12,14 +12,6 @@ const blackIcon = L.divIcon({
   popupAnchor: [0, -10],
 });
 
-CustomMarker.propTypes = {
-  intersection: PropTypes.shape({
-    id: PropTypes.number,
-    latitude: PropTypes.number,
-    longitude: PropTypes.number,
-  }).isRequired,
-};
-
 CustomMarker.displayName = 'CustomMarker';
 
 // Composant CustomMarker optimisé
