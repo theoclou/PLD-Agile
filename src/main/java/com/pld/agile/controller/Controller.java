@@ -98,6 +98,29 @@ public class Controller {
         return response;
     }
 
+    @PostMapping("/delivery")
+    public ResponseEntity<Map<String, String>> loadDelivery(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Collections.singletonMap("message", "File upload failed: No file selected."));
+        }
+
+
+
+        try {
+            map.readXmlbyFile(file);
+            if (map.getIntersections().size() > 0) {
+                return ResponseEntity.ok(Collections.singletonMap("message", "Plan loaded successfully."));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("error", "No valid intersections loaded. Please check the file."));
+            }
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("message", "File upload failed: " + e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("message", "Error loading map: " + e.getMessage()));
+        }
+    }
+
+
 
     @PostMapping("/compute")
     public String computeTours() {

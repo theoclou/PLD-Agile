@@ -77,8 +77,7 @@ const MapComponent = () => {
         setPopupVisible(false);
     };
 
-    const handleLoadDelivery = async () => {
-        console.log("Load Delivery button clicked!");
+    const Compute = async () => {
         try {
             await fetch('http://localhost:8080/courriers', {
                 method: 'POST',
@@ -92,12 +91,33 @@ const MapComponent = () => {
         }
     };
 
+    const handleLoadDelivery = async (event) => {
+        const selectedFile = event.target.files[0];
+
+        if (selectedFile) {
+            const formData = new FormData();
+            formData.append("file", selectedFile);
+
+            try {
+                const response = await fetch('http://localhost:8080/delivery', {
+                    method: 'POST',
+                    body: formData,
+                });
+                if (!response.ok) throw new Error('Failed to upload file, try again');
+                await handleFetchData();
+            } catch (error) {
+                setPopupMessage(error.message);
+                setPopupVisible(true);
+            }
+        }
+    };
+
     return (
         <div className="container">
             <h1 className="title">Pick'One</h1>
             <FileUploadButton onFileChange={handleFileChange} />
 
-            <LoadDeliveryButton onLoadDelivery={handleLoadDelivery} />
+            <LoadDeliveryButton onFileChange={handleLoadDelivery} />
 
             <CourierCounter count={courierCount} setCount={setCourierCount} /> {/* Passer le state et setter */}
 
