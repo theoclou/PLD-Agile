@@ -37,7 +37,6 @@ const MapComponent = () => {
                 setBounds(newBounds);
                 setMapLoaded(true);
 
-                // Centre la carte sur les nouveaux bounds
                 if (mapRef.current) {
                     mapRef.current.fitBounds(newBounds);
                 }
@@ -77,7 +76,7 @@ const MapComponent = () => {
         setPopupVisible(false);
     };
 
-    const handleLoadDelivery = async () => {
+    const close = async () => {
         console.log("Load Delivery button clicked!");
         try {
             await fetch('http://localhost:8080/courriers', {
@@ -85,10 +84,30 @@ const MapComponent = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ count: courierCount }), // Envoie le nombre de courriers
+                body: JSON.stringify({ count: courierCount }),
             });
         } catch (error) {
             console.error("Error updating courier count:", error);
+        }
+    };
+
+    const handleLoadDelivery = async (event) => {
+        const selectedFile = event.target.files[0];
+
+        if (selectedFile) {
+            const formData = new FormData();
+            formData.append("file", selectedFile);
+
+            try {
+                const response = await fetch('http://localhost:8080/loadDelivery', {
+                    method: 'POST',
+                    body: formData,
+                });
+                if (!response.ok) throw new Error('Failed to upload file, try again');
+            } catch (error) {
+                setPopupMessage(error.message);
+                setPopupVisible(true);
+            }
         }
     };
 
@@ -97,9 +116,9 @@ const MapComponent = () => {
             <h1 className="title">Pick'One</h1>
             <FileUploadButton onFileChange={handleFileChange} />
 
-            <LoadDeliveryButton onLoadDelivery={handleLoadDelivery} />
+            <LoadDeliveryButton onFileChange={handleLoadDelivery} />
 
-            <CourierCounter count={courierCount} setCount={setCourierCount} /> {/* Passer le state et setter */}
+            <CourierCounter count={courierCount} setCount={setCourierCount} />
 
             {loading && <div>Loading...</div>}
 

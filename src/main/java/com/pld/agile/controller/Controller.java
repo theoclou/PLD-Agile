@@ -21,15 +21,12 @@ import java.io.IOException;
 @RestController
 public class Controller {
 
-    // Instanciation de la carte
     private Plan map = new Plan();
     private int numberOfCouriers;
 
-    // Chargement du fichier XML au démarrage de l'application
     public Controller() {
     }
-
-    // POST pour mettre à jour le nombre de courriers
+    
     @PostMapping("/courriers")
     public ResponseEntity<Void> updateCouriers(@RequestBody Map<String, Integer> payload) {
         numberOfCouriers = payload.get("count");
@@ -63,6 +60,27 @@ public class Controller {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("message", "Error loading map: " + e.getMessage()));
         }
     }
+
+    /*@PostMapping("/loadDelivery")
+    public ResponseEntity<Map<String, String>> loadDelivery(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Collections.singletonMap("message", "File upload failed: No file selected."));
+        }
+
+        //TODO
+        /*try {
+            map.readXmlbyFile(file);
+            if (map.getIntersections().size() > 0) {
+                return ResponseEntity.ok(Collections.singletonMap("message", "Plan loaded successfully."));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("error", "No valid intersections loaded. Please check the file."));
+            }
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("message", "File upload failed: " + e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("message", "Error loading map: " + e.getMessage()));
+        }
+    }*/
 
     @GetMapping("/map")
     public Map<String, Object> displayMap() {

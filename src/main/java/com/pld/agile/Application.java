@@ -26,16 +26,14 @@ public class Application {
 		// Launch App
 		SpringApplication.run(Application.class, args);
 
-		// Instanciation de la carte
 		Plan plan = new Plan();
 
-		// Lecture du fichier XML
-		String filePath = "src/data/petitPlan.xml"; // Remplacez par le chemin réel du fichier XML
+		String filePath = "src/data/petitPlan.xml";
 		try {
 			plan.readXml(filePath);
 		} catch (Exception e) {
 			System.err.println("Erreur : " + e.getMessage());
-			System.exit(1); // Arrêter le programme avec un code d'erreur
+			System.exit(1);
 		}
 		//// testing the TSP method on the whole map
 		plan.reIndexIntersections();
@@ -83,13 +81,11 @@ public class Application {
 			System.err.println("Erreur : " + e.getMessage());
 		}
 
-//		// Affichage des intersections
 //		System.out.println("Intersections:");
 //		for (Intersection intersection : plan.getIntersections()) {
 //			System.out.println(intersection);
 //		}
 //
-//		// Affichage des sections
 //		System.out.println("Sections:");
 //		for (Section section : plan.getSections()) {
 //			System.out.println(section);
