@@ -124,17 +124,84 @@ public class Plan {
     }
 
 
-    public void PlanInit(MultipartFile file)
-    {
-        Map<String, Object> data = XMLReader.LoadPlanByFile(file);
-        this.sections = (List<Section>) data.get("sections");
-        this.intersections = (List<Intersection>) data.get("intersections");
-        this.intersectionMap = (Map<String, Intersection>) data.get("intersectionMap");
-        this.indexes = (Map<String, Integer>) data.get("indexes");
-        this.reverseIndexes = (Map<Integer, String>) data.get("reverseIndexes");
-        this.costsMatrix = (ArrayList<ArrayList<Double>>) data.get("costsMatrix");
+    public void PlanInit(MultipartFile file) throws FileNotFoundException, InstanceNotFoundException {
+        try {
+            // Load and validate XML data
+            Map<String, Object> data = XMLReader.LoadPlanByFile(file);
 
+            // Validate and assign each required field with type checking
+            try {
+                // Sections
+                if (!data.containsKey("sections")) {
+                    throw new IllegalArgumentException("Missing required field: sections");
+                }
+                this.sections = (List<Section>) data.get("sections");
+                if (this.sections == null) {
+                    throw new IllegalArgumentException("Sections data is null");
+                }
+
+                // Intersections
+                if (!data.containsKey("intersections")) {
+                    throw new IllegalArgumentException("Missing required field: intersections");
+                }
+                this.intersections = (List<Intersection>) data.get("intersections");
+                if (this.intersections == null) {
+                    throw new IllegalArgumentException("Intersections data is null");
+                }
+
+                // IntersectionMap
+                if (!data.containsKey("intersectionMap")) {
+                    throw new IllegalArgumentException("Missing required field: intersectionMap");
+                }
+                this.intersectionMap = (Map<String, Intersection>) data.get("intersectionMap");
+                if (this.intersectionMap == null) {
+                    throw new IllegalArgumentException("IntersectionMap data is null");
+                }
+
+                // Indexes
+                if (!data.containsKey("indexes")) {
+                    throw new IllegalArgumentException("Missing required field: indexes");
+                }
+                this.indexes = (Map<String, Integer>) data.get("indexes");
+                if (this.indexes == null) {
+                    throw new IllegalArgumentException("Indexes data is null");
+                }
+
+                // ReverseIndexes
+                if (!data.containsKey("reverseIndexes")) {
+                    throw new IllegalArgumentException("Missing required field: reverseIndexes");
+                }
+                this.reverseIndexes = (Map<Integer, String>) data.get("reverseIndexes");
+                if (this.reverseIndexes == null) {
+                    throw new IllegalArgumentException("ReverseIndexes data is null");
+                }
+
+                // CostsMatrix
+                if (!data.containsKey("costsMatrix")) {
+                    throw new IllegalArgumentException("Missing required field: costsMatrix");
+                }
+                this.costsMatrix = (ArrayList<ArrayList<Double>>) data.get("costsMatrix");
+                if (this.costsMatrix == null) {
+                    throw new IllegalArgumentException("CostsMatrix data is null");
+                }
+
+            } catch (ClassCastException e) {
+                throw new IllegalArgumentException("Invalid data type in XML file: " + e.getMessage(), e);
+            }
+
+        } catch (FileNotFoundException e) {
+            throw e; // Rethrow file not found errors directly
+        } catch (IllegalArgumentException e) {
+            throw e; // Rethrow validation errors
+        } catch (InstanceNotFoundException e) {
+            throw e; //Rethrow instance not found errors
+        }catch (Exception e) {
+            // Wrap unexpected exceptions
+            throw new IllegalArgumentException("Unexpected error initializing plan: " + e.getMessage(), e);
+        }
     }
+
+    
     /**
      * Returns the list of sections in the plan.
      *

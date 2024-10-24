@@ -131,23 +131,53 @@ public class XMLReader {
     }
 
 
-    public static Map<String, Object> LoadPlanByFile(MultipartFile file){
-        Map<String, Object> result;
-        Map<String, Object> tempResult = new HashMap<>();
+    public static Map<String, Object> LoadPlanByFile(MultipartFile file) throws FileNotFoundException, IllegalArgumentException, InstanceNotFoundException {
         try {
-            result = readXmlbyFile(file);
-            if (result.isEmpty() || !result.containsKey("intersections") || !result.containsKey("sections") ) {
-                throw new Exception("The XML file is empty or invalid.");
+            // Read XML file
+            Map<String, Object> result = readXmlbyFile(file);
+
+            // Validate XML content
+            if (result == null || result.isEmpty()) {
+                throw new IllegalArgumentException("The XML file is empty.");
             }
-            tempResult = preprocessData((List<Intersection>) result.get("intersections"), (List<Section>) result.get("sections"));
-            result.put("indexes", tempResult.get("indexes"));
-            result.put("reverseIndexes", tempResult.get("reverseIndexes"));
-            result.put("costsMatrix", tempResult.get("costsMatrix"));
+            if (!result.containsKey("intersections") || !result.containsKey("sections")) {
+                throw new IllegalArgumentException("The XML file is missing required elements (intersections or sections).");
+            }
+
+            // Type-safe casting with validation
+            List<Intersection> intersections;
+            List<Section> sections;
+            try {
+                intersections = (List<Intersection>) result.get("intersections");
+                sections = (List<Section>) result.get("sections");
+
+                if (intersections == null || sections == null) {
+                    throw new IllegalArgumentException("Intersections or sections data is null.");
+                }
+            } catch (ClassCastException e) {
+                throw new IllegalArgumentException("Invalid data format for intersections or sections.", e);
+            }
+
+            // Process the data
+            Map<String, Object> processedData = preprocessData(intersections, sections);
+
+            // Add processed data to result
+            result.put("indexes", processedData.get("indexes"));
+            result.put("reverseIndexes", processedData.get("reverseIndexes"));
+            result.put("costsMatrix", processedData.get("costsMatrix"));
+
+            return result;
+
+        } catch (FileNotFoundException e) {
+            throw e; // Rethrow FileNotFoundException directly
+        } catch (IllegalArgumentException e) {
+            throw e; // Rethrow validation errors
+        } catch (InstanceNotFoundException e) {
+            throw e; // Rethrow InstanceNotFoundException directly
         } catch (Exception e) {
-            e.printStackTrace();
-            result = new HashMap<>();
+            // Convert unexpected exceptions to IllegalArgumentException
+            throw new IllegalArgumentException("Error processing XML file: " + e.getMessage(), e);
         }
-        return result;
     }
 
     public static Map<String, Object> LoadPlanByPath(String filePath) throws FileNotFoundException, IllegalArgumentException, InstanceNotFoundException {
@@ -212,54 +242,75 @@ public class XMLReader {
     public static Map<String, Object> readXmlbyFile(MultipartFile file) throws Exception {
         File tempFile = null;
         Map<String, Object> result = new HashMap<>();
-
         List<Intersection> intersections = new ArrayList<>();
         Map<String, Intersection> intersectionMap = new HashMap<>();
         List<Section> sections = new ArrayList<>();
+
         try {
             // Convert MultipartFile to a temporary file
             tempFile = File.createTempFile("uploaded-", ".xml");
             file.transferTo(tempFile);
 
-            // Parse the XML document
+            // Check if the file exists and has content
+            if (tempFile.length() == 0) {
+                throw new FileNotFoundException("The uploaded file is empty.");
+            }
+
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.parse(tempFile);
 
-            // Read intersections
+            // Reading the intersections
             NodeList intersectionElements = document.getElementsByTagName("noeud");
             for (int i = 0; i < intersectionElements.getLength(); i++) {
                 Element element = (Element) intersectionElements.item(i);
                 String id = element.getAttribute("id");
-                double latitude = Double.parseDouble(element.getAttribute("latitude"));
-                double longitude = Double.parseDouble(element.getAttribute("longitude"));
+                try {
+                    double latitude = Double.parseDouble(element.getAttribute("latitude"));
+                    double longitude = Double.parseDouble(element.getAttribute("longitude"));
 
-                Intersection intersection = new Intersection();
-                intersection.initialisation(id, latitude, longitude);
-                intersectionMap.put(id, intersection);
-                intersections.add(intersection);
+                    // Create the Intersection objects
+                    Intersection intersection = new Intersection();
+                    intersection.initialisation(id, latitude, longitude);
+                    intersectionMap.put(id, intersection);
+                    intersections.add(intersection);
+                } catch (NumberFormatException e) {
+                    throw new NumberFormatException("Invalid numeric value in an intersection: " + e.getMessage());
+                }
             }
 
-            // Read sections
+            // Reading the sections
             NodeList sectionElements = document.getElementsByTagName("troncon");
             for (int i = 0; i < sectionElements.getLength(); i++) {
                 Element element = (Element) sectionElements.item(i);
-                String originId = element.getAttribute("origine");
-                String destinationId = element.getAttribute("destination");
-                double length = Double.parseDouble(element.getAttribute("longueur"));
-                String name = element.getAttribute("nomRue");
+                try {
+                    String originId = element.getAttribute("origine");
+                    String destinationId = element.getAttribute("destination");
+                    double length = Double.parseDouble(element.getAttribute("longueur"));
+                    String name = element.getAttribute("nomRue");
 
-                Section section = new Section();
-                section.initialisation(originId, destinationId, name, length);
-                sections.add(section);
+                    // Create the Section objects
+                    Section section = new Section();
+                    section.initialisation(originId, destinationId, name, length);
+                    sections.add(section);
+                } catch (NumberFormatException e) {
+                    throw new NumberFormatException("Invalid numeric value in a section: " + e.getMessage());
+                }
             }
 
-            // Validate that all sections have valid intersections
-            for (Section section : sections) {
-                boolean originFound = intersections.stream().anyMatch(i -> i.getId().equals(section.getOrigin()));
-                boolean destinationFound = intersections.stream()
-                        .anyMatch(i -> i.getId().equals(section.getDestination()));
-                if (!originFound || !destinationFound) {
+            // Validate section references
+            for (int i = 0; i < sections.size(); i++) {
+                Boolean originFind = false;
+                Boolean destinationFind = false;
+                for (int j = 0; j < intersections.size(); j++) {
+                    if (intersections.get(j).getId().equals(sections.get(i).getOrigin())) {
+                        originFind = true;
+                    }
+                    if (intersections.get(j).getId().equals(sections.get(i).getDestination())) {
+                        destinationFind = true;
+                    }
+                }
+                if (!originFind || !destinationFind) {
                     throw new InstanceNotFoundException(
                             "The XML file is missing required origin or destination intersections.");
                 }
@@ -269,23 +320,28 @@ public class XMLReader {
             e.printStackTrace();
             throw e;
         } catch (SAXException e) {
+            // Captures errors related to malformed XML parsing
             throw new Exception("Malformed XML file: " + e.getMessage());
         } catch (NumberFormatException e) {
-            throw new NumberFormatException("Invalid numeric value: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        } catch (InstanceNotFoundException e) {
+            e.printStackTrace();
+            throw e;
         } finally {
-            result.put("intersections", intersections);
-            result.put("sections", sections);
-            result.put("intersectionMap", intersectionMap);
-
-            // Cleanup temporary file in case of exception
+            // Cleanup temporary file
             if (tempFile != null && tempFile.exists()) {
                 tempFile.delete();
             }
-
         }
 
-        System.out.println("Number of intersections: " + intersections.size());
-        System.out.println("Number of sections: " + sections.size());
+        result.put("intersections", intersections);
+        result.put("sections", sections);
+        result.put("intersectionMap", intersectionMap);
+
+        System.out.println("Nombre d'intersections : " + intersections.size());
+        System.out.println("Nombre de tronçons : " + sections.size());
+
         return result;
     }
 
