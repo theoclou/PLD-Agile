@@ -139,7 +139,14 @@ public class Solver {
      * @return the best path as a list of vertices
      */
     public List<Integer> getBestPath() {
-        return solvingStrategy.getBestPath();
+        List<Integer> path=solvingStrategy.getBestPath();
+        List<Integer>result = new ArrayList<>();
+        for(int i=0;i<path.size();i++)
+        {
+            result.add(vertices.get(path.get(i)));
+        }
+
+        return result;
     }
 
     /**
