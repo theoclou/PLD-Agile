@@ -366,7 +366,7 @@ public class Plan {
         Collections.reverse(path);
 
         // Check if the destination is reachable
-        if (path.size() == 1 && path.get(0) != origin) {
+        if (path.size() == 1 && path.getFirst() != origin) {
 
             System.out.println("No path found between"+ origin+" and "+destination+".");
             return new ArrayList<>();
@@ -454,13 +454,19 @@ public class Plan {
      */
     private void constructTour(List<Integer> path) {
         for (int i = 0; i < path.size() - 1; i++) {
-            tour.addAll(findShortestPath(path.get(i), path.get(i + 1)));
-        }
-        Set<Integer> uniqueTour = new HashSet<>(tour);
+            if (i==0)
+            {
+                tour.addAll(findShortestPath(path.get(i), path.get(i + 1)));
+            }
+            else
+            {
+                List<Integer> subPath = findShortestPath(path.get(i), path.get(i + 1));
+                tour.addAll(subPath.subList(1, subPath.size()));
+            }
 
-        // Convert back to a list 
-        tour = new ArrayList<>(uniqueTour);
-        tour.add(tour.get(0));
+        }
+
+        tour.add(tour.getFirst());
     }
 
     /**
@@ -485,6 +491,7 @@ public class Plan {
     public List<String> computeTour(List<Integer> path) {
         constructTour(path);
         List<String> finalResult = makeIntersectionsTour();
+        System.out.println(finalResult);
         return finalResult;
     }
     /**
@@ -585,4 +592,8 @@ public class Plan {
     public Map<String, Intersection> getIntersectionMap() {
         return intersectionMap;
     }
+public Map<String,Integer> getIndexesmap()
+{
+    return this.indexes;
+}
 }
