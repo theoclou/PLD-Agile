@@ -90,6 +90,9 @@ public class Round {
             Solver solver= new Solver(plan, indexedID, new BnBStrategy()).init();
             solver.solve();
 
+
+
+            // Creation of each DeliveryTour
             double bestCost = solver.getBestCost();
             double bestTime = bestCost/(COURIER_SPEED * 1000); //In minutes
             LocalTime endTime = LocalTime.of(8,0).plusMinutes((long) bestTime);
@@ -101,23 +104,18 @@ public class Round {
                 courierDeliveryRequests.add(deliveryRequest);
             }
 
-            //TODO remplir ceci avec les résultats du GPS
-            List<Section> route = new ArrayList<>();
+            List<Intersection> bestRoute = plan.computeTour(solver.getBestPath());
 
+
+            //TODO change plan to get a map of intersections to LocalTime somewhere
             Map<Intersection, LocalTime> arrivalTimes = new HashMap<>();
 
-
-            DeliveryTour courierDeliveryTour = new DeliveryTour(courier,endTime, courierDeliveryRequests, route, arrivalTimes);
+            DeliveryTour courierDeliveryTour = new DeliveryTour(courier,endTime, courierDeliveryRequests, bestRoute, arrivalTimes);
 
             extraDeliveries--;
         }
     }
-    /**
-     * Loads delivery requests from an XML file.
-     *
-     * @param filePath the path to the XML file
-     * @throws Exception if the file cannot be found or parsed, or if delivery addresses are invalid
-     */
+
     public void loadRequests(String filePath) throws Exception {
         try{
             File xmlFile = new File(filePath);
@@ -156,13 +154,15 @@ public class Round {
             throw e;
         }
     }
-    /**
-     * Returns the {@code Plan} object associated with this round.
-     *
-     * @return the plan
-     */
 
+    /**
+     * Loads delivery requests from an XML file.
+     *
+     * @param file the XML file as a MultipartFile
+     * @throws Exception if the file cannot be found or parsed, or if delivery addresses are invalid, or if there was no plan loaded
+     */
     public void loadRequestsByfile(MultipartFile file) throws Exception {
+        //TODO read the warehouse from the file
         File xmlFile = null;
         try{
             xmlFile = File.createTempFile("tempFile", ".xml");
@@ -214,6 +214,11 @@ public class Round {
         }
     }
 
+    /**
+     * Returns the {@code Plan} object associated with this round.
+     *
+     * @return the plan
+     */
     public Plan getPlan() {
         return plan;
     }

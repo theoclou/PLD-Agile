@@ -18,7 +18,7 @@ public class DeliveryTour {
     private LocalTime startTime;
     private LocalTime endTime;
     private List<DeliveryRequest> deliveryRequests;
-    private List<Section> route;
+    private List<Intersection> route;
     private Map<Intersection, LocalTime> arrivalTimes;
 
     /**
@@ -32,7 +32,7 @@ public class DeliveryTour {
      * @param arrivalTimes      the map of {@code Intersection} to {@code LocalTime}, representing
      *                          the arrival times at each intersection
      */
-    public DeliveryTour(Courier courier, LocalTime endTime, List<DeliveryRequest> deliveryRequests, List<Section> route, Map<Intersection, LocalTime> arrivalTimes) {
+    public DeliveryTour(Courier courier, LocalTime endTime, List<DeliveryRequest> deliveryRequests, List<Intersection> route, Map<Intersection, LocalTime> arrivalTimes) {
         this.courier = courier;
         this.startTime = LocalTime.of(8, 0);  // Default start time set to 8:00 AM
         this.endTime = endTime;
@@ -118,7 +118,7 @@ public class DeliveryTour {
      *
      * @return the route as a list of {@code Section} objects
      */
-    public List<Section> getRoute() {
+    public List<Intersection> getRoute() {
         return this.route;
     }
 
@@ -127,7 +127,7 @@ public class DeliveryTour {
      *
      * @param route the list of {@code Section} objects representing the route
      */
-    public void setRoute(List<Section> route) {
+    public void setRoute(List<Intersection> route) {
         this.route = route;
     }
 
