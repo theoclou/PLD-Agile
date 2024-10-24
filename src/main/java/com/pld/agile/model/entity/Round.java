@@ -29,6 +29,7 @@ public class Round {
     private List<Courier> courierList=new ArrayList<>();
     private List<DeliveryRequest> deliveryRequestList=new ArrayList<>();
     private Map<Courier, DeliveryTour> tourAttribution= new HashMap<>();
+    private Intersection warehouse;
 
     public Round() {}
     /**
@@ -175,6 +176,20 @@ public class Round {
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.parse(xmlFile);
 
+            // Reading the Warehouse
+            NodeList warehouseElements = document.getElementsByTagName("entrepot");
+            if (warehouseElements.getLength() == 0){
+                throw new NoSuchElementException("No warehouse found in the file.");
+            }
+            Element warehouseElement = (Element) warehouseElements.item(0);
+            String warehouseAdress = warehouseElement.getAttribute("adresse");
+            System.out.println(warehouseAdress);
+            Intersection warehouseIntersection = plan.getIntersectionById(warehouseAdress);
+            if (warehouseIntersection == null){
+                throw new InstanceNotFoundException("The warehouse intersection '" + warehouseAdress + "' doesn't exist !");
+            }
+            warehouse = warehouseIntersection;
+
             // Reading the Requests
             NodeList requestsElements = document.getElementsByTagName("livraison");
             if (requestsElements.getLength() == 0){
@@ -212,6 +227,10 @@ public class Round {
                 xmlFile.delete();
             }
         }
+    }
+
+    public Intersection getWarehouse() {
+        return warehouse;
     }
 
     public Plan getPlan() {

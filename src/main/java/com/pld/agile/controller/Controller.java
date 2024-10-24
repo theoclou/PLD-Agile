@@ -81,6 +81,7 @@ public class Controller {
             List<DeliveryRequest> deliveryRequestList = round.getDeliveryRequestList();
             System.out.println("Delivery request list size: " + deliveryRequestList.size());
             response.put("deliveries", deliveryRequestList);
+            response.put("warehouse", round.getWarehouse());
             response.put("message", "Delivery points loaded successfully");
             return ResponseEntity.ok(response);
         } catch (IOException e) {
