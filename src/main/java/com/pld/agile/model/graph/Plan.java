@@ -6,19 +6,17 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.Set;
 
+import javax.management.InstanceNotFoundException;
+
+import org.springframework.web.multipart.MultipartFile;
 
 import com.pld.agile.model.XMLReader;
 import com.pld.agile.model.entity.Intersection;
 import com.pld.agile.model.entity.Section;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.management.InstanceNotFoundException;
 
 /**
  * The {@code Plan} class is responsible for reading and processing a city plan
@@ -427,13 +425,19 @@ public class Plan {
      */
     private void constructTour(List<Integer> path) {
         for (int i = 0; i < path.size() - 1; i++) {
-            tour.addAll(findShortestPath(i, i + 1));
-        }
-        Set<Integer> uniqueTour = new HashSet<>(tour);
+            if (i==0)
+            {
+                tour.addAll(findShortestPath(path.get(i), path.get(i + 1)));
+            }
+            else
+            {
+                List<Integer> subPath = findShortestPath(path.get(i), path.get(i + 1));
+                tour.addAll(subPath.subList(1, subPath.size()));
+            }
 
-        // Convert back to a list 
-        tour = new ArrayList<>(uniqueTour);
-        tour.add(tour.get(0));
+        }
+
+        tour.add(tour.getFirst());
     }
 
     /**
