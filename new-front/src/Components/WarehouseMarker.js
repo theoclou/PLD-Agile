@@ -6,30 +6,24 @@ import warehouseMarker from "../Assets/warehouseMarker.png";
 
 const icon = L.icon({
   iconUrl: warehouseMarker,
-  iconSize: [16, 16], // size of the icon
+  iconSize: [24, 24], // size of the icon
   iconAnchor: [8, 8], // point of the icon which will correspond to marker's location
   popupAnchor: [0, -10], // point from which the popup should open relative to the iconAnchor
 });
 
 // Composant DeliveryPointMarker optimisé
-const WarehouseMarker = React.memo(({ delivery }) => {
+const WarehouseMarker = React.memo(({ warehouse }) => {
   return (
     <Marker
-      position={[
-        delivery.deliveryAdress.latitude,
-        delivery.deliveryAdress.longitude,
-      ]}
+      position={[warehouse.latitude, warehouse.longitude]}
       icon={icon} // Utiliser l'icône prédéfinie
     >
       <Popup>
-        Intersection ID: {delivery.deliveryAdress.id}
+        Warehouse: {warehouse.id}
         <br />
-        Latitude: {delivery.deliveryAdress.latitude}
+        Latitude: {warehouse.latitude}
         <br />
-        Longitude: {delivery.deliveryAdress.longitude}
-        <br />
-        Courier:{" "}
-        {delivery.courier === null ? "Unassigned" : delivery.courier.id}
+        Longitude: {warehouse.longitude}
       </Popup>
     </Marker>
   );
@@ -37,15 +31,10 @@ const WarehouseMarker = React.memo(({ delivery }) => {
 
 //Props Validation
 WarehouseMarker.propTypes = {
-  delivery: PropTypes.shape({
-    deliveryAdress: PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      latitude: PropTypes.number.isRequired,
-      longitude: PropTypes.number.isRequired,
-    }).isRequired,
-    courier: PropTypes.shape({
-      id: PropTypes.number.isRequired,
-    }).isRequired,
+  warehouse: PropTypes.shape({
+    id: PropTypes.string,
+    latitude: PropTypes.number,
+    longitude: PropTypes.number,
   }),
 };
 
