@@ -5,12 +5,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.pld.agile.model.graph.CompleteGraph;
 import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.strategy.SolvingStrategy;
 
 /**
- * The {@code Solver} class is responsible for solving a Traveling Salesman Problem (TSP)
- * based on a plan of intersections and sections. It utilizes a strategy pattern for
+ * The {@code Solver} class is responsible for solving a Traveling Salesman
+ * Problem (TSP)
+ * based on a plan of intersections and sections. It utilizes a strategy pattern
+ * for
  * solving the problem and works with a complete graph representation.
  */
 public class Solver {
@@ -18,13 +21,16 @@ public class Solver {
     private ArrayList<ArrayList<Double>> completeMatrix = new ArrayList<>();
     private Plan plan;
     private SolvingStrategy solvingStrategy;
+    private CompleteGraph g;
 
     /**
-     * Constructs a {@code Solver} with the given plan, vertices, and solving strategy.
+     * Constructs a {@code Solver} with the given plan, vertices, and solving
+     * strategy.
      *
-     * @param plan             the {@code Plan} object representing intersections and sections
-     * @param vertices         the list of vertices to include in the TSP
-     * @param solvingStrategy  the strategy used to solve the TSP
+     * @param plan            the {@code Plan} object representing intersections and
+     *                        sections
+     * @param vertices        the list of vertices to include in the TSP
+     * @param solvingStrategy the strategy used to solve the TSP
      */
     public Solver(Plan plan, List<Integer> vertices, SolvingStrategy solvingStrategy) {
         this.plan = plan;
@@ -33,7 +39,8 @@ public class Solver {
     }
 
     /**
-     * Initializes the solver by creating a complete graph using the given plan and vertices.
+     * Initializes the solver by creating a complete graph using the given plan and
+     * vertices.
      *
      * @return the {@code Solver} object after initialization
      */
@@ -46,7 +53,7 @@ public class Solver {
      * Fills the {@code completeMatrix} with distances between vertices to create
      * a complete graph representation.
      */
-    public void createCompleteGraph() {
+    public CompleteGraph createCompleteGraph() {
         int size = vertices.size();
         System.out.printf("i=%d", vertices.size());
         for (int i = 0; i < size; i++) {
@@ -61,13 +68,15 @@ public class Solver {
             }
             completeMatrix.add(row);
         }
+        g = new CompleteGraph(completeMatrix.size(), completeMatrix);
+        return g;
     }
 
     /**
      * Solves the TSP using the provided solving strategy.
      */
     public void solve() {
-        solvingStrategy.solve(completeMatrix);
+        solvingStrategy.solve(g);
     }
 
     /**
@@ -134,6 +143,15 @@ public class Solver {
     }
 
     /**
+     * Returns the completeGraph object used to solve the tsp 
+     *
+     * @return the complete graph
+     */
+    public CompleteGraph getCompleteGraph() {
+        return this.g;
+    }
+
+    /**
      * Returns the cost of the best path found by the solving strategy.
      *
      * @return the best cost
@@ -165,7 +183,8 @@ public class Solver {
     }
 
     /**
-     * Determines how many points can be served and the cost within a given time limit (8 hours).
+     * Determines how many points can be served and the cost within a given time
+     * limit (8 hours).
      *
      * @return a map containing the number of served points and the total cost
      */
@@ -178,7 +197,7 @@ public class Solver {
         while (currentCost / speed + servedPoints / 12.0 < 8 && servedPoints < bestPath.size()) {
             int currentPosition = bestPath.get(servedPoints);
             int nextPosition = bestPath.get(servedPoints + 1);
-            currentCost += completeMatrix.get(currentPosition).get(nextPosition);
+            currentCost += g.getCost(currentPosition, nextPosition);
             if (currentCost / speed + servedPoints / 12.0 < 8 && servedPoints < bestPath.size() - 1) {
                 servedPoints += 1;
             }

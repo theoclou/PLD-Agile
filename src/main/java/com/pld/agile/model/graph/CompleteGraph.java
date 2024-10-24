@@ -22,7 +22,14 @@ public class CompleteGraph implements Graph {
 		this.nbVertices = nbVertices;
 		this.cost = cost;
 	}
+	public CompleteGraph()
+	{
 
+	}
+	public ArrayList<ArrayList<Double>> getCostMatrix()
+	{
+		return this.cost;
+	}
 	/**
 	 * Returns the number of vertices in the graph.
 	 *

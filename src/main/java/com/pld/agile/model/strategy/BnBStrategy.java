@@ -4,6 +4,8 @@ import com.pld.agile.model.algorithm.bnb.BranchAndBound;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.pld.agile.model.graph.CompleteGraph;
 /**
  * The {@code BnBStrategy} class implements the {@code SolvingStrategy} interface and
  * solves the Traveling Salesman Problem (TSP) using the Branch and Bound (BnB) algorithm.
@@ -32,8 +34,8 @@ public class BnBStrategy implements SolvingStrategy {
      *                       entry indicates the cost (or distance) between two vertices
      */
     @Override
-    public void solve(ArrayList<ArrayList<Double>> completeMatrix) {
-        bnb.setCostsMatrix(completeMatrix);
+    public void solve(CompleteGraph completeGraph) {
+        bnb.setCompleteGraph(completeGraph);
         bnb.findBestCost();
     }
     /**

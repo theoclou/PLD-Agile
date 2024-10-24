@@ -33,22 +33,21 @@ public class TspStrategy implements SolvingStrategy {
      * that represents the complete graph. The solution is computed using the
      * TSP solver, and the best path and cost are stored.
      *
-     * @param completeMatrix the complete graph represented as a cost matrix, where each
-     *                       entry indicates the cost (or distance) between two vertices
+     * @param g the complete graph 
      */
     @Override
-    public void solve(ArrayList<ArrayList<Double>> completeMatrix) {
-        int nbVertices = completeMatrix.size();  // Get the number of vertices in the graph
-        Graph g = new CompleteGraph(nbVertices, completeMatrix);  // Create a graph from the cost matrix
+    public void solve(CompleteGraph g) {
+        // int nbVertices = completeGraph.size();  // Get the number of vertices in the graph
+        // Graph g = new CompleteGraph(nbVertices, completeGraph);  // Create a graph from the cost matrix
         long startTime = System.currentTimeMillis();  // Start time tracking for the solution process
         tsp.searchSolution(20000, g);  // Run the TSP solver with a limit of 20,000 iterations
 
         // Print the solution cost and the time taken
-        System.out.print("Solution of cost " + tsp.getSolutionCost() + " found in "
+        System.out.print("Clsassic solver solution of cost " + tsp.getSolutionCost() + " found in "
                 + (System.currentTimeMillis() - startTime) + "ms : ");
 
         // Retrieve the solution path and store it in the bestPath list
-        for (int i = 0; i < nbVertices; i++) {
+        for (int i = 0; i < g.getNbVertices(); i++) {
             int iSol = tsp.getSolution(i);
             System.out.print(iSol + " ");
             bestPath.add(iSol);
@@ -63,6 +62,7 @@ public class TspStrategy implements SolvingStrategy {
      */
     @Override
     public List<Integer> getBestPath() {
+        bestPath.add(bestPath.get(0));
         return bestPath;
     }
 

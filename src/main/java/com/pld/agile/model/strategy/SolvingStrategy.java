@@ -1,7 +1,8 @@
 package com.pld.agile.model.strategy;
 
-import java.util.ArrayList;
 import java.util.List;
+
+import com.pld.agile.model.graph.CompleteGraph;
 
 /**
  * The {@code SolvingStrategy} interface defines the contract for strategies that solve
@@ -15,10 +16,9 @@ public interface SolvingStrategy {
      * as a cost matrix. This method will compute the best path and cost using the
      * strategy's algorithm.
      *
-     * @param graph the complete graph represented as a cost matrix, where each entry
-     *              indicates the cost (or distance) between two vertices
+     * @param graph the complete graph 
      */
-    void solve(ArrayList<ArrayList<Double>> graph);
+    void solve(CompleteGraph graph);
 
     /**
      * Returns the best path found by the solver after solving the TSP.
