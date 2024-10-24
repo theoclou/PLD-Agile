@@ -12,7 +12,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.pld.agile.model.graph.XMLReader;
+import com.pld.agile.model.XMLReader;
 
 class PlanTest {
 

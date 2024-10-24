@@ -8,14 +8,11 @@ import com.pld.agile.model.*;
 import com.pld.agile.model.entity.Courier;
 import com.pld.agile.model.entity.Round;
 import com.pld.agile.model.graph.Plan;
-import com.pld.agile.model.graph.XMLReader;
-import com.pld.agile.model.strategy.TspStrategy;
+import com.pld.agile.model.XMLReader;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.SpringApplication;
 
-import com.pld.agile.model.algorithm.bnb.BranchAndBound;
-import com.pld.agile.model.graph.CompleteGraph;
 import com.pld.agile.model.strategy.BnBStrategy;
 
 @SpringBootApplication

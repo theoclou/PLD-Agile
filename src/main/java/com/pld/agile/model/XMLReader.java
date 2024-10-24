@@ -1,4 +1,4 @@
-package com.pld.agile.model.graph;
+package com.pld.agile.model;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -134,6 +134,23 @@ public class XMLReader {
         sections.clear();
     }
 
+
+    public Map<String, Object> LoadPlanByFile(MultipartFile file){
+        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> tempResult = new HashMap<>();
+        try {
+            result = readXmlbyFile(file);
+            tempResult = preprocessData((List<Intersection>) result.get("intersections"), (List<Section>) result.get("sections"));
+            result.put("indexes", tempResult.get("indexes"));
+            result.put("reverseIndexes", tempResult.get("reverseIndexes"));
+            result.put("costsMatrix", tempResult.get("costsMatrix"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+
     // ----------------------------------------------------------------------
     /**
      * Reads an XML file from a {@code MultipartFile} and parses its content into
@@ -143,8 +160,13 @@ public class XMLReader {
      * @param file the uploaded XML file
      * @throws Exception if an error occurs during the reading or parsing process
      */
-    public void readXmlbyFile(MultipartFile file) throws Exception {
+    public Map<String, Object> readXmlbyFile(MultipartFile file) throws Exception {
         File tempFile = null;
+        Map<String, Object> result = new HashMap<>();
+
+        List<Intersection> intersections = new ArrayList<>();
+        Map<String, Intersection> intersectionMap = new HashMap<>();
+        List<Section> sections = new ArrayList<>();
         try {
             // Convert MultipartFile to a temporary file
             tempFile = File.createTempFile("uploaded-", ".xml");
@@ -205,14 +227,20 @@ public class XMLReader {
             resetMap(); // Clear data on numeric parsing error
             throw new NumberFormatException("Invalid numeric value: " + e.getMessage());
         } finally {
+            result.put("intersections", intersections);
+            result.put("sections", sections);
+            result.put("intersectionMap", intersectionMap);
+
             // Cleanup temporary file in case of exception
             if (tempFile != null && tempFile.exists()) {
                 tempFile.delete();
             }
+
         }
 
         System.out.println("Number of intersections: " + intersections.size());
         System.out.println("Number of sections: " + sections.size());
+        return result;
     }
 
     public Map<String, Intersection> getIntersectionMap() {
@@ -222,7 +250,11 @@ public class XMLReader {
     /**
      * Re-indexes all intersections in the plan based on their IDs.
      */
-    private void reIndexIntersections() {
+    private Map<String, Object> reIndexIntersections(List<Intersection> intersections) {
+        Map<String, Object> result = new HashMap<>();
+
+        Map<String, Integer> indexes = new HashMap<>();
+        Map<Integer, String> reverseIndexes = new HashMap<>();
         int i = 0;
         for (Intersection intersection : intersections) {
             String id = intersection.getId();
@@ -230,6 +262,9 @@ public class XMLReader {
             reverseIndexes.put(i, id);
             i += 1;
         }
+        result.put("indexes", indexes);
+        result.put("reverseIndexes", reverseIndexes);
+        return result;
     }
 
     /**
@@ -247,7 +282,9 @@ public class XMLReader {
      * method sets the distance from a node to itself as 0 and sets all other
      * distances to infinity.
      */
-    private void initializeCostsMatrix() {
+    private ArrayList<ArrayList<Double>> initializeCostsMatrix(List<Intersection> intersections) {
+        ArrayList<ArrayList<Double>> costsMatrix = new ArrayList<>();
+
         int size = intersections.size();
         for (int i = 0; i < size; i++) {
             ArrayList<Double> row = new ArrayList<>();
@@ -260,12 +297,14 @@ public class XMLReader {
             }
             costsMatrix.add(row);
         }
+
+        return costsMatrix;
     }
 
     /**
      * Fills the cost matrix based on the sections read from the XML file.
      */
-    private void fillCostsMAtrix() {
+    private void fillCostsMatrix(List<Section> sections, Map<String, Integer> indexes, ArrayList<ArrayList<Double>> costsMatrix) {
         // Set the costs based on the sections
         for (Section section : sections) {
             String originId = section.getOrigin();
@@ -283,20 +322,29 @@ public class XMLReader {
     /**
      * makes the cost matrix using the values extarcted from the file
      */
-    private void makeCostsMatrix() {
+    private ArrayList<ArrayList<Double>> makeCostsMatrix(List<Intersection> intersections, List<Section> sections, Map<String, Integer> indexes) {
         // Initialize the adjacency matrix with the size of the intersections
-        initializeCostsMatrix();
-        fillCostsMAtrix();
+        ArrayList<ArrayList<Double>> costsMatrix;
+
+        costsMatrix = initializeCostsMatrix(intersections);
+        fillCostsMatrix(sections, indexes, costsMatrix);
+        return costsMatrix;
     }
 
     /**
      * Processes the data by creating indexing the ids of the intersections of the
      * map and creating the cost matrix.
      */
-    public void preprocessData() {
-        reIndexIntersections();
-        reverseIndexation();
-        makeCostsMatrix();
+    public Map<String, Object> preprocessData(List<Intersection> intersections, List<Section> sections) {
+        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> tempResult = new HashMap<>();
+
+        tempResult = reIndexIntersections(intersections);
+        result.put("indexes", tempResult.get("indexes"));
+        result.put("reverseIndexes", tempResult.get("reverseIndexes"));
+        result.put("costsMatrix", makeCostsMatrix(intersections, sections, (Map<String, Integer>) result.get("indexes")));
+
+        return result;
     }
 
 

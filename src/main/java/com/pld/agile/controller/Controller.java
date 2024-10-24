@@ -5,22 +5,16 @@ import com.pld.agile.model.entity.Intersection;
 import com.pld.agile.model.entity.Round;
 import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.entity.Section;
-import com.pld.agile.model.entity.Round;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.*;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.Files;
 import java.io.IOException;
 
-import com.pld.agile.model.graph.XMLReader;
+import com.pld.agile.model.XMLReader;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
