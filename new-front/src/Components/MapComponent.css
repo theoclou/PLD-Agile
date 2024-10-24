@@ -1,79 +1,93 @@
 .container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    width: 100%;
-    background-color: #cac7c7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100%;
+  background-color: #cac7c7;
 }
 
 .title {
-    margin-bottom: 20px;
-    text-align: center;
-    font-size: 4.5rem;
-    color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 4.5rem;
+  color: #333;
 }
+
+.map-sidebar-container {
+  display: flex;
+  width: 100%;
+  height: 70%; /* Adjust this value as needed */
+}
+
 .map {
-    width: 100%;
-    width : 50%;
-    height: 70%; /* Vous pouvez ajuster cette valeur selon vos besoins */
+  flex: 2; /* Adjust the flex value to control the width of the map */
+  height: 100%;
+}
+
+.text-sidebar {
+  flex: 1; /* Adjust the flex value to control the width of the sidebar */
+  height: 100%;
+  overflow-y: auto; /* Make the sidebar scrollable */
+  background-color: white; /* Optional: Add a background color for better visibility */
+  padding: 10px; /* Optional: Add some padding for better spacing */
 }
 
 .buttonContainer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    max-width: 400px;
-    margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 15px;
 }
 
 .button {
-    padding: 10px 15px;
-    font-size: 1rem;
-    color: white;
-    background-color: #3d5978;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    margin-right: 10px;
+  padding: 10px 15px;
+  font-size: 1rem;
+  color: white;
+  background-color: #3d5978;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-right: 10px;
 }
 
 .button:hover {
-    background-color: #485d77;
+  background-color: #485d77;
 }
 
 .inputField {
-    padding: 5px;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    transition: border-color 0.3s ease;
+  padding: 5px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  transition: border-color 0.3s ease;
 }
 
 .inputField:focus {
-    border-color: #007bff;
-    outline: none;
+  border-color: #007bff;
+  outline: none;
 }
 
 .courierCounter {
-    margin: 0 10px;
-    font-size: 1.2rem;
-    color: #333;
+  margin: 0 10px;
+  font-size: 1.2rem;
+  color: #333;
 }
 
 .custom-file-upload {
-    display: inline-block;
-    padding: 10px 15px;
-    cursor: pointer;
-    background-color: #3d5978;
-    color: white;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
+  display: inline-block;
+  padding: 10px 15px;
+  cursor: pointer;
+  background-color: #3d5978;
+  color: white;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
 }
 
 .custom-file-upload:hover {
-    background-color: #485d77;
+  background-color: #485d77;
 }

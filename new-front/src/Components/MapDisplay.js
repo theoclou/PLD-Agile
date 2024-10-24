@@ -3,12 +3,17 @@ import React, { useMemo, useEffect } from "react";
 import { MapContainer, TileLayer, Polyline, useMap } from "react-leaflet";
 import MapMarker from "./MapMarker";
 import DeliveryPointMarker from "./DeliveryPointMarker";
+import WarehouseMarker from "./WarehouseMarker";
 
 const MapDisplay = ({ mapData, deliveryData, bounds, zoom, setZoom }) => {
   const memoizedIntersections = useMemo(() => mapData.intersections, [mapData]);
   const memoizedSections = useMemo(() => mapData.sections, [mapData]);
   const memoizedDeliveries = useMemo(
     () => deliveryData.deliveries,
+    [deliveryData]
+  );
+  const memoizedWarehouse = useMemo(
+    () => deliveryData.warehouse,
     [deliveryData]
   );
 
@@ -34,11 +39,14 @@ const MapDisplay = ({ mapData, deliveryData, bounds, zoom, setZoom }) => {
     const minZoomForIntersections = 18; // Zoom threshold for displaying intersections
 
     if (zoom >= minZoomForIntersections) {
-      // Remove the intersections that are already displayed as delivery points
+      // Remove the intersections that are already displayed as delivery points or as the warehouse
       return memoizedIntersections.filter((intersection) => {
-        return !memoizedDeliveries.some(
+        const isDeliveryPoint = memoizedDeliveries.some(
           (delivery) => delivery.deliveryAdress.id === intersection.id
         );
+        const isWarehouse =
+          memoizedWarehouse && memoizedWarehouse.id === intersection.id;
+        return !isDeliveryPoint && !isWarehouse;
       });
     }
     return [];
@@ -66,6 +74,13 @@ const MapDisplay = ({ mapData, deliveryData, bounds, zoom, setZoom }) => {
       {memoizedDeliveries.map((delivery) => (
         <DeliveryPointMarker key={delivery.id} delivery={delivery} />
       ))}
+      {memoizedWarehouse && (
+        <WarehouseMarker
+          key={memoizedWarehouse.id}
+          warehouse={memoizedWarehouse}
+        />
+      )}
+
       {memoizedSections.map((section, index) => {
         const originIntersection = section.origin;
         const destinationIntersection = section.destination;
@@ -83,7 +98,7 @@ const MapDisplay = ({ mapData, deliveryData, bounds, zoom, setZoom }) => {
             <Polyline
               key={index}
               positions={latLngs}
-              color="red"
+              color="darkgrey"
               weight={2}
               opacity={1}
             />
