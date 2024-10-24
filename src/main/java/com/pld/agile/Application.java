@@ -26,6 +26,7 @@ public class Application {
 		// Launch App
 		SpringApplication.run(Application.class, args);
 
+		/*
 		Plan plan = new Plan();
 
 		String filePath = "src/data/petitPlan.xml";
@@ -42,6 +43,7 @@ public class Application {
 		 * If using a list of ids use instead this :
 		 * List<Integer> vertices =plan.formatInput(List<String> idIntersections)
 		 */
+		/*
 		Solver solver = new Solver(plan, vertices, new BnBStrategy());
 		solver.init();
 		solver.solve();
@@ -61,6 +63,6 @@ public class Application {
 		} catch (Exception e) {
 		System.err.println("Erreur : " + e.getMessage());
 		}
-		System.exit(0);
+		System.exit(0);*/
 	}
 }
