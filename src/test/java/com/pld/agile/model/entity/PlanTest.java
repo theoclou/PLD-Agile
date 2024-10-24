@@ -16,11 +16,11 @@ import com.pld.agile.model.XMLReader;
 
 class PlanTest {
 
-    private XMLReader reader;
+    private Plan plan;
 
     @BeforeEach
     void setUp() {
-        reader = new XMLReader();
+        plan = new Plan();
     }
 
     @Test
@@ -28,10 +28,10 @@ class PlanTest {
         String filePath = "src/test/java/com/pld/agile/model/entity/planTestValidData.xml";  // Path to the XML file
 
         // Call of the readXml method
-        reader.readXml(filePath);
+        plan.PlanInit(filePath);
 
         // Checking intersections
-        List<Intersection> intersections = reader.getIntersections();
+        List<Intersection> intersections = plan.getIntersections();
         assertEquals(4, intersections.size(), "Incorrect number of intersection.");
 
         Intersection intersection = intersections.stream()
@@ -44,7 +44,7 @@ class PlanTest {
         assertEquals(4.869225, intersection.getLongitude(), 0.00001);
 
         // Vérification des sections
-        List<Section> sections = reader.getSections();
+        List<Section> sections = plan.getSections();
         assertEquals(2, sections.size(), "Incorrect number of section.");
 
         Section section = sections.stream()
@@ -62,7 +62,7 @@ class PlanTest {
         String invalidFilePath = "src/test/java/com/pld/agile/model/entity/fichierNotExist.xml";
 
         // Test if an exception is thrown in case of file not found
-        Exception exception = assertThrows(FileNotFoundException.class, () -> reader.readXml(invalidFilePath));
+        Exception exception = assertThrows(FileNotFoundException.class, () -> plan.PlanInit(invalidFilePath));
 
         assertTrue(exception.getMessage().contains("fichierNotExist.xml"));
     }
@@ -72,7 +72,7 @@ class PlanTest {
         Plan plan = new Plan();
         String filePath = "src/test/java/com/pld/agile/model/entity/planTestInvalidData.xml";
 
-        Exception exception = assertThrows(NumberFormatException.class, () -> reader.readXml(filePath));
+        Exception exception = assertThrows(NumberFormatException.class, () -> plan.PlanInit(filePath));
 
         assertTrue(exception.getMessage().contains("Invalid numeric value"),
                 "Error message does not match for invalid numeric data.");
@@ -83,7 +83,7 @@ class PlanTest {
         Plan plan = new Plan();
         String filePath = "src/test/java/com/pld/agile/model/entity/planTestNoCorrespondingIntersection.xml";
 
-        Exception exception = assertThrows(InstanceNotFoundException.class, () -> reader.readXml(filePath));
+        Exception exception = assertThrows(InstanceNotFoundException.class, () -> plan.PlanInit(filePath));
 
         assertTrue(exception.getMessage().contains("The XML file is missing required origin or destination intersections"),
                 "Error message does not match for not found instance.");
@@ -94,7 +94,7 @@ class PlanTest {
         Plan plan = new Plan();
         String filePath = "src/test/java/com/pld/agile/model/entity/planTestInvalidFormat.xml";
 
-        Exception exception = assertThrows(Exception.class, () -> reader.readXml(filePath));
+        Exception exception = assertThrows(Exception.class, () -> plan.PlanInit(filePath));
 
         assertTrue(exception.getMessage().contains("Malformed XML file"),
                 "Error message does not match for a malformed XML file.");

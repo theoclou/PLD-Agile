@@ -15,6 +15,8 @@ import java.util.Set;
 import com.pld.agile.model.XMLReader;
 import com.pld.agile.model.entity.Intersection;
 import com.pld.agile.model.entity.Section;
+import org.springframework.web.multipart.MultipartFile;
+
 /**
  * The {@code Plan} class is responsible for reading and processing a city plan
  * in XML format, which consists of intersections and sections between them.
@@ -35,20 +37,39 @@ public class Plan {
     private ArrayList<ArrayList<Double>> costsMatrix = new ArrayList<>();
     private ArrayList<Integer> tour = new ArrayList<>();
     private ArrayList<String> IntersectionsTour = new ArrayList<>();
-    private XMLReader cityPlan=new XMLReader();
      /**
      * Default constructor for the {@code Plan} class.
      */
     public Plan() {
     }
-    public void PlanInit( XMLReader cityPlan)
+
+    public void PlanInit(String filePath) {
+        try {
+            Map<String, Object> data = XMLReader.LoadPlanByPath(filePath);
+            this.sections = (List<Section>) data.get("sections");
+            this.intersections = (List<Intersection>) data.get("intersections");
+            this.intersectionMap = (Map<String, Intersection>) data.get("intersectionMap");
+            this.indexes = (Map<String, Integer>) data.get("indexes");
+            this.reverseIndexes = (Map<Integer, String>) data.get("reverseIndexes");
+            this.costsMatrix = (ArrayList<ArrayList<Double>>) data.get("costsMatrix");
+        } catch (Exception e | IOException e) {
+            e.printStackTrace();
+            throw e;
+        }
+
+    }
+
+
+    public void PlanInit(MultipartFile file)
     {
-        this.cityPlan=cityPlan;
-        this.cityPlan.preprocessData();
-        this.costsMatrix=this.cityPlan.getCostsMatrix();
-        this.indexes=this.cityPlan.getIndexes();
-        this.reverseIndexes=this.cityPlan.getReverseIndexes();
-        this.intersectionMap=this.cityPlan.getIntersectionMap();
+        Map<String, Object> data = XMLReader.LoadPlanByFile(file);
+        this.sections = (List<Section>) data.get("sections");
+        this.intersections = (List<Intersection>) data.get("intersections");
+        this.intersectionMap = (Map<String, Intersection>) data.get("intersectionMap");
+        this.indexes = (Map<String, Integer>) data.get("indexes");
+        this.reverseIndexes = (Map<Integer, String>) data.get("reverseIndexes");
+        this.costsMatrix = (ArrayList<ArrayList<Double>>) data.get("costsMatrix");
+
     }
     /**
      * Returns the list of sections in the plan.
