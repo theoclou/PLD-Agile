@@ -102,7 +102,11 @@ Note : you need a recent version of java like 21 for example.
 
 ## Running the Tests
 
-Follow the same instructions than above but just launch this time ApplicationTests.java (for the moment the tests are not done here but that will change when the project is more advanced).
+You can run the unit tests with two methods:
+- **Using Maven**:
+    Go in the `src/test/java` folder and run the following command: mvn test
+- **Using an IDE**:
+    Open the project in an IDE like IntelliJ and run the tests manually from the test folder.
   
 ## Customizing Input
 

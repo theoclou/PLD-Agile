@@ -260,4 +260,8 @@ public class Round {
         }
         return deliveryIntersections;
     }
+
+    public void clearDeliveryRequests() {
+        this.deliveryRequestList.clear(); // Assurez-vous que deliveryRequestList est initialisé
+    }
 }
