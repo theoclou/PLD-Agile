@@ -90,8 +90,8 @@ Note : you need a recent version of java like 21 for example.
     ```
 
 2. **Launch the web server**:
-    Launch the application in the file with the same name (SpringApplication.run(Application.class, args)) or use the command mvn spring-boot:run in the terminal.```
-    Important Note : To avoid compilation and installation problems (like maven or things in the pom.xml), work on the IDE Intellij and just launch the project.```
+    Launch the application in the file with the same name (SpringApplication.run(Application.class, args)) or use the command mvn spring-boot:run in the terminal.
+    Important Note : To avoid compilation and installation problems (like maven or things in the pom.xml), work on the IDE Intellij and just launch the project.
 
 3. **Launch the front project**:
     Install nodeJS (20.18.0)
