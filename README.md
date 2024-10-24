@@ -63,6 +63,7 @@ new-front
 ├── public
 ├── src
 │   ├── Components
+│   ├── Assets
 src
 ├── main
 │   ├── java/com/pld/agile
@@ -73,10 +74,10 @@ src
 │   │   │   ├── graph                    # Graph, Intersection, Section
 │   │   │   └── strategy                 # TSP Solving Strategies
 │   │   └── controller                   # Spring Controllers (if applicable)
-├── resources
-│   └── data                             # XML files for city plans and delivery requests
+├── data                                 # XML files for city plans and delivery requests                          
 └── test
-    └── java/com/pld/agile                # Unit tests
+    └── java/com/pld/agile               # Unit tests
+└── ...
 ```
 
 ## Running the Application
