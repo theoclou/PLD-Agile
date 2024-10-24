@@ -54,6 +54,7 @@ public class Controller {
             map.readXmlbyFile(file);
             round = new Round();
             round.init(numberOfCouriers, map);
+            round.clearDeliveryRequests();
             if (map.getIntersections().size() > 0) {
                 return ResponseEntity.ok(Collections.singletonMap("message", "Plan loaded successfully."));
             } else {

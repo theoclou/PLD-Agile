@@ -25,6 +25,13 @@ const TextSidebar = React.memo(({ deliveryData, sections }) => {
               section.destination.id === delivery.deliveryAdress.id.toString()
           );
 
+          // Remove duplicate sections by using their unique names (or id if available)
+            const uniqueSections = Array.from(
+                new Set(relatedSections.map((section) => section.name))
+            ).map((name) =>
+                relatedSections.find((section) => section.name === name)
+            );
+
           return (
             <div
               key={delivery.deliveryAdress.id}
@@ -55,19 +62,16 @@ const TextSidebar = React.memo(({ deliveryData, sections }) => {
                 </div>
 
                 <div className="text-sm">
-                  <span className="font-medium text-gray-600">Sections: </span>
+                  <span className="font-medium text-gray-600">Sections around: </span>
                   <div className="ml-2 mt-1">
-                    {relatedSections.length > 0 ? (
-                      relatedSections.map((section, index) => (
+                    {uniqueSections.length > 0 ? (
+                      uniqueSections.map((section, index) => (
                         <div key={index} className="mb-2">
                           <div className="flex items-center space-x-2">
                             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                             <span className="text-gray-700">
                               {section.name}
                             </span>
-                          </div>
-                          <div className="text-xs text-gray-500 ml-4">
-                            Length: {section.length.toFixed(2)} meters
                           </div>
                         </div>
                       ))
