@@ -500,32 +500,6 @@ public class Plan {
         return formattedInput;
     }
 
-    @Override
-    /**
-     * Returns a string representation of the plan, including the cost matrix.
-     *
-     * @return a string representation of the plan
-     */
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Plan Details:\n");
-
-        // Print Cost Matrix
-        sb.append("Cost Matrix:\n");
-        for (int i = 0; i < costsMatrix.size(); i++) {
-            for (int j = 0; j < costsMatrix.get(i).size(); j++) {
-                double cost = costsMatrix.get(i).get(j);
-                if (cost == Double.MAX_VALUE) {
-                    sb.append(" ∞ ");
-                } else {
-                    sb.append(String.format("%6.2f", cost)).append(" ");
-                }
-            }
-            sb.append("\n");
-        }
-
-        return sb.toString();
-    }
 
     // --------------------------------------------------------------------------------------
     /**
