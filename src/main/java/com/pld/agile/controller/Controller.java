@@ -6,6 +6,7 @@ import com.pld.agile.model.entity.Round;
 import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.entity.Section;
 import com.pld.agile.model.entity.Round;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,8 @@ import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.io.IOException;
 
+import com.pld.agile.model.graph.XMLReader;
+
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
 public class Controller {
@@ -26,7 +29,7 @@ public class Controller {
     private Plan map = new Plan();
     private Round round = new Round();
     private int numberOfCouriers = 2;
-
+    private XMLReader reader=new XMLReader();
     public Controller() {
     }
     
@@ -48,13 +51,13 @@ public class Controller {
             return ResponseEntity.badRequest().body(Collections.singletonMap("message", "File upload failed: No file selected."));
         }
 
-        map.resetMap();
+        reader.resetMap();
 
         try {
-            map.readXmlbyFile(file);
+            reader.readXmlbyFile(file);
             round = new Round();
             round.init(numberOfCouriers, map);
-            if (map.getIntersections().size() > 0) {
+            if (reader.getIntersections().size() > 0) {
                 return ResponseEntity.ok(Collections.singletonMap("message", "Plan loaded successfully."));
             } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("error", "No valid intersections loaded. Please check the file."));

@@ -8,6 +8,7 @@ import com.pld.agile.model.*;
 import com.pld.agile.model.entity.Courier;
 import com.pld.agile.model.entity.Round;
 import com.pld.agile.model.graph.Plan;
+import com.pld.agile.model.graph.XMLReader;
 import com.pld.agile.model.strategy.TspStrategy;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -27,16 +28,15 @@ public class Application {
 		SpringApplication.run(Application.class, args);
 
 		Plan plan = new Plan();
-
+		XMLReader reader=new XMLReader();
 		String filePath = "src/data/petitPlan.xml";
 		try {
-			plan.readXml(filePath);
+			reader.readXml(filePath);
 		} catch (Exception e) {
 			System.err.println("Erreur : " + e.getMessage());
 			System.exit(1); // Arrêter le programme avec un code d'erreur
 		}
-
-		plan.preprocessData();
+		plan.PlanInit(reader);
 		List<Integer> vertices = Arrays.asList(0, 256, 233, 127);
 		/*
 		 * If using a list of ids use instead this :
