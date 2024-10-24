@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<reseau>
+    <noeud id="25611760" latitude="45.754536" longitude="4.866525"/>
+    <noeud id="26317233" latitude="45.754574" longitude="4.8668556"/>
+    <noeud id="26317229" latitude="45.75465" longitude="4.8674865"/>
+    <noeud id="26057084" latitude="45.756714" longitude="4.8673143"/>
+    <noeud id="26057085" latitude="45.756638" longitude="4.8683963"/>
+    <noeud id="26079653" latitude="45.758255" longitude="4.865917"/>
+    <noeud id="2835339775" latitude="45.758167" longitude="4.8668036"/>
+    <noeud id="26079654" latitude="45.758083" longitude="4.8675914"/>
+    <noeud id="2587460577" latitude="45.758675" longitude="4.867718"/>
+    <noeud id="26057083" latitude="45.756855" longitude="4.86569"/>
+    <noeud id="26079655" latitude="45.757935" longitude="4.8685865"/>
+    <noeud id="2587460578" latitude="45.75883" longitude="4.8659945"/>
+    <troncon destination="26317233" longueur="26.020561" nomRue="Avenue Félix Faure" origine="25611760"/>
+    <troncon destination="26317229" longueur="49.68636" nomRue="Avenue Félix Faure" origine="26317233"/>
+    <troncon destination="26057084" longueur="240.98518" nomRue="Rue Baraban" origine="26317233"/>
+    <troncon destination="26317229" longueur="232.252" nomRue="Rue Turbil" origine="26057085"/>
+    <troncon destination="26057084" longueur="84.381294" nomRue="Rue Paul Bert" origine="26057085"/>
+    <troncon destination="26079654" longueur="153.978" nomRue="Rue Baraban" origine="26057084"/>
+    <troncon destination="26057085" longueur="145.00984" nomRue="Rue Turbil" origine="26079655"/>
+    <troncon destination="26079655" longueur="79.02355" nomRue="Rue Antoine Charial" origine="26079654"/>
+    <troncon destination="26079654" longueur="61.78396" nomRue="Rue Antoine Charial" origine="2835339775"/>
+    <troncon destination="2835339775" longueur="69.480034" nomRue="Rue Antoine Charial" origine="26079653"/>
+    <troncon destination="2587460578" longueur="134.90417" nomRue="Rue des Teinturiers" origine="2587460577"/>
+    <troncon destination="26079653" longueur="64.645546" nomRue="Rue Étienne Richerand" origine="2587460578"/>
+    <troncon destination="26079654" longueur="66.22617" nomRue="Rue Baraban" origine="2587460577"/>
+</reseau>

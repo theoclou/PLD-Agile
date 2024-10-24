@@ -233,4 +233,12 @@ public class Round {
     public List<DeliveryRequest> getDeliveryRequestList() {
         return deliveryRequestList;
     }
+
+    public List<String> getDeliveryIntersectionsList() {
+        List<String> deliveryIntersections = new ArrayList<>();
+        for (DeliveryRequest deliveryRequest : deliveryRequestList) {
+            deliveryIntersections.add(deliveryRequest.getDeliveryAdress().getId());
+        }
+        return deliveryIntersections;
+    }
 }
