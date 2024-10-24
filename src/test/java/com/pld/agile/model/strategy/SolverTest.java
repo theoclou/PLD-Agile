@@ -26,7 +26,7 @@ class TSPTest {
             System.exit(1); // Arrêter le programme avec un code d'erreur
         }
         plan.preprocessData();
-
+        System.out.println(plan);
         // Création Round
         round.init(2, plan);
         String requestPath = "src/test/java/com/pld/agile/model/strategy/demandeLivraisonTest.xml";
@@ -36,8 +36,9 @@ class TSPTest {
             System.err.println("Erreur : " + e.getMessage());
         }
 
-
+        System.out.println(round.getDeliveryIntersectionsList());
         List<Integer> vertices = plan.formatInput(round.getDeliveryIntersectionsList());
+        System.out.println(vertices);
 
         Solver solver = new Solver(plan, vertices, new BnBStrategy());
         solver.init();

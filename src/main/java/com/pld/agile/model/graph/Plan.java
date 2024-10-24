@@ -367,7 +367,8 @@ public class Plan {
 
         // Check if the destination is reachable
         if (path.size() == 1 && path.get(0) != origin) {
-            System.out.println("No path found between origin and destination.");
+
+            System.out.println("No path found between"+ origin+" and "+destination+".");
             return new ArrayList<>();
         }
 
@@ -453,7 +454,7 @@ public class Plan {
      */
     private void constructTour(List<Integer> path) {
         for (int i = 0; i < path.size() - 1; i++) {
-            tour.addAll(findShortestPath(i, i + 1));
+            tour.addAll(findShortestPath(path.get(i), path.get(i + 1)));
         }
         Set<Integer> uniqueTour = new HashSet<>(tour);
 
@@ -484,7 +485,6 @@ public class Plan {
     public List<String> computeTour(List<Integer> path) {
         constructTour(path);
         List<String> finalResult = makeIntersectionsTour();
-        System.out.println(finalResult);
         return finalResult;
     }
     /**
