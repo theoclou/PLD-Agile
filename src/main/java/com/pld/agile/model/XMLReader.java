@@ -150,23 +150,53 @@ public class XMLReader {
         return result;
     }
 
-    public static Map<String, Object> LoadPlanByPath(String filePath){
-        Map<String, Object> result;
-        Map<String, Object> tempResult = new HashMap<>();
+    public static Map<String, Object> LoadPlanByPath(String filePath) throws FileNotFoundException, IllegalArgumentException, InstanceNotFoundException {
         try {
-            result = readXml(filePath);
-            if (result.isEmpty() || !result.containsKey("intersections") || !result.containsKey("sections") ) {
-                throw new Exception("The XML file is empty or invalid.");
+            // Read XML file
+            Map<String, Object> result = readXml(filePath);
+
+            // Validate XML content
+            if (result == null || result.isEmpty()) {
+                throw new IllegalArgumentException("The XML file is empty.");
             }
-            tempResult = preprocessData((List<Intersection>) result.get("intersections"), (List<Section>) result.get("sections"));
-            result.put("indexes", tempResult.get("indexes"));
-            result.put("reverseIndexes", tempResult.get("reverseIndexes"));
-            result.put("costsMatrix", tempResult.get("costsMatrix"));
+            if (!result.containsKey("intersections") || !result.containsKey("sections")) {
+                throw new IllegalArgumentException("The XML file is missing required elements (intersections or sections).");
+            }
+
+            // Type-safe casting with validation
+            List<Intersection> intersections;
+            List<Section> sections;
+            try {
+                intersections = (List<Intersection>) result.get("intersections");
+                sections = (List<Section>) result.get("sections");
+
+                if (intersections == null || sections == null) {
+                    throw new IllegalArgumentException("Intersections or sections data is null.");
+                }
+            } catch (ClassCastException e) {
+                throw new IllegalArgumentException("Invalid data format for intersections or sections.", e);
+            }
+
+            // Process the data
+            Map<String, Object> processedData = preprocessData(intersections, sections);
+
+            // Add processed data to result
+            result.put("indexes", processedData.get("indexes"));
+            result.put("reverseIndexes", processedData.get("reverseIndexes"));
+            result.put("costsMatrix", processedData.get("costsMatrix"));
+
+            return result;
+
+        } catch (FileNotFoundException e) {
+            throw e; // Rethrow FileNotFoundException directly
+        } catch (IllegalArgumentException e) {
+            throw e; // Rethrow validation errors
+        } catch (InstanceNotFoundException e) {
+            throw e; // Rethrow InstanceNotFoundException directly
         } catch (Exception e) {
-            e.printStackTrace();
-            result = new HashMap<>();
+            // Convert unexpected exceptions to IllegalArgumentException
+            throw new IllegalArgumentException("Error processing XML file: " + e.getMessage(), e);
         }
-        return result;
     }
 
 
