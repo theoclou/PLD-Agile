@@ -1,13 +1,15 @@
 package com.pld.agile.model.entity;
 
-import com.pld.agile.model.graph.Plan;
-import org.junit.jupiter.api.Test;
+import java.io.FileNotFoundException;
 
 import javax.management.InstanceNotFoundException;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+
+import com.pld.agile.model.graph.Plan;
 
 class RoundTest {
 
@@ -15,7 +17,7 @@ class RoundTest {
     public void testLoadRequests_ValidFile() throws Exception {
         Round round = new Round();
         Plan plan = new Plan();
-
+        
         // Initialiser des intersections valides
         Intersection intersection1 = new Intersection();
         intersection1.initialisation("239603465", 45.752098, 4.902107);

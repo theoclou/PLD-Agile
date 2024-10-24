@@ -268,6 +268,7 @@ public class Plan {
 
             // Set the distance (or cost) for the matrix
             costsMatrix.get(originIndex).set(destinationIndex, length);
+            costsMatrix.get(destinationIndex).set(originIndex, length);
         }
     }
     /**

@@ -1,21 +1,7 @@
 package com.pld.agile;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import com.pld.agile.model.*;
-import com.pld.agile.model.entity.Courier;
-import com.pld.agile.model.entity.Round;
-import com.pld.agile.model.graph.Plan;
-import com.pld.agile.model.strategy.TspStrategy;
-
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.SpringApplication;
-
-import com.pld.agile.model.algorithm.bnb.BranchAndBound;
-import com.pld.agile.model.graph.CompleteGraph;
-import com.pld.agile.model.strategy.BnBStrategy;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class Application {
