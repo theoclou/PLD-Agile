@@ -29,7 +29,10 @@ public class XMLReader {
      * section objects, and stores them in their respective lists.
      *
      * @param filePath the path to the XML file
-     * @throws Exception if an error occurs during the reading or parsing process
+     * @return a map containing the extracted intersections, sections, and an
+     *         intersection map
+     * @throws Exception if an error occurs during the reading or parsing process,
+     *                   such as a file not found, malformed XML, or missing data.
      */
     public static Map<String, Object> readXml(String filePath) throws Exception {
         Map<String, Object> result = new HashMap<>();
@@ -130,8 +133,22 @@ public class XMLReader {
          */
     }
 
-
-    public static Map<String, Object> LoadPlanByFile(MultipartFile file) throws FileNotFoundException, IllegalArgumentException, InstanceNotFoundException {
+    /**
+     * Reads an XML file uploaded via a {@code MultipartFile}, validates, and
+     * processes
+     * the XML content into a map containing intersections, sections, and additional
+     * data such as indexes, reverse indexes, and costs matrix.
+     *
+     * @param file the uploaded XML file
+     * @return a map containing the processed data: intersections, sections, and
+     *         related metadata
+     * @throws FileNotFoundException     If the file is not found or is empty
+     * @throws IllegalArgumentException  If the XML file contains invalid data
+     * @throws InstanceNotFoundException If a required instance cannot be found
+     *                                   during processing
+     */
+    public static Map<String, Object> LoadPlanByFile(MultipartFile file)
+            throws FileNotFoundException, IllegalArgumentException, InstanceNotFoundException {
         try {
             // Read XML file
             Map<String, Object> result = readXmlbyFile(file);
@@ -141,7 +158,8 @@ public class XMLReader {
                 throw new IllegalArgumentException("The XML file is empty.");
             }
             if (!result.containsKey("intersections") || !result.containsKey("sections")) {
-                throw new IllegalArgumentException("The XML file is missing required elements (intersections or sections).");
+                throw new IllegalArgumentException(
+                        "The XML file is missing required elements (intersections or sections).");
             }
 
             // Type-safe casting with validation
@@ -180,7 +198,22 @@ public class XMLReader {
         }
     }
 
-    public static Map<String, Object> LoadPlanByPath(String filePath) throws FileNotFoundException, IllegalArgumentException, InstanceNotFoundException {
+    /**
+     * Reads an XML file located at the specified file path, validates, and
+     * processes
+     * the XML content into a map containing intersections, sections, and additional
+     * data such as indexes, reverse indexes, and costs matrix.
+     *
+     * @param filePath the path to the XML file
+     * @return a map containing the processed data: intersections, sections, and
+     *         related metadata
+     * @throws FileNotFoundException     If the XML file is not found
+     * @throws IllegalArgumentException  If the XML file contains invalid data
+     * @throws InstanceNotFoundException If a required instance cannot be found
+     *                                   during processing
+     */
+    public static Map<String, Object> LoadPlanByPath(String filePath)
+            throws FileNotFoundException, IllegalArgumentException, InstanceNotFoundException {
         try {
             // Read XML file
             Map<String, Object> result = readXml(filePath);
@@ -190,7 +223,8 @@ public class XMLReader {
                 throw new IllegalArgumentException("The XML file is empty.");
             }
             if (!result.containsKey("intersections") || !result.containsKey("sections")) {
-                throw new IllegalArgumentException("The XML file is missing required elements (intersections or sections).");
+                throw new IllegalArgumentException(
+                        "The XML file is missing required elements (intersections or sections).");
             }
 
             // Type-safe casting with validation
@@ -229,14 +263,14 @@ public class XMLReader {
         }
     }
 
-
     // ----------------------------------------------------------------------
     /**
-     * Reads an XML file from a {@code MultipartFile} and parses its content into
-     * the
-     * list of intersections and sections.
+     * Reads an XML file from a {@code MultipartFile} and parses its content into the list
+     * of intersections and sections. It converts the multipart file to a temporary
+     * file before processing.
      *
      * @param file the uploaded XML file
+     * @return a map containing intersections, sections, and an intersection map
      * @throws Exception if an error occurs during the reading or parsing process
      */
     public static Map<String, Object> readXmlbyFile(MultipartFile file) throws Exception {
@@ -345,9 +379,13 @@ public class XMLReader {
         return result;
     }
 
-
     /**
-     * Re-indexes all intersections in the plan based on their IDs.
+     * Re-indexes all intersections in the plan based on their IDs. The method
+     * returns a map containing both the forward indexes (ID to index) and the
+     * reverse indexes (index to ID).
+     *
+     * @param intersections the list of intersections to re-index
+     * @return a map containing the indexes and reverse indexes of intersections
      */
     private static Map<String, Object> reIndexIntersections(List<Intersection> intersections) {
         Map<String, Object> result = new HashMap<>();
@@ -370,16 +408,19 @@ public class XMLReader {
      * gets all intersection's ids using the predefined indexes in
      * <code> reIndexIntersections() </code>.
      */
-//    private void reverseIndexation() {
-//        for (Map.Entry<String, Integer> pair : indexes.entrySet()) {
-//            reverseIndexes.put(pair.getValue(), pair.getKey());
-//        }
-//    }
+    // private void reverseIndexation() {
+    // for (Map.Entry<String, Integer> pair : indexes.entrySet()) {
+    // reverseIndexes.put(pair.getValue(), pair.getKey());
+    // }
+    // }
 
     /**
-     * Initializes the cost matrix for the graph with 0 or infinity values. This
-     * method sets the distance from a node to itself as 0 and sets all other
-     * distances to infinity.
+     * Initializes the cost matrix for the graph with 0 or infinity values.
+     * The distance from a node to itself is set to 0, and all other distances
+     * are set to infinity.
+     *
+     * @param intersections the list of intersections for which to initialize the matrix
+     * @return an initialized cost matrix for the intersections
      */
     private static ArrayList<ArrayList<Double>> initializeCostsMatrix(List<Intersection> intersections) {
         ArrayList<ArrayList<Double>> costsMatrix = new ArrayList<>();
@@ -402,8 +443,14 @@ public class XMLReader {
 
     /**
      * Fills the cost matrix based on the sections read from the XML file.
+     * It sets the cost for each section based on its length.
+     *
+     * @param sections the list of sections to process
+     * @param indexes the map of intersection IDs to their corresponding index in the matrix
+     * @param costsMatrix the cost matrix to fill
      */
-    private static void fillCostsMatrix(List<Section> sections, Map<String, Integer> indexes, ArrayList<ArrayList<Double>> costsMatrix) {
+    private static void fillCostsMatrix(List<Section> sections, Map<String, Integer> indexes,
+            ArrayList<ArrayList<Double>> costsMatrix) {
         // Set the costs based on the sections
         for (Section section : sections) {
             String originId = section.getOrigin();
@@ -418,10 +465,17 @@ public class XMLReader {
         }
     }
 
-    /**
-     * makes the cost matrix using the values extarcted from the file
+     /**
+     * Creates the cost matrix for the city plan using the intersections, sections,
+     * and indexes provided.
+     *
+     * @param intersections the list of intersections
+     * @param sections the list of sections connecting the intersections
+     * @param indexes the map of intersection IDs to indexes
+     * @return a cost matrix representing the distances between intersections
      */
-    private static ArrayList<ArrayList<Double>> makeCostsMatrix(List<Intersection> intersections, List<Section> sections, Map<String, Integer> indexes) {
+    private static ArrayList<ArrayList<Double>> makeCostsMatrix(List<Intersection> intersections,
+            List<Section> sections, Map<String, Integer> indexes) {
         // Initialize the adjacency matrix with the size of the intersections
         ArrayList<ArrayList<Double>> costsMatrix;
 
@@ -431,8 +485,12 @@ public class XMLReader {
     }
 
     /**
-     * Processes the data by creating indexing the ids of the intersections of the
-     * map and creating the cost matrix.
+     * Processes the data by indexing the IDs of intersections and creating the cost matrix.
+     * This method calls the re-indexing and cost matrix initialization methods.
+     *
+     * @param intersections the list of intersections
+     * @param sections the list of sections
+     * @return a map containing the processed indexes, reverse indexes, and cost matrix
      */
     public static Map<String, Object> preprocessData(List<Intersection> intersections, List<Section> sections) {
         Map<String, Object> result = new HashMap<>();
@@ -441,10 +499,10 @@ public class XMLReader {
         tempResult = reIndexIntersections(intersections);
         result.put("indexes", tempResult.get("indexes"));
         result.put("reverseIndexes", tempResult.get("reverseIndexes"));
-        result.put("costsMatrix", makeCostsMatrix(intersections, sections, (Map<String, Integer>) result.get("indexes")));
+        result.put("costsMatrix",
+                makeCostsMatrix(intersections, sections, (Map<String, Integer>) result.get("indexes")));
 
         return result;
     }
-
 
 }
