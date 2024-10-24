@@ -90,20 +90,20 @@ Note : you need a recent version of java like 21 for example.
     ```
 
 2. **Launch the web server**:
-    ```Launch the application in the file with the same name (SpringApplication.run(Application.class, args)) or use the command mvn spring-boot:run in the terminal.```
-    ```Important Note : To avoid compilation and installation problems (like maven or things in the pom.xml), work on the IDE Intellij and just launch the project.```
+    Launch the application in the file with the same name (SpringApplication.run(Application.class, args)) or use the command mvn spring-boot:run in the terminal.```
+    Important Note : To avoid compilation and installation problems (like maven or things in the pom.xml), work on the IDE Intellij and just launch the project.```
 
 3. **Launch the front project**:
-    ```Install nodeJS (20.18.0)```
-    ```Use npm to install all useful packages with the command "install npm"```
-    ```In a new terminal, go to the repo new-front and use the command "npm start" : it will start the front project```
-    ```See the Readme in the repo new-front for more informations..```
+    Install nodeJS (20.18.0)
+    Use npm to install all useful packages with the command "install npm"
+    In a new terminal, go to the repo new-front and use the command "npm start" : it will start the front project
+    See the Readme in the repo new-front for more informations..
 
 ## Running the Tests
 
 Follow the same instructions than above but just launch this time ApplicationTests.java (for the moment the tests are not done here but that will change when the project is more advanced).
   
-### Customizing Input
+## Customizing Input
 
 You can customize the input data by editing the XML files in the `src/resources/data/` folder:
 - **City Map (XML)**: Contains intersections, roads, and the warehouse location.
@@ -111,7 +111,7 @@ You can customize the input data by editing the XML files in the `src/resources/
 
 Make sure the format adheres to the expected XML structure, and modify `filePath` and the file is under 10MB.
 
-### Key Classes (How it is implemented ?)
+## Key Classes (How it is implemented ?)
 
 - **Application.java**: The main entry point for the application.
 - **Solver.java**: Manages the TSP solving process using different strategies.
