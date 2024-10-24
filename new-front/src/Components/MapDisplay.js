@@ -83,7 +83,7 @@ const MapDisplay = ({ mapData, deliveryData, bounds, zoom, setZoom }) => {
             <Polyline
               key={index}
               positions={latLngs}
-              color="red"
+              color="darkgrey"
               weight={2}
               opacity={1}
             />

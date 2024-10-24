@@ -6,6 +6,7 @@ import LoadDeliveryButton from "./LoadDeliveryButton";
 import CourierCounter from "./CourierCounter";
 import "leaflet/dist/leaflet.css";
 import "./MapComponent.css";
+import TextSidebar from "./TextSidebar";
 
 const MapComponent = () => {
   const [mapData, setMapData] = useState({ intersections: [], sections: [] });
@@ -18,7 +19,9 @@ const MapComponent = () => {
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
   const [courierCount, setCourierCount] = useState(2); // État pour le nombre de courriers
+  const [deliveryLoaded, setDeliveryLoaded] = useState(false);
 
+  //TODO check why the plan loading sometimes fails
   const handleFetchData = useCallback(async () => {
     setLoading(true);
 
@@ -78,21 +81,6 @@ const MapComponent = () => {
     setPopupVisible(false);
   };
 
-  // const close = async () => {
-  //   console.log("Load Delivery button clicked!");
-  //   try {
-  //     await fetch("http://localhost:8080/courriers", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({ count: courierCount }),
-  //     });
-  //   } catch (error) {
-  //     console.error("Error updating courier count:", error);
-  //   }
-  // };
-
   const handleLoadDelivery = async (event) => {
     const selectedFile = event.target.files[0];
 
@@ -110,6 +98,7 @@ const MapComponent = () => {
         const result = await response.json();
         if (result && result.deliveries) {
           setDeliveryData(result);
+          setDeliveryLoaded(true);
         } else {
           throw new Error("Invalid data format from server");
         }
@@ -132,13 +121,24 @@ const MapComponent = () => {
       {loading && <div>Loading...</div>}
 
       {mapLoaded && (
-        <MapDisplay
-          mapData={mapData}
-          deliveryData={deliveryData}
-          bounds={bounds}
-          zoom={zoom}
-          setZoom={setZoom}
-        />
+        <div className="map-sidebar-container">
+          <MapDisplay
+            mapData={mapData}
+            deliveryData={deliveryData}
+            bounds={bounds}
+            zoom={zoom}
+            setZoom={setZoom}
+          />
+
+          {deliveryLoaded && (
+            <div className="text-sidebar">
+              <TextSidebar
+                deliveryData={deliveryData.deliveries}
+                sections={mapData.sections}
+              />
+            </div>
+          )}
+        </div>
       )}
 
       {popupVisible && (
