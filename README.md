@@ -131,5 +131,5 @@ Note : Go to the code to see all the classes and and all their features to under
 ## Contributing
 
 Project made at INSA Lyon as part of the course on the aglie method.
-Contributors: SOULET Audrey, BOUZIANNE Abderrahmane, CLOUSCARD Théo, MARIAT Quentin, CATHERINE Noam
+Contributors: SOULET Audrey, BOUZIANE Abderrahmane, CLOUSCARD Théo, MARIAT Quentin, CATHERINE Noam
     
