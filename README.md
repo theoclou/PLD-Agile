@@ -6,58 +6,63 @@ It focuses on distributing delivery requests, where couriers start from a wareho
 ## Table of Contents
 
 - [Introduction](#introduction)
-- [Features](#features)
 - [Technologies](#technologies)
 - [Project Structure](#project-structure)
-- [Installation](#installation)
-- [Usage](#usage)
-  - [Running the Application](#running-the-application)
-  - [Customizing Input](#customizing-input)
-- [How it Works](#how-it-works)
-- [Development Process](#development-process)
+- [Running the Application](#running-the-application)
+- [Running the Tests](#running-the-tests)
+- [Customizing Input](#customizing-input)
+- [Key Classes (How it is implemented ?)](#key-classes(how-it-is-implemented-?))
 - [Future Improvements](#future-improvements)
 - [Contributing](#contributing)
 
 ## Introduction
 
-The application aims to optimize delivery routes for bicycle couriers in urban environments. It is designed to help couriers minimize delivery times by calculating optimal routes based on city maps and delivery requests. Each courier starts their tour from the same warehouse and must complete deliveries and return to the warehouse.
+The application aims to optimize delivery routes for bicycle couriers in urban environments. It is designed to help couriers minimize delivery times by calculating optimal routes based on city maps and delivery requests in a short time. Each courier starts their tour from the same warehouse and must complete deliveries and return to the warehouse.
 
 The system assumes:
 - **Constant speed of 15 km/h** for all couriers.
 - **5 minutes for each pickup and delivery** operation.
 - **8 hours shift** per courier.
 
-The user can:
+In this app, the user can:
 - Load city maps in XML format, which provide intersections, roads, and warehouse locations.
-- Enter delivery requests with pickup and drop-off locations.
-- Adjust the number of couriers.
+- Load a list of delivery requests (XML format) which will then be assigned to courriers (number of delivery people chosen by the user knowing that there are at least 2 and we limit ourselves to 10 on the maximum terminal side for reasons of realism).
+- Calculate the TSP (Traveling Salesman Problem) of a list of delivery requests and generate a delivery tour
 - View optimized delivery tours for each courier.
-- Save and restore tours from a file.
+- Modify delivery tours / delivry requests.
+- Validate delivery tours
+- View optimized delivery tours for each courier on a map (visual view) and with text (textual view).
 
-If a courier cannot fulfill all delivery requests, the system will ask the user to assign deliveries to another courier. If no more couriers are available, the delivery request is rejected.
-
-## Features
-
-- **City map management**: Load city maps from XML files.
-- **Dynamic delivery requests**: Add delivery requests and re-optimize tours in real-time.
-- **Optimized delivery tours**: Solve the **Traveling Salesman Problem (TSP)** using various algorithms Branch and Bound approach.
-- **Courier management**: Adjust the number of couriers dynamically.
-- **Graphical interface**: Display the city map and delivery routes.
-- **Time optimization**: Minimizes total delivery time while ensuring all time-window constraints are met.
-- **Tour persistence**: Save and restore courier tours to/from files.
+Note : - If a courier cannot fulfill all delivery requests, the system will assign deliveries to another courier. If no more couriers are available, the delivery request is rejected.
+- An XML must be well-formed to be loaded (2 distinct formats : 1 for loadMap and 1 for loadDelivery -> see in the main code, the repository named Data)
 
 ## Technologies
 
-- **Java**: Core programming language for implementation.
+General:
+- **nodeJS then npm**: Allows you to install the npm package manager which will be able to install elements like react.
+
+BackEnd:
+- **Java + its features (jdk)**: Core programming language for implementation.
 - **Spring Boot**: Used for application management and potential web service integration.
 - **JUnit**: For unit testing.
 - **Maven**: For dependency management and building the project.
 - **UML Tools**: StarUML or ObjectAid for reverse engineering diagrams from code.
 - **JavaDoc**: For generating online code documentation.
 
+FrontEnd:
+- **React**: For application design (html, css, js, ...).
+
 ## Project Structure
 
-```bash
+Note : The project follows a Model-View-Controller (MVC) structure to separate concerns effectively.
+
+```
+bash
+new-front
+├── node_modules
+├── public
+├── src
+│   ├── Components
 src
 ├── main
 │   ├── java/com/pld/agile
@@ -73,7 +78,10 @@ src
 └── test
     └── java/com/pld/agile                # Unit tests
 ```
-## Installation
+
+## Running the Application
+
+Note : you need a recent version of java like 21 for example.
 
 1. **Clone the repository**:
     ```bash
@@ -81,12 +89,19 @@ src
     cd PLD-Agile
     ```
 
+2. **Launch the web server**:
+    ```Launch the application in the file with the same name (SpringApplication.run(Application.class, args)) or use the command mvn spring-boot:run in the terminal.```
+    ```Important Note : To avoid compilation and installation problems (like maven or things in the pom.xml), work on the IDE Intellij and just launch the project.```
 
-## Usage
+3. **Launch the front project**:
+    ```Install nodeJS (20.18.0)```
+    ```Use npm to install all useful packages with the command "install npm"```
+    ```In a new terminal, go to the repo new-front and use the command "npm start" : it will start the front project```
+    ```See the Readme in the repo new-front for more informations..```
 
-### Running the Application
+## Running the Tests
 
-- After building and running the project, the application will load a city map from `src/resources/data/petitPlan.xml` and handle delivery requests in real-time. You can modify the XML files to change the map and test different scenarios.
+Follow the same instructions than above but just launch this time ApplicationTests.java (for the moment the tests are not done here but that will change when the project is more advanced).
   
 ### Customizing Input
 
@@ -94,24 +109,18 @@ You can customize the input data by editing the XML files in the `src/resources/
 - **City Map (XML)**: Contains intersections, roads, and the warehouse location.
 - **Delivery Requests (XML)**: Contains pickup and delivery locations for each request.
 
-Make sure the format adheres to the expected XML structure, and modify `filePath` .
+Make sure the format adheres to the expected XML structure, and modify `filePath` and the file is under 10MB.
 
-## How it Works
-
-1. **City Map Loading**: The XML file is loaded to create a graph of the city, where intersections are nodes and road segments are edges.
-2. **Delivery Request Management**: The user can add delivery requests, specifying both pickup and delivery locations. Each request is assigned to a courier.
-3. **TSP Solver**: The application computes the optimal tour for each courier using a variant of the TSP algorithm (Branch and Bound).
-4. **Tour Display**: The optimized delivery tours are displayed on the map, showing arrival and departure times for each location.
-5. **Courier Reassignment**: If a courier cannot complete all deliveries within the time constraints, the system prompts the user to assign the remaining deliveries to another courier.
-
-### Key Classes
+### Key Classes (How it is implemented ?)
 
 - **Application.java**: The main entry point for the application.
 - **Solver.java**: Manages the TSP solving process using different strategies.
-- **Plan.java**: Represents the city map, including intersections and road segments.
+- **Plan.java**: Represents the city map, including intersections (verticies) and sections (edges) which will allow us to build a graph later.
 - **DeliveryRequest.java**: Represents a delivery task, including pickup and drop-off locations.
 - **BranchAndBound.java**: Implements the Branch and Bound algorithm for solving the TSP.
 - **CompleteGraph.java**: Represents a complete graph used for solving the TSP.
+
+Note : Go to the code to see all the classes and and all their features to understand how it works precisely.
 
 ## Future Improvements
 
@@ -119,7 +128,8 @@ Make sure the format adheres to the expected XML structure, and modify `filePath
 - **Real-time updates**: Support real-time updates for couriers, enabling users to track the delivery progress live.
 - **User Interface Enhancements**: Improve the graphical interface for better user experience.
 
-## License
+## Contributing
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Project made at INSA Lyon as part of the course on the aglie method.
+Contributors: SOULET Audrey, BOUZIANNE Abderrahmane, CLOUSCARD Théo, MARIAT Quentin, CATHERINE Noam
     
