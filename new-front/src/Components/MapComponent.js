@@ -23,12 +23,12 @@ const MapComponent = () => {
 
   //TODO check why the plan loading sometimes fails
   const handleFetchData = useCallback(async () => {
-    setLoading(true);
-
     try {
       const response = await fetch("http://localhost:8080/map");
-      if (!response.ok) throw new Error("Error during data retrieval");
-
+      if (!response.ok) {
+        setMapLoaded(false);
+        throw new Error("Error during data retrieval");
+      }
       const result = await response.json();
       if (result && result.intersections) {
         setMapData(result);
@@ -57,6 +57,7 @@ const MapComponent = () => {
   }, []);
 
   const handleFileChange = async (event) => {
+    setLoading(true);
     const selectedFile = event.target.files[0];
 
     if (selectedFile) {
@@ -68,7 +69,12 @@ const MapComponent = () => {
           method: "POST",
           body: formData,
         });
-        if (!response.ok) throw new Error("Failed to upload file, try again");
+        if (!response.ok) {
+          setMapLoaded(false);
+          setDeliveryLoaded(false);
+          setLoading(false);
+          throw new Error("Failed to upload file, try again");
+        }
         await handleFetchData();
       } catch (error) {
         setPopupMessage(error.message);
@@ -114,8 +120,7 @@ const MapComponent = () => {
       <h1 className="title">Pick'One</h1>
       <FileUploadButton onFileChange={handleFileChange} />
 
-      <LoadDeliveryButton onFileChange={handleLoadDelivery} />
-
+      {mapLoaded && <LoadDeliveryButton onFileChange={handleLoadDelivery} />}
       <CourierCounter count={courierCount} setCount={setCourierCount} />
 
       {loading && <div>Loading...</div>}
