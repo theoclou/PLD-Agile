@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 class TSPTest {
 
     @Test
@@ -42,10 +44,10 @@ class TSPTest {
         solver.init();
         solver.solve();
         List<Integer> bestPath = solver.getBestPath();
-        plan.computeTour(bestPath);
+        List<String> result= plan.computeTour(bestPath);
         System.out.println("finished");
 
-        //Actuellement le résultat est pas le bon
+        assertEquals(Arrays.asList("25611760", "26317233", "26317229", "26057085", "26079655", "26079654", "2835339775", "26079653", "2587460578", "26079653", "2835339775", "26079654", "26057084", "26317233", "25611760", "25611760"), result);
 
     }
 
