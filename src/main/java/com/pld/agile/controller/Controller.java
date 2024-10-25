@@ -19,17 +19,46 @@ import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.io.IOException;
 
+
+/**
+ * REST Controller for managing delivery planning and map operations.
+ * This controller handles operations related to courier management, map loading,
+ * delivery requests, and tour computation.
+ *
+ * @RestController annotation indicates that this class serves REST endpoints
+ * @CrossOrigin allows requests from the React frontend running on localhost:3000
+ */
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
 public class Controller {
 
+    /**
+     * Represents the city map with intersections and sections.
+     */
     private Plan map = new Plan();
+
+    /**
+     * Represents a delivery round containing multiple delivery requests.
+     */
     private Round round = new Round();
+
+    /**
+     * The number of available couriers for deliveries.
+     */
     private int numberOfCouriers = 2;
 
+    /**
+     * Default constructor for the Controller class.
+     */
     public Controller() {
     }
-    
+
+    /**
+     * Updates the number of available couriers.
+     *
+     * @param payload A map containing the new courier count with key "count"
+     * @return ResponseEntity<Void> with HTTP 200 OK if successful
+     */
     @PostMapping("/courriers")
     public ResponseEntity<Void> updateCouriers(@RequestBody Map<String, Integer> payload) {
         numberOfCouriers = payload.get("count");
@@ -37,11 +66,24 @@ public class Controller {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Retrieves information about available couriers.
+     *
+     * @return String containing courier information
+     */
     @GetMapping("/Courriers")
     public String getCouriers() {
         return "Here are the Couriers";
     }
 
+    /**
+     * Loads a map from an XML file and initializes the delivery round.
+     * Resets any existing map data before loading the new map.
+     *
+     * @param file MultipartFile containing the XML map data
+     * @return ResponseEntity with a success/error message
+     * @throws IOException if there's an error reading the file
+     */
     @PostMapping("/loadMap")
     public ResponseEntity<Map<String, String>> loadMap(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
@@ -67,6 +109,13 @@ public class Controller {
         }
     }
 
+    /**
+     * Loads delivery requests from a file and associates them with the current round.
+     *
+     * @param file MultipartFile containing delivery request data
+     * @return ResponseEntity containing delivery requests, warehouse location, and status message
+     * @throws IOException if there's an error reading the file
+     */
     @PostMapping("/loadDelivery")
     public ResponseEntity<Map<String, Object>> loadDelivery(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
@@ -92,6 +141,13 @@ public class Controller {
         }
     }
 
+    /**
+     * Retrieves the current map data including intersections and sections.
+     * Returns detailed information about each section including origin and destination
+     * intersections, length, and street name.
+     *
+     * @return Map containing lists of intersections and detailed section information
+     */
     @GetMapping("/map")
     public Map<String, Object> displayMap() {
         Map<String, Object> response = new HashMap<>();
@@ -126,27 +182,54 @@ public class Controller {
         return response;
     }
 
-
+    /**
+     * Computes delivery tours based on current delivery requests and courier availability.
+     *
+     * @return String indicating the status of tour computation
+     */
     @PostMapping("/compute")
     public String computeTours() {
         return "Tours Computed";
     }
 
+    /**
+     * Retrieves computed delivery tours.
+     *
+     * @return String containing tour information
+     */
     @GetMapping("/tours")
     public String getTours() {
         return "Tours Displayed";
     }
 
+    /**
+     * Adds a new delivery request to the system.
+     *
+     * @param deliveryRequest The delivery request to be added
+     * @return String confirmation message with request details
+     */
     @PostMapping("/addDeliveryRequest")
     public String addDeliveryRequest(@RequestBody DeliveryRequest deliveryRequest) {
         return String.format("Delivery request added: %s", deliveryRequest);
     }
 
+    /**
+     * Deletes a delivery request from the system.
+     *
+     * @param deliveryRequestId The ID of the delivery request to be deleted
+     * @return String confirmation message with the deleted request ID
+     */
     @DeleteMapping("/deleteDeliveryRequest")
     public String deleteDeliveryRequest(@RequestBody Integer deliveryRequestId) {
         return String.format("Delivery request removed: n°%s", deliveryRequestId);
     }
 
+    /**
+     * Validates a delivery request.
+     *
+     * @param deliveryRequestId The ID of the delivery request to be validated
+     * @return String confirmation message with the validated request ID
+     */
     @PostMapping("/validate")
     public String validateDeliveryRequest(@RequestBody Integer deliveryRequestId) {
         return String.format("Delivery request validated: %s", deliveryRequestId);
