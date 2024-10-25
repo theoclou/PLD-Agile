@@ -51,6 +51,7 @@ BackEnd:
 
 FrontEnd:
 - **React**: For application design (html, css, js, ...).
+- **Tailwind**: For better code organisation in css
 
 ## Project Structure
 
@@ -96,7 +97,7 @@ Note : you need a recent version of java like 21 for example.
 
 3. **Launch the front project**:
     Install nodeJS (20.18.0)
-    Use npm to install all useful packages with the command "install npm"
+    Use npm to install all useful packages with the command "npm install"
     In a new terminal, go to the repo new-front and use the command "npm start" : it will start the front project
     See the Readme in the repo new-front for more informations..
 
