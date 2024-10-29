@@ -148,4 +148,5 @@ public class DeliveryTour {
     public void setArrivalTimes(Map<Intersection, LocalTime> arrivalTimes) {
         this.arrivalTimes = arrivalTimes;
     }
+
 }

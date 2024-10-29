@@ -265,6 +265,21 @@ public class Round {
         this.deliveryRequestList.clear(); // Assurez-vous que deliveryRequestList est initialisé
     }
 
+    public DeliveryRequest getDeliveryRequestById(String deliveryRequestId) {
+        for (DeliveryRequest deliveryRequest : deliveryRequestList) {
+            if (deliveryRequestId.trim().equals(deliveryRequest.getDeliveryAdress().getId().trim())) {
+                return deliveryRequest;
+            }
+        }
+        return null;
+    }
+
+    public boolean deleteDeliveryRequest(String deliveryRequestId) {
+        System.out.println("Trying to delete delivery request with ID: " + deliveryRequestId);
+        DeliveryRequest deliveryRequest = getDeliveryRequestById(deliveryRequestId);
+        return deliveryRequestList.remove(deliveryRequest);
+    }
+
     public void addDeliveryIntersection(String intersectionId) throws InstanceNotFoundException {
         Intersection intersection = plan.getIntersectionById(intersectionId);
         if (intersection == null) {
