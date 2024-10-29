@@ -264,4 +264,13 @@ public class Round {
     public void clearDeliveryRequests() {
         this.deliveryRequestList.clear(); // Assurez-vous que deliveryRequestList est initialisé
     }
+
+    public void addDeliveryIntersection(String intersectionId) throws InstanceNotFoundException {
+        Intersection intersection = plan.getIntersectionById(intersectionId);
+        if (intersection == null) {
+            throw new InstanceNotFoundException("The intersection '" + intersectionId + "' doesn't exist!");
+        }
+        DeliveryRequest deliveryRequest = new DeliveryRequest(intersection);
+        deliveryRequestList.add(deliveryRequest);
+    }
 }

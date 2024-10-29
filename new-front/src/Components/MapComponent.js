@@ -7,6 +7,7 @@ import CourierCounter from "./CourierCounter";
 import "leaflet/dist/leaflet.css";
 import "./MapComponent.css";
 import TextSidebar from "./TextSidebar";
+import AddDeliveryPoint from "./AddDeliveryPoint";
 
 const MapComponent = () => {
   const [mapData, setMapData] = useState({ intersections: [], sections: [] });
@@ -115,6 +116,10 @@ const MapComponent = () => {
     }
   };
 
+  const handleAddDeliveryPoint = () => {
+
+  };
+
   return (
     <div className="container">
       <h1 className="title">Pick'One</h1>
@@ -122,6 +127,9 @@ const MapComponent = () => {
 
       {mapLoaded && <LoadDeliveryButton onFileChange={handleLoadDelivery} />}
       <CourierCounter count={courierCount} setCount={setCourierCount} />
+
+      {/* Button to add a delivery Point */}
+      {mapLoaded && deliveryLoaded && <AddDeliveryPoint onFileChange={handleAddDeliveryPoint} />}
 
       {loading && <div>Loading...</div>}
 

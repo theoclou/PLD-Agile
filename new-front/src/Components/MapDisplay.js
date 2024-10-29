@@ -5,7 +5,7 @@ import MapMarker from "./MapMarker";
 import DeliveryPointMarker from "./DeliveryPointMarker";
 import WarehouseMarker from "./WarehouseMarker";
 
-const MapDisplay = ({ mapData, deliveryData, bounds, zoom, setZoom }) => {
+const MapDisplay = ({ mapData, deliveryData, bounds, zoom, setZoom, onMapClick }) => {
   const memoizedIntersections = useMemo(() => mapData.intersections, [mapData]);
   const memoizedSections = useMemo(() => mapData.sections, [mapData]);
   const memoizedDeliveries = useMemo(
@@ -51,6 +51,14 @@ const MapDisplay = ({ mapData, deliveryData, bounds, zoom, setZoom }) => {
     }
     return [];
   }, [zoom, memoizedIntersections, memoizedDeliveries]);
+
+  // Add the click management on the map
+  const handleMapClick = (event) => {
+    const { lat, lng } = event.latlng; // Recovery of coordinates
+    if (onMapClick) {
+      onMapClick({ lat, lng }); // Call of onMapClick with coordinates
+    }
+  };
 
   return (
     <MapContainer
