@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-const TextSidebar = React.memo(({ deliveryData, sections }) => {
+const TextSidebar = React.memo(({ deliveryData, sections,onDelete }) => {
   if (!deliveryData || !sections || deliveryData.length === 0) {
     return (
       <div className="p-4">
@@ -11,6 +11,7 @@ const TextSidebar = React.memo(({ deliveryData, sections }) => {
   }
   console.log(deliveryData);
   console.log(sections);
+    console.log("onDelete function received:", onDelete);
 
   return (
     <div className="p-4 bg-white shadow-sm overflow-y-auto max-h-screen">
@@ -33,57 +34,66 @@ const TextSidebar = React.memo(({ deliveryData, sections }) => {
             );
 
           return (
-            <div
-              key={delivery.deliveryAdress.id}
-              className="border rounded-lg p-4 bg-gray-50"
-            >
-              <h3 className="font-medium text-gray-900">
-                Delivery Point #{delivery.deliveryAdress.id}
-              </h3>
+              <div
+                  key={delivery.deliveryAdress.id}
+                  className="border rounded-lg p-4 bg-gray-50"
+              >
+                  <h3 className="font-medium text-gray-900">
+                      Delivery Point #{delivery.deliveryAdress.id}
+                  </h3>
 
-              <div className="mt-2 space-y-2">
-                <div className="text-sm">
-                  <span className="font-medium text-gray-600">Location: </span>
-                  <span className="text-gray-700">
+                  <div className="mt-2 space-y-2">
+                      <div className="text-sm">
+                          <span className="font-medium text-gray-600">Location: </span>
+                          <span className="text-gray-700">
                     {delivery.deliveryAdress.latitude.toFixed(4)}°,
-                    {delivery.deliveryAdress.longitude.toFixed(4)}°
+                              {delivery.deliveryAdress.longitude.toFixed(4)}°
                   </span>
-                </div>
+                      </div>
 
-                <div className="text-sm">
+                      <div className="text-sm">
                   <span className="font-medium text-gray-600">
                     Courier ID:{" "}
                   </span>
-                  <span className="text-gray-700">
+                          <span className="text-gray-700">
                     {delivery.courier === null
-                      ? "Unassigned"
-                      : delivery.courier.id}
+                        ? "Unassigned"
+                        : delivery.courier.id}
                   </span>
-                </div>
+                      </div>
 
-                <div className="text-sm">
-                  <span className="font-medium text-gray-600">Sections around: </span>
-                  <div className="ml-2 mt-1">
-                    {uniqueSections.length > 0 ? (
-                      uniqueSections.map((section, index) => (
-                        <div key={index} className="mb-2">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                            <span className="text-gray-700">
+                      <div className="text-sm">
+                          <span className="font-medium text-gray-600">Sections around: </span>
+                          <div className="ml-2 mt-1">
+                              {uniqueSections.length > 0 ? (
+                                  uniqueSections.map((section, index) => (
+                                      <div key={index} className="mb-2">
+                                          <div className="flex items-center space-x-2">
+                                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                              <span className="text-gray-700">
                               {section.name}
                             </span>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <span className="text-gray-500">
+                                          </div>
+                                      </div>
+                                  ))
+                              ) : (
+                                  <span className="text-gray-500">
                         No connected sections
                       </span>
-                    )}
+                              )}
+                          </div>
+                      </div>
                   </div>
-                </div>
+                  <button
+                      onClick={() => {
+                          console.log("Delete button clicked for ID:", delivery.deliveryAdress.id);
+                          onDelete(delivery.deliveryAdress.id);
+                      }}
+                      className="text-red-500 hover:text-red-700"
+                  >
+                      &times;
+                  </button>
               </div>
-            </div>
           );
         })}
       </div>
@@ -92,10 +102,10 @@ const TextSidebar = React.memo(({ deliveryData, sections }) => {
 });
 
 TextSidebar.propTypes = {
-  deliveryData: PropTypes.arrayOf(
-    PropTypes.shape({
-      deliveryAdress: PropTypes.shape({
-        id: PropTypes.string.isRequired,
+    deliveryData: PropTypes.arrayOf(
+        PropTypes.shape({
+            deliveryAdress: PropTypes.shape({
+                id: PropTypes.string.isRequired,
         latitude: PropTypes.number.isRequired,
         longitude: PropTypes.number.isRequired,
       }).isRequired,
@@ -120,6 +130,7 @@ TextSidebar.propTypes = {
       name: PropTypes.string.isRequired,
     })
   ),
+    onDelete: PropTypes.func.isRequired,
 };
 
 TextSidebar.displayName = "TextSidebar";
