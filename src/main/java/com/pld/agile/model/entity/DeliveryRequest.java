@@ -9,6 +9,9 @@ public class DeliveryRequest {
     private Intersection deliveryAdress;
     private Courier courier;
 
+    public DeliveryRequest() {
+    }
+
     /**
      * Constructs a new {@code DeliveryRequest} with the specified delivery address.
      *
@@ -53,4 +56,5 @@ public class DeliveryRequest {
     public void setCourier(Courier courier) {
         this.courier = courier;
     }
+
 }
