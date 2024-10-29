@@ -116,9 +116,35 @@ const MapComponent = () => {
     }
   };
 
-  const handleAddDeliveryPoint = () => {
+  const handleDelete = async (deliveryId) => {
+    console.log("Attempting to delete delivery with ID:", deliveryId);
+    try {
+      const response = await fetch(`http://localhost:8080/deleteDeliveryRequest`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: deliveryId, // N'envoyer que l'ID
+      });
 
+      if (response.ok) {
+        const result = await response.json(); // Assurez-vous de récupérer le message
+        console.log("Successfully deleted delivery:", deliveryId, "Response:", result); // Log de confirmation
+        setDeliveryData((prevData) => ({
+          deliveries: prevData.deliveries.filter(
+              (delivery) => delivery.deliveryAdress.id !== deliveryId
+          ),
+        }));
+      } else {
+        const errorResult = await response.json(); // Obtenez le message d'erreur
+        console.error("Failed to delete delivery request:", errorResult.message); // Log d'erreur avec message
+      }
+    } catch (error) {
+      console.error("Error deleting delivery request:", error);
+    }
   };
+
+
 
   return (
     <div className="container">
@@ -148,6 +174,7 @@ const MapComponent = () => {
               <TextSidebar
                 deliveryData={deliveryData.deliveries}
                 sections={mapData.sections}
+                onDelete={handleDelete}
               />
             </div>
           )}
