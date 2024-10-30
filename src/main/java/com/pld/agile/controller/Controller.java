@@ -221,7 +221,7 @@ public class Controller {
      */
     @DeleteMapping("/deleteDeliveryRequest")
     public ResponseEntity<Map<String, String>> deleteDeliveryRequest(@RequestBody String deliveryRequestId) {
-        System.out.println("Received deliveryRequestId: " + deliveryRequestId); // Log pour vérifier la réception de l'ID
+        System.out.println("Received deliveryRequestId: " + deliveryRequestId); // Log to check the id reception
 
         boolean deleted = round.deleteDeliveryRequest(deliveryRequestId);
 
@@ -235,30 +235,31 @@ public class Controller {
         }
     }
 
+
     /**
      * Adds a delivery request from the system.
      *
-     * @param intersectionId The ID of the intersection to be added
+     * @param request The intersection object "intersectionId" : id to be added
      * @return String confirmation message with the adding request ID
      */
-    @PostMapping("/addDeliveryRequest")
-    public ResponseEntity<Map<String, String>> addDeliveryRequest(@RequestBody String intersectionId) {
-        System.out.println("Received intersectionId to add: " + intersectionId);
+    @PostMapping("/addDeliveryPointById")
+    public ResponseEntity<Object> addDeliveryPoint(@RequestBody Map<String, String> request) {
+        String intersectionId = request.get("intersectionId"); // get the intersection id to add
         if (intersectionId == null) {
             return ResponseEntity.badRequest().body(Collections.singletonMap("message", "Intersection ID is required."));
         }
-
-        boolean added = round.addDeliveryIntersection(intersectionId);
-
-        if (added) {
-            System.out.println(round.getDeliveryRequestList().size());
-            return ResponseEntity.ok(Collections.singletonMap("message", "Delivery request added successfully."));
+        // Add the delivery point
+        DeliveryRequest newDeliveryRequest = round.addDeliveryIntersection(intersectionId);
+        if (newDeliveryRequest != null) {
+            System.out.println("Point successfully added: " + intersectionId);
+            return ResponseEntity.ok(newDeliveryRequest);
         } else {
             System.out.println(round.getDeliveryRequestList().size());
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Collections.singletonMap("message", "Delivery request not found."));
         }
     }
+
 
     /**
      * Validates a delivery request.

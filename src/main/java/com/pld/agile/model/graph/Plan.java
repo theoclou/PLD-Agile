@@ -178,9 +178,7 @@ public class Plan {
      * @param id the ID of the intersection
      * @return the {@code Intersection} object with the given ID, or {@code null} if not found
      */
-    public Intersection getIntersectionById(String id) {
-        return intersectionMap.get(id);
-    }
+    public Intersection getIntersectionById(String id) {return intersectionMap.get(id);}
 
     /**
      * Adds a new intersection to the plan.

@@ -61,10 +61,9 @@ public class Round {
      */
     public void computeRound(){
         // TODO
-        // Tant que la liste de Delivery Request n'est pas vide, on va
-        // lancer un calcul de graph, créer un DeliveryTour avec le résultat, l'affecter
-        // à un Courier et mettre à jour TourAttribution, puis supprimer les DeliveryRequest qu'on a utilisé
-        // de la liste
+        // While the Delivery Request list isn't empty
+        // we will launch the graph calculation, create a DeliveryTour ith the result,
+        // assign it to a courier and update TourAttribution, then delete the DeliveryRequest we used from the list
         List<Integer> indexedID= new ArrayList<Integer>();
 
         List<DeliveryRequest> remainingDeliveries = new ArrayList<>(deliveryRequestList);
@@ -262,7 +261,7 @@ public class Round {
     }
 
     public void clearDeliveryRequests() {
-        this.deliveryRequestList.clear(); // Assurez-vous que deliveryRequestList est initialisé
+        this.deliveryRequestList.clear();
     }
 
     public DeliveryRequest getDeliveryRequestById(String deliveryRequestId) {
@@ -280,10 +279,22 @@ public class Round {
         return deliveryRequestList.remove(deliveryRequest);
     }
 
-    public boolean addDeliveryIntersection(String intersectionId) {
-        System.out.println("Trying to add delivery point with ID: " + intersectionId);
+    /**
+    * Adds a delivery request for the specified intersection ID.
+    * @param intersectionId The unique identifier of the intersection to add as a delivery point.
+    * @return DeliveryRequest The newly created delivery request associated with the intersection. Returns null if the intersection ID is not found in the plan's intersection map.
+    */
+    public DeliveryRequest addDeliveryIntersection(String intersectionId) {
+        intersectionId = intersectionId.trim();
         Intersection intersection = plan.getIntersectionById(intersectionId);
+
+        if (intersection == null) {
+            System.out.println("Intersection not found in intersectionMap for ID: " + intersectionId);
+            return null;
+        }
+
         DeliveryRequest deliveryRequest = new DeliveryRequest(intersection);
-        return deliveryRequestList.add(deliveryRequest);
+        deliveryRequestList.add(deliveryRequest);
+        return deliveryRequest;
     }
 }
