@@ -279,4 +279,11 @@ public class Round {
         DeliveryRequest deliveryRequest = getDeliveryRequestById(deliveryRequestId);
         return deliveryRequestList.remove(deliveryRequest);
     }
+
+    public boolean addDeliveryIntersection(String intersectionId) {
+        System.out.println("Trying to add delivery point with ID: " + intersectionId);
+        Intersection intersection = plan.getIntersectionById(intersectionId);
+        DeliveryRequest deliveryRequest = new DeliveryRequest(intersection);
+        return deliveryRequestList.add(deliveryRequest);
+    }
 }

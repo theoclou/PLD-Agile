@@ -236,6 +236,31 @@ public class Controller {
     }
 
     /**
+     * Adds a delivery request from the system.
+     *
+     * @param intersectionId The ID of the intersection to be added
+     * @return String confirmation message with the adding request ID
+     */
+    @PostMapping("/addDeliveryRequest")
+    public ResponseEntity<Map<String, String>> addDeliveryRequest(@RequestBody String intersectionId) {
+        System.out.println("Received intersectionId to add: " + intersectionId);
+        if (intersectionId == null) {
+            return ResponseEntity.badRequest().body(Collections.singletonMap("message", "Intersection ID is required."));
+        }
+
+        boolean added = round.addDeliveryIntersection(intersectionId);
+
+        if (added) {
+            System.out.println(round.getDeliveryRequestList().size());
+            return ResponseEntity.ok(Collections.singletonMap("message", "Delivery request added successfully."));
+        } else {
+            System.out.println(round.getDeliveryRequestList().size());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Collections.singletonMap("message", "Delivery request not found."));
+        }
+    }
+
+    /**
      * Validates a delivery request.
      *
      * @param deliveryRequestId The ID of the delivery request to be validated
