@@ -16,10 +16,10 @@ const MapComponent = () => {
   const [bounds, setBounds] = useState(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [zoom, setZoom] = useState(8);
-  const mapRef = useRef(); // Référence pour le composant MapContainer
+  const mapRef = useRef(); // Reference for the MapContainer conponent
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
-  const [courierCount, setCourierCount] = useState(2); // État pour le nombre de courriers
+  const [courierCount, setCourierCount] = useState(2); // State for the number of couriers
   const [deliveryLoaded, setDeliveryLoaded] = useState(false);
   const [addingDeliveryPoint, setAddingDeliveryPoint] = useState(false);
 
@@ -145,22 +145,31 @@ const MapComponent = () => {
     }
   };
 
+
   const handleIntersectionClick = async (intersectionId) => {
     console.log("ID of the Intersection clicked :", intersectionId);
     if (addingDeliveryPoint) {
       console.log("Intersection to add to delivery points :", intersectionId);
+
       try {
-        const response = await fetch(`http://localhost:8080/addDeliveryRequest`, {
-          method: "ADD",
+        const response = await fetch(`http://localhost:8080/addDeliveryPointById`, {
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: intersectionId,
+          body: JSON.stringify({intersectionId}),
         });
 
         if (response.ok) {
-          const result = await response.json(); // Make sure to receive the response
+          const result = await response.json();
           console.log("Successfully adding delivery:", intersectionId, "Response:", result);
+          console.log("Result : ", result);
+
+          // Update of deliveryData with the new delivery point
+          setDeliveryData((prevData) => ({
+            deliveries: [...prevData.deliveries, result], // Add the new point
+          }));
+
         } else {
           const errorResult = await response.json(); // Get error message
           console.error("Failed to add delivery point:", errorResult.message);
@@ -179,7 +188,7 @@ const MapComponent = () => {
 =======
   const handleAddDeliveryPoint = () => {
     console.log("Add Delivery Point button clicked");
-    setAddingDeliveryPoint(true);
+    setAddingDeliveryPoint(true); // change the state of AddingDeliveryPoint to launch the Add Delivery Point mode
   };
 
 >>>>>>> 31c80d2 (Avancement Add Delivery Point)
