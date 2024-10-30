@@ -280,12 +280,10 @@ public class Round {
         return deliveryRequestList.remove(deliveryRequest);
     }
 
-    public void addDeliveryIntersection(String intersectionId) throws InstanceNotFoundException {
+    public boolean addDeliveryIntersection(String intersectionId) {
+        System.out.println("Trying to add delivery point with ID: " + intersectionId);
         Intersection intersection = plan.getIntersectionById(intersectionId);
-        if (intersection == null) {
-            throw new InstanceNotFoundException("The intersection '" + intersectionId + "' doesn't exist!");
-        }
         DeliveryRequest deliveryRequest = new DeliveryRequest(intersection);
-        deliveryRequestList.add(deliveryRequest);
+        return deliveryRequestList.add(deliveryRequest);
     }
 }

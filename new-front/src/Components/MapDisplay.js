@@ -5,17 +5,11 @@ import MapMarker from "./MapMarker";
 import DeliveryPointMarker from "./DeliveryPointMarker";
 import WarehouseMarker from "./WarehouseMarker";
 
-const MapDisplay = ({ mapData, deliveryData, bounds, zoom, setZoom, onMapClick }) => {
+const MapDisplay = ({ mapData, deliveryData, bounds, zoom, setZoom, onIntersectionClick, addingDeliveryPoint}) => {
   const memoizedIntersections = useMemo(() => mapData.intersections, [mapData]);
   const memoizedSections = useMemo(() => mapData.sections, [mapData]);
-  const memoizedDeliveries = useMemo(
-    () => deliveryData.deliveries,
-    [deliveryData]
-  );
-  const memoizedWarehouse = useMemo(
-    () => deliveryData.warehouse,
-    [deliveryData]
-  );
+  const memoizedDeliveries = useMemo(() => deliveryData.deliveries,[deliveryData]);
+  const memoizedWarehouse = useMemo(() => deliveryData.warehouse,[deliveryData]);
 
   const ZoomListener = () => {
     const map = useMap();
@@ -52,14 +46,6 @@ const MapDisplay = ({ mapData, deliveryData, bounds, zoom, setZoom, onMapClick }
     return [];
   }, [zoom, memoizedIntersections, memoizedDeliveries]);
 
-  // Add the click management on the map
-  const handleMapClick = (event) => {
-    const { lat, lng } = event.latlng; // Recovery of coordinates
-    if (onMapClick) {
-      onMapClick({ lat, lng }); // Call of onMapClick with coordinates
-    }
-  };
-
   return (
     <MapContainer
       bounds={
@@ -76,8 +62,12 @@ const MapDisplay = ({ mapData, deliveryData, bounds, zoom, setZoom, onMapClick }
         attribution='&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
       <ZoomListener />
+      console.log("Adding Delivery Point mode:", addingDeliveryPoint);
       {filteredIntersections.map((intersection) => (
-        <MapMarker key={intersection.id} intersection={intersection} />
+        <MapMarker
+            key={intersection.id}
+            intersection={intersection}
+            onIntersectionClick={addingDeliveryPoint ? onIntersectionClick : null}/>
       ))}
       {memoizedDeliveries.map((delivery) => (
         <DeliveryPointMarker key={delivery.id} delivery={delivery} />

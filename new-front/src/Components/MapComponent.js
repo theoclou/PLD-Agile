@@ -21,6 +21,7 @@ const MapComponent = () => {
   const [popupMessage, setPopupMessage] = useState("");
   const [courierCount, setCourierCount] = useState(2); // État pour le nombre de courriers
   const [deliveryLoaded, setDeliveryLoaded] = useState(false);
+  const [addingDeliveryPoint, setAddingDeliveryPoint] = useState(false);
 
   //TODO check why the plan loading sometimes fails
   const handleFetchData = useCallback(async () => {
@@ -124,7 +125,7 @@ const MapComponent = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: deliveryId, // N'envoyer que l'ID
+        body: deliveryId,
       });
 
       if (response.ok) {
@@ -144,10 +145,39 @@ const MapComponent = () => {
     }
   };
 
+  const handleIntersectionClick = async (intersectionId) => {
+    console.log("ID of the Intersection clicked :", intersectionId);
+    if (addingDeliveryPoint) {
+      console.log("Intersection to add to delivery points :", intersectionId);
+      try {
+        const response = await fetch(`http://localhost:8080/addDeliveryRequest`, {
+          method: "ADD",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: intersectionId,
+        });
 
+        if (response.ok) {
+          const result = await response.json(); // Make sure to receive the response
+          console.log("Successfully adding delivery:", intersectionId, "Response:", result);
+        } else {
+          const errorResult = await response.json(); // Get error message
+          console.error("Failed to add delivery point:", errorResult.message);
+        }
+      } catch (error) {
+        console.error("Error adding delivery request:", error);
+      }
+
+      // Turn off the delivery point adding mode
+      setAddingDeliveryPoint(false);
+      console.log("End of the adding mode");
+    }
+  };
 
   const handleAddDeliveryPoint = () => {
-
+    console.log("Add Delivery Point button clicked");
+    setAddingDeliveryPoint(true);
   };
 
   return (
@@ -159,7 +189,7 @@ const MapComponent = () => {
       <CourierCounter count={courierCount} setCount={setCourierCount} />
 
       {/* Button to add a delivery Point */}
-      {mapLoaded && deliveryLoaded && <AddDeliveryPoint onFileChange={handleAddDeliveryPoint} />}
+      {deliveryLoaded && <AddDeliveryPoint onClick={handleAddDeliveryPoint} />}
 
       {loading && <div>Loading...</div>}
 
@@ -171,6 +201,8 @@ const MapComponent = () => {
             bounds={bounds}
             zoom={zoom}
             setZoom={setZoom}
+            onIntersectionClick={handleIntersectionClick} // Pass the click function
+            addingDeliveryPoint={addingDeliveryPoint} // Pass the state of the selection mode
           />
 
           {deliveryLoaded && (
