@@ -1,5 +1,6 @@
 package com.pld.agile.model;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +23,7 @@ public class Solver {
     private Plan plan;
     private SolvingStrategy solvingStrategy;
     private CompleteGraph g;
+    private Map<String, Object> resultPoint;
 
     /**
      * Constructs a {@code Solver} with the given plan, vertices, and solving
@@ -174,9 +176,13 @@ public class Solver {
      */
     public List<Integer> getBestPossiblePath() {
         List<Integer> bestPath = getBestPath();
-        int servedPoints = (int) pointsToBeServed().get("served");
+        int servedPoints = (int) resultPoint.get("served");
         List<Integer> bestPathSubList = bestPath.subList(0, servedPoints + 1);
         return bestPathSubList;
+    }
+
+    public Map<Integer, LocalTime> getPointsWithTime() {
+        return (Map<Integer, LocalTime>) resultPoint.get("pointsWithTime");
     }
 
     /**
@@ -185,8 +191,12 @@ public class Solver {
      * @return the best possible cost
      */
     public double getBestPossibleCost() {
-        double cost = (double) pointsToBeServed().get("cost");
+        double cost = (double) resultPoint.get("cost");
         return cost;
+    }
+
+    public void computePointsToBeServed() {
+        pointsToBeServed();
     }
 
     /**
@@ -195,24 +205,27 @@ public class Solver {
      *
      * @return a map containing the number of served points and the total cost
      */
-    private Map<String, Object> pointsToBeServed() {
+    private void pointsToBeServed() {
         List<Integer> bestPath = getBestPath();
+        HashMap<Integer, LocalTime> pointsWithTime = new HashMap<>();
         double currentCost = 0;
         int servedPoints = 0;
         double speed = 1500.0;
         double possibleCost = 0;
-        while (currentCost / speed + servedPoints / 12.0 < 8 && servedPoints < bestPath.size()) {
+        LocalTime currentTime = LocalTime.of(8, 0);
+        while (currentCost / speed + servedPoints / 12.0 < 8 && servedPoints < bestPath.size()) { // Temps en heure
             int currentPosition = bestPath.get(servedPoints);
             int nextPosition = bestPath.get(servedPoints + 1);
             currentCost += g.getCost(currentPosition, nextPosition);
             if (currentCost / speed + servedPoints / 12.0 < 8 && servedPoints < bestPath.size() - 1) {
                 servedPoints += 1;
             }
+            currentTime = currentTime.plusSeconds((long) ((currentCost / speed + servedPoints / 12.0) * 3600));
+            pointsWithTime.put(currentPosition, currentTime);
             possibleCost = currentCost;
         }
-        Map<String, Object> points = new HashMap<>();
-        points.put("served", servedPoints);
-        points.put("cost", possibleCost);
-        return points;
+        resultPoint.put("served", servedPoints);
+        resultPoint.put("cost", possibleCost);
+        resultPoint.put("pointsWithTime", pointsWithTime);
     }
 }
