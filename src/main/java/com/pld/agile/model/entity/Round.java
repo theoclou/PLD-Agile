@@ -85,13 +85,14 @@ public class Round {
                 currentIndex++;
             }
 
-            //Solve the courier tour
+            //Solve the courier tour : To keep after change of code (creation of delivery tour)
             Solver solver= new Solver(plan, indexedID, new BnBStrategy()).init();
             solver.solve();
+            solver.computePointsToBeServed();
 
-            double bestCost = solver.getBestCost();
-            double bestTime = bestCost/(COURIER_SPEED * 1000); //In minutes
-            LocalTime endTime = LocalTime.of(8,0).plusMinutes((long) bestTime);
+            double bestCost = solver.getBestPossibleCost();
+            double bestTime = bestCost/(COURIER_SPEED * 1000) * 3600; //In seconds
+            LocalTime endTime = LocalTime.of(8,0).plusSeconds((long) bestTime);
 
             List<DeliveryRequest> courierDeliveryRequests = new ArrayList<>();
             for(Integer requestIndex : courierDeliveryIndices) {
@@ -101,12 +102,21 @@ public class Round {
             }
 
             //TODO remplir ceci avec les résultats du GPS
-            List<Intersection> bestRoute = new ArrayList<>(); //jsp
+            List<Integer> bestRouteIndexes = solver.getBestPossiblePath(); //jsp
+            List<Intersection> bestRoute = new ArrayList<>();
+            for (Integer index : bestRouteIndexes) {
+                bestRoute.add(plan.getIntersectionById(plan.getIdByIndex(index)));
+            }
 
+
+            Map<Integer, LocalTime> arrivalTimesByIndex = solver.getPointsWithTime();
             Map<Intersection, LocalTime> arrivalTimes = new HashMap<>();
-
+            for (Map.Entry<Integer, LocalTime> entry : arrivalTimesByIndex.entrySet()) {
+                arrivalTimes.put(plan.getIntersectionById(plan.getIdByIndex(entry.getKey())), entry.getValue());
+            }
 
             DeliveryTour courierDeliveryTour = new DeliveryTour(courier,endTime, courierDeliveryRequests, bestRoute, arrivalTimes);
+            tourAttribution.put(courier, courierDeliveryTour);
 
             extraDeliveries--;
         }
