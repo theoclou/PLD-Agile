@@ -2,6 +2,7 @@ package com.pld.agile.model.strategy;
 
 import com.pld.agile.model.Solver;
 import com.pld.agile.model.entity.Courier;
+import com.pld.agile.model.entity.Intersection;
 import com.pld.agile.model.entity.Round;
 import com.pld.agile.model.graph.Plan;
 import org.junit.jupiter.api.Test;
@@ -44,7 +45,11 @@ class TSPTest {
         solver.init();
         solver.solve();
         List<Integer> bestPath = solver.getBestPath();
-        List<String> result= plan.computeTour(bestPath);
+        List<Intersection> resultIntersection = plan.computeTour(bestPath);
+        List<String> result = new ArrayList<>();
+        for(Intersection intersection : resultIntersection) {
+            result.add(intersection.getId());
+        }
         System.out.println("finished");
 
         assertEquals(Arrays.asList("25611760", "26317233", "26317229", "26057085", "26079655", "26079654", "2835339775", "26079653", "2587460578", "26079653", "2835339775", "26079654", "26057084", "26317233", "25611760", "25611760"), result);

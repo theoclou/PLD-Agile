@@ -3,7 +3,6 @@ package com.pld.agile.model.entity;
 import com.pld.agile.model.strategy.BnBStrategy;
 import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.Solver;
-import com.pld.agile.model.strategy.TspStrategy;
 import org.springframework.web.multipart.MultipartFile;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -102,12 +101,12 @@ public class Round {
             }
 
             //TODO remplir ceci avec les résultats du GPS
-            List<Section> route = new ArrayList<>();
+            List<Intersection> bestRoute = new ArrayList<>(); //jsp
 
             Map<Intersection, LocalTime> arrivalTimes = new HashMap<>();
 
 
-            DeliveryTour courierDeliveryTour = new DeliveryTour(courier,endTime, courierDeliveryRequests, route, arrivalTimes);
+            DeliveryTour courierDeliveryTour = new DeliveryTour(courier,endTime, courierDeliveryRequests, bestRoute, arrivalTimes);
 
             extraDeliveries--;
         }
@@ -157,9 +156,10 @@ public class Round {
         }
     }
     /**
-     * Returns the {@code Plan} object associated with this round.
+     * Loads delivery requests from an XML file.
      *
-     * @return the plan
+     * @param file the XML file as a MultipartFile
+     * @throws Exception if the file cannot be found or parsed, or if delivery addresses are invalid, or if there was no plan loaded
      */
 
     public void loadRequestsByfile(MultipartFile file) throws Exception {
