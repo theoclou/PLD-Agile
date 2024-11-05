@@ -47,7 +47,7 @@ public class Plan {
     @SuppressWarnings("FieldMayBeFinal")
     private ArrayList<ArrayList<Double>> costsMatrix = new ArrayList<>();
     private ArrayList<Integer> tour = new ArrayList<>();
-    private ArrayList<String> IntersectionsTour = new ArrayList<>();
+    private ArrayList<Intersection> IntersectionsTour = new ArrayList<>();
      /**
      * Default constructor for the {@code Plan} class.
      */
@@ -471,10 +471,10 @@ public class Plan {
      *
      * @return the list of intersection IDs in the order of the tour
      */
-    private List<String> makeIntersectionsTour() {
+    private List<Intersection> makeIntersectionsTour() {
         for (Integer point : tour) {
             String intersectionId = reverseIndexes.get(point);
-            IntersectionsTour.add(intersectionId);
+            IntersectionsTour.add(intersectionMap.get(intersectionId));
         }
         return IntersectionsTour;
     }
@@ -485,9 +485,9 @@ public class Plan {
      * @param path the list of nodes to visit
      * @return the list of intersection IDs in the order of the tour
      */
-    public List<String> computeTour(List<Integer> path) {
+    public List<Intersection> computeTour(List<Integer> path) {
         constructTour(path);
-        List<String> finalResult = makeIntersectionsTour();
+        List<Intersection> finalResult = makeIntersectionsTour();
         System.out.println(finalResult);
         return finalResult;
     }
