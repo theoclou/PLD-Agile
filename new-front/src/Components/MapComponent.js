@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import MapDisplay from "./MapDisplay";
 import FileUploadButton from "./FileUploadButton";
 import ErrorPopup from "./ErrorPopup";
@@ -11,19 +11,82 @@ import AddDeliveryPoint from "./AddDeliveryPoint";
 
 const MapComponent = () => {
   const [mapData, setMapData] = useState({ intersections: [], sections: [] });
-  const [deliveryData, setDeliveryData] = useState({ deliveries: [] });
+  const [deliveryData, setDeliveryData] = useState({ deliveries: [], warehouse: null });
   const [loading, setLoading] = useState(false);
   const [bounds, setBounds] = useState(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [zoom, setZoom] = useState(8);
-  const mapRef = useRef(); // Reference for the MapContainer conponent
+  const mapRef = useRef();
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
-  const [courierCount, setCourierCount] = useState(2); // State for the number of couriers
+  const [courierCount, setCourierCount] = useState(2);
   const [deliveryLoaded, setDeliveryLoaded] = useState(false);
   const [addingDeliveryPoint, setAddingDeliveryPoint] = useState(false);
 
-  //TODO check why the plan loading sometimes fails
+  // Add keyboard event listener for undo/redo
+  useEffect(() => {
+    const handleKeyDown = async (event) => {
+      // Check if Ctrl key (or Cmd key on Mac) is pressed
+      if (event.ctrlKey || event.metaKey) {
+        switch (event.key.toLowerCase()) {
+          case 'z':
+            event.preventDefault();
+            try {
+              const response = await fetch('http://localhost:8080/undo', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+              });
+
+              if (response.ok) {
+                const result = await response.json();
+                if (result.deliveryRequests) {
+                  setDeliveryData(prev => ({
+                    ...prev,
+                    deliveries: result.deliveryRequests
+                  }));
+                }
+              }
+            } catch (error) {
+              console.error('Error during undo:', error);
+            }
+            break;
+
+          case 'y':
+            event.preventDefault();
+            try {
+              const response = await fetch('http://localhost:8080/redo', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+              });
+
+              if (response.ok) {
+                const result = await response.json();
+                if (result.deliveryRequests) {
+                  setDeliveryData(prev => ({
+                    ...prev,
+                    deliveries: result.deliveryRequests
+                  }));
+                }
+              }
+            } catch (error) {
+              console.error('Error during redo:', error);
+            }
+            break;
+
+          default:
+            break;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const handleFetchData = useCallback(async () => {
     try {
       const response = await fetch("http://localhost:8080/map");
@@ -34,7 +97,7 @@ const MapComponent = () => {
       const result = await response.json();
       if (result && result.intersections) {
         setMapData(result);
-        setDeliveryData({ deliveries: [] });
+        setDeliveryData({ deliveries: [], warehouse: null });
         const latitudes = result.intersections.map((i) => i.latitude);
         const longitudes = result.intersections.map((i) => i.longitude);
         const newBounds = [
@@ -52,7 +115,7 @@ const MapComponent = () => {
       }
     } catch (error) {
       setPopupMessage(error.message);
-      setPopupVisible(true); // Affiche le pop-up
+      setPopupVisible(true);
     } finally {
       setLoading(false);
     }
@@ -129,27 +192,27 @@ const MapComponent = () => {
       });
 
       if (response.ok) {
-        const result = await response.json(); // Assurez-vous de récupérer le message
-        console.log("Successfully deleted delivery:", deliveryId, "Response:", result); // Log de confirmation
+        const result = await response.json();
+        console.log("Successfully deleted delivery:", deliveryId, "Response:", result);
         setDeliveryData((prevData) => ({
+          ...prevData,
           deliveries: prevData.deliveries.filter(
-              (delivery) => delivery.deliveryAdress.id !== deliveryId
+            (delivery) => delivery.deliveryAdress.id !== deliveryId
           ),
         }));
       } else {
-        const errorResult = await response.json(); // Obtenez le message d'erreur
-        console.error("Failed to delete delivery request:", errorResult.message); // Log d'erreur avec message
+        const errorResult = await response.json();
+        console.error("Failed to delete delivery request:", errorResult.message);
       }
     } catch (error) {
       console.error("Error deleting delivery request:", error);
     }
   };
 
-
   const handleIntersectionClick = async (intersectionId) => {
-    console.log("ID of the Intersection clicked :", intersectionId);
+    console.log("ID of the Intersection clicked:", intersectionId);
     if (addingDeliveryPoint) {
-      console.log("Intersection to add to delivery points :", intersectionId);
+      console.log("Intersection to add to delivery points:", intersectionId);
 
       try {
         const response = await fetch(`http://localhost:8080/addDeliveryPointById`, {
@@ -157,28 +220,25 @@ const MapComponent = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({intersectionId}),
+          body: JSON.stringify({ intersectionId }),
         });
 
         if (response.ok) {
           const result = await response.json();
           console.log("Successfully adding delivery:", intersectionId, "Response:", result);
-          console.log("Result : ", result);
 
-          // Update of deliveryData with the new delivery point
           setDeliveryData((prevData) => ({
-            deliveries: [...prevData.deliveries, result], // Add the new point
+            ...prevData,
+            deliveries: [...prevData.deliveries, result.deliveryRequest],
           }));
-
         } else {
-          const errorResult = await response.json(); // Get error message
+          const errorResult = await response.json();
           console.error("Failed to add delivery point:", errorResult.message);
         }
       } catch (error) {
         console.error("Error adding delivery request:", error);
       }
 
-      // Turn off the delivery point adding mode
       setAddingDeliveryPoint(false);
       console.log("End of the adding mode");
     }
@@ -186,7 +246,7 @@ const MapComponent = () => {
 
   const handleAddDeliveryPoint = () => {
     console.log("Add Delivery Point button clicked");
-    setAddingDeliveryPoint(true); // change the state of AddingDeliveryPoint to launch the Add Delivery Point mode
+    setAddingDeliveryPoint(true);
   };
 
   return (
@@ -197,7 +257,6 @@ const MapComponent = () => {
       {mapLoaded && <LoadDeliveryButton onFileChange={handleLoadDelivery} />}
       <CourierCounter count={courierCount} setCount={setCourierCount} />
 
-      {/* Button to add a delivery Point */}
       {deliveryLoaded && <AddDeliveryPoint onClick={handleAddDeliveryPoint} />}
 
       {loading && <div>Loading...</div>}
@@ -210,8 +269,8 @@ const MapComponent = () => {
             bounds={bounds}
             zoom={zoom}
             setZoom={setZoom}
-            onIntersectionClick={handleIntersectionClick} // Pass the click function
-            addingDeliveryPoint={addingDeliveryPoint} // Pass the state of the selection mode
+            onIntersectionClick={handleIntersectionClick}
+            addingDeliveryPoint={addingDeliveryPoint}
           />
 
           {deliveryLoaded && (

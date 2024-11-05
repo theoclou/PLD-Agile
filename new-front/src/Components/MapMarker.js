@@ -1,57 +1,74 @@
-import React from "react";
+import React, { useState } from "react";
 import { Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import PropTypes from "prop-types";
 
-// Define the icon outside the component to avoid recreating it for each rendering
+// Define the icons outside the component
 const blackIcon = L.divIcon({
   className: "black-marker",
-  html: '<div style="width: 8px; height: 8px; background-color: darkred; border-radius: 50%;"></div>',
-  iconSize: [6, 6],
-  iconAnchor: [3, 3],
+  html: '<div style="width: 14px; height: 14px; background-color: darkred; border-radius: 50%; transition: all 0.2s;"></div>',
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
   popupAnchor: [0, -10],
 });
 
-// Optimized CustomMarker component
+const highlightedIcon = L.divIcon({
+  className: "black-marker-highlighted",
+  html: '<div style="width: 20px; height: 20px; background-color: red; border-radius: 50%; box-shadow: 0 0 15px rgba(255, 0, 0, 0.6); transition: all 0.2s;"></div>',
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
+  popupAnchor: [0, -12],
+});
+
 const MapMarker = React.memo(({ intersection, onIntersectionClick }) => {
-  const handleClick =() => {
+  const [isHighlighted, setIsHighlighted] = useState(false);
+  const [popupOpen, setPopupOpen] = useState(false);
+
+  const handleClick = () => {
     console.log("Intersection clicked:", intersection.id);
     if (onIntersectionClick && intersection) {
       onIntersectionClick(intersection.id);
-    } else {
-      console.error("Intersection is undefined:", intersection);
     }
-  }
+  };
+
   return (
     <Marker
       position={[intersection.latitude, intersection.longitude]}
-      icon={blackIcon} // Use predefined icon
+      icon={isHighlighted ? highlightedIcon : blackIcon}
       eventHandlers={{
-        click: handleClick, // Add of the click manager
+        click: handleClick,
+        mouseover: () => {
+          setIsHighlighted(true);
+          setPopupOpen(true);
+        },
+        mouseout: () => {
+          setIsHighlighted(false);
+          setPopupOpen(false);
+        }
       }}
     >
-      <Popup>
-        Intersection ID: {intersection.id}
-        <br />
-        Latitude: {intersection.latitude}
-        <br />
-        Longitude: {intersection.longitude}
-      </Popup>
+      {popupOpen && (
+        <Popup>
+          Intersection ID: {intersection.id}
+          <br />
+          Latitude: {intersection.latitude}
+          <br />
+          Longitude: {intersection.longitude}
+        </Popup>
+      )}
     </Marker>
   );
 });
 
-// Props Validation
 MapMarker.propTypes = {
   intersection: PropTypes.shape({
     id: PropTypes.number.isRequired,
     latitude: PropTypes.number.isRequired,
     longitude: PropTypes.number.isRequired,
   }).isRequired,
-  onIntersectionClick: PropTypes.func, //Validation of the click function
+  onIntersectionClick: PropTypes.func,
 };
 
-// Display name definition
 MapMarker.displayName = "MapMarker";
 
 export default MapMarker;

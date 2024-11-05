@@ -1,59 +1,97 @@
-// MapDisplay.js
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo, useEffect, useCallback } from "react";
 import { MapContainer, TileLayer, Polyline, useMap } from "react-leaflet";
 import MapMarker from "./MapMarker";
 import DeliveryPointMarker from "./DeliveryPointMarker";
 import WarehouseMarker from "./WarehouseMarker";
 
-const MapDisplay = ({ mapData, deliveryData, bounds, zoom, setZoom, onIntersectionClick, addingDeliveryPoint}) => {
-  const memoizedIntersections = useMemo(() => mapData.intersections, [mapData]);
-  const memoizedSections = useMemo(() => mapData.sections, [mapData]);
-  const memoizedDeliveries = useMemo(() => deliveryData.deliveries,[deliveryData]);
-  const memoizedWarehouse = useMemo(() => deliveryData.warehouse,[deliveryData]);
+const MIN_ZOOM_FOR_INTERSECTIONS = 18;
 
-  const ZoomListener = () => {
-    const map = useMap();
+const MapController = ({ bounds }) => {
+  const map = useMap();
 
-    useEffect(() => {
-      const handleZoomEnd = () => {
-        const currentZoom = map.getZoom();
-        setZoom(currentZoom);
-      };
+  useEffect(() => {
+    if (bounds) {
+      map.fitBounds(bounds);
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 100);
+    }
+  }, [bounds, map]);
 
-      map.on("zoomend", handleZoomEnd);
-      return () => {
-        map.off("zoomend", handleZoomEnd);
-      };
-    }, [map]);
+  return null;
+};
 
-    return null;
-  };
+const ZoomListener = ({ setZoom }) => {
+  const map = useMap();
 
+  useEffect(() => {
+    const handleZoomEnd = () => {
+      const currentZoom = map.getZoom();
+      setZoom(currentZoom);
+    };
+
+    map.on("zoomend", handleZoomEnd);
+    return () => {
+      map.off("zoomend", handleZoomEnd);
+    };
+  }, [map, setZoom]);
+
+  return null;
+};
+
+const MapDisplay = ({
+                      mapData,
+                      deliveryData,
+                      bounds,
+                      zoom,
+                      setZoom,
+                      onIntersectionClick,
+                      addingDeliveryPoint
+                    }) => {
+  const memoizedIntersections = useMemo(() => mapData.intersections || [], [mapData]);
+  const memoizedSections = useMemo(() => mapData.sections || [], [mapData]);
+  const memoizedDeliveries = useMemo(() => deliveryData.deliveries || [], [deliveryData]);
+  const memoizedWarehouse = useMemo(() => deliveryData.warehouse, [deliveryData]);
+
+  // Filtrer les intersections basé sur le zoom et exclure les points de livraison et l'entrepôt
   const filteredIntersections = useMemo(() => {
-    const minZoomForIntersections = 18; // Zoom threshold for displaying intersections
+    if (zoom >= MIN_ZOOM_FOR_INTERSECTIONS) {
+      return memoizedIntersections.filter(intersection => {
+        if (!intersection || !intersection.id) return false;
 
-    if (zoom >= minZoomForIntersections) {
-      // Remove the intersections that are already displayed as delivery points or as the warehouse
-      return memoizedIntersections.filter((intersection) => {
+        // Exclure les points qui sont des livraisons
         const isDeliveryPoint = memoizedDeliveries.some(
-          (delivery) => delivery.deliveryAdress.id === intersection.id
+          delivery => delivery?.deliveryAdress?.id === intersection.id
         );
-        const isWarehouse =
-          memoizedWarehouse && memoizedWarehouse.id === intersection.id;
+
+        // Exclure le point qui est l'entrepôt
+        const isWarehouse = memoizedWarehouse &&
+          memoizedWarehouse.id === intersection.id;
+
         return !isDeliveryPoint && !isWarehouse;
       });
     }
     return [];
-  }, [zoom, memoizedIntersections, memoizedDeliveries]);
+  }, [zoom, memoizedIntersections, memoizedDeliveries, memoizedWarehouse]);
+
+  const calculateCenter = useCallback(() => {
+    if (memoizedIntersections.length > 0) {
+      const latitudes = memoizedIntersections.map(i => i.latitude);
+      const longitudes = memoizedIntersections.map(i => i.longitude);
+      return [
+        (Math.min(...latitudes) + Math.max(...latitudes)) / 2,
+        (Math.min(...longitudes) + Math.max(...longitudes)) / 2
+      ];
+    }
+    return [48.8566, 2.3522]; // Paris par défaut
+  }, [memoizedIntersections]);
+
+  const center = useMemo(() => calculateCenter(), [calculateCenter]);
 
   return (
     <MapContainer
-      bounds={
-        bounds || [
-          [48.8566, 2.3522],
-          [48.8566, 2.3522],
-        ]
-      }
+      center={center}
+      bounds={bounds}
       zoom={zoom}
       className="map"
     >
@@ -61,17 +99,28 @@ const MapDisplay = ({ mapData, deliveryData, bounds, zoom, setZoom, onIntersecti
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
-      <ZoomListener />
-      console.log("Adding Delivery Point mode:", addingDeliveryPoint);
+
+      <MapController bounds={bounds} />
+      <ZoomListener setZoom={setZoom} />
+
+      {/* high zoom */}
       {filteredIntersections.map((intersection) => (
         <MapMarker
-            key={intersection.id}
-            intersection={intersection}
-            onIntersectionClick={addingDeliveryPoint ? onIntersectionClick : null}/>
+          key={intersection.id}
+          intersection={intersection}
+          onIntersectionClick={addingDeliveryPoint ? onIntersectionClick : null}
+        />
       ))}
-      {memoizedDeliveries.map((delivery) => (
-        <DeliveryPointMarker key={delivery.id} delivery={delivery} />
-      ))}
+
+      {memoizedDeliveries.map((delivery) =>
+        delivery?.deliveryAdress ? (
+          <DeliveryPointMarker
+            key={delivery.deliveryAdress.id}
+            delivery={delivery}
+          />
+        ) : null
+      )}
+
       {memoizedWarehouse && (
         <WarehouseMarker
           key={memoizedWarehouse.id}
@@ -83,13 +132,10 @@ const MapDisplay = ({ mapData, deliveryData, bounds, zoom, setZoom, onIntersecti
         const originIntersection = section.origin;
         const destinationIntersection = section.destination;
 
-        if (originIntersection && destinationIntersection) {
+        if (originIntersection?.latitude && destinationIntersection?.latitude) {
           const latLngs = [
             [originIntersection.latitude, originIntersection.longitude],
-            [
-              destinationIntersection.latitude,
-              destinationIntersection.longitude,
-            ],
+            [destinationIntersection.latitude, destinationIntersection.longitude],
           ];
 
           return (
