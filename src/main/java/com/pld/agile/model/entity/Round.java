@@ -3,6 +3,7 @@ package com.pld.agile.model.entity;
 import com.pld.agile.model.strategy.BnBStrategy;
 import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.Solver;
+
 import org.springframework.web.multipart.MultipartFile;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -12,10 +13,13 @@ import org.xml.sax.SAXException;
 import javax.management.InstanceNotFoundException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
 import java.time.LocalTime;
 import java.util.*;
 import java.io.File;
 import java.io.FileNotFoundException;
+
+import com.pld.agile.model.algorithm.KMeansClustering;
 /**
  * The {@code Round} class represents a round of deliveries managed by a fleet of couriers.
  * It manages the assignment of delivery requests to couriers, computes delivery tours,
@@ -29,7 +33,7 @@ public class Round {
     private List<DeliveryRequest> deliveryRequestList=new ArrayList<>();
     private Map<Courier, DeliveryTour> tourAttribution= new HashMap<>();
     private Intersection warehouse;
-
+    private KMeansClustering KNN=new KMeansClustering();
     public Round() {}
     /**
      * Initializes the round with the specified number of couriers and a plan.
