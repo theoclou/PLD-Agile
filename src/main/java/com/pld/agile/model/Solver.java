@@ -38,6 +38,7 @@ public class Solver {
         this.plan = plan;
         this.vertices = vertices;
         this.solvingStrategy = solvingStrategy;
+        this.resultPoint = new HashMap<>();
     }
 
     /**

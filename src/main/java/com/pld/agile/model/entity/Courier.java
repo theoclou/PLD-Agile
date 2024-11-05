@@ -21,7 +21,7 @@ public class Courier {
      *
      * @return the courier's ID as an {@code Integer}
      */
-    public Integer getId() {
-        return this.id;
+    public String getId() {
+        return this.id.toString();
     }
 }
