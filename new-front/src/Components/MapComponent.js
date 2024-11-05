@@ -27,6 +27,8 @@ const MapComponent = () => {
   useEffect(() => {
     const handleKeyDown = async (event) => {
       // Check if Ctrl key (or Cmd key on Mac) is pressed
+      if (!deliveryLoaded) return;
+
       if (event.ctrlKey || event.metaKey) {
         switch (event.key.toLowerCase()) {
           case 'z':
@@ -85,7 +87,7 @@ const MapComponent = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [deliveryLoaded]);
 
   const handleFetchData = useCallback(async () => {
     try {
@@ -97,7 +99,6 @@ const MapComponent = () => {
       const result = await response.json();
       if (result && result.intersections) {
         setMapData(result);
-        setDeliveryData({ deliveries: [], warehouse: null });
         const latitudes = result.intersections.map((i) => i.latitude);
         const longitudes = result.intersections.map((i) => i.longitude);
         const newBounds = [
@@ -126,6 +127,10 @@ const MapComponent = () => {
     const selectedFile = event.target.files[0];
 
     if (selectedFile) {
+      // Reset states
+      setDeliveryData({ deliveries: [], warehouse: null });
+      setDeliveryLoaded(false);
+
       const formData = new FormData();
       formData.append("file", selectedFile);
 
@@ -136,7 +141,6 @@ const MapComponent = () => {
         });
         if (!response.ok) {
           setMapLoaded(false);
-          setDeliveryLoaded(false);
           setLoading(false);
           throw new Error("Failed to upload file, try again");
         }
@@ -156,16 +160,22 @@ const MapComponent = () => {
     const selectedFile = event.target.files[0];
 
     if (selectedFile) {
-      console.log(`File Name: ${selectedFile.name}`);
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-
       try {
+        // First, reset the command history
+        await fetch('http://localhost:8080/resetCommands', {
+          method: 'POST',
+        });
+
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+
         const response = await fetch("http://localhost:8080/loadDelivery", {
           method: "POST",
           body: formData,
         });
+
         if (!response.ok) throw new Error("Failed to upload file, try again");
+
         const result = await response.json();
         if (result && result.deliveries) {
           setDeliveryData(result);
@@ -176,11 +186,17 @@ const MapComponent = () => {
       } catch (error) {
         setPopupMessage(error.message);
         setPopupVisible(true);
+        setDeliveryLoaded(false);
       }
     }
   };
 
   const handleDelete = async (deliveryId) => {
+    if (!deliveryId) {
+      console.error("No delivery ID provided for deletion");
+      return;
+    }
+
     console.log("Attempting to delete delivery with ID:", deliveryId);
     try {
       const response = await fetch(`http://localhost:8080/deleteDeliveryRequest`, {
@@ -193,27 +209,30 @@ const MapComponent = () => {
 
       if (response.ok) {
         const result = await response.json();
-        console.log("Successfully deleted delivery:", deliveryId, "Response:", result);
-        setDeliveryData((prevData) => ({
-          ...prevData,
-          deliveries: prevData.deliveries.filter(
-            (delivery) => delivery.deliveryAdress.id !== deliveryId
-          ),
-        }));
+        console.log("Delete response:", result);
+
+        if (result.message === "Delivery request deleted successfully.") {
+          setDeliveryData((prevData) => ({
+            ...prevData,
+            deliveries: prevData.deliveries.filter(
+              (delivery) => delivery.deliveryAdress.id !== deliveryId
+            ),
+          }));
+        } else {
+          console.error("Unexpected server response:", result);
+        }
       } else {
-        const errorResult = await response.json();
-        console.error("Failed to delete delivery request:", errorResult.message);
+        console.error("Server returned error status:", response.status);
+        const errorText = await response.text();
+        console.error("Error response:", errorText);
       }
     } catch (error) {
-      console.error("Error deleting delivery request:", error);
+      console.error("Error during delete request:", error);
     }
   };
 
   const handleIntersectionClick = async (intersectionId) => {
-    console.log("ID of the Intersection clicked:", intersectionId);
     if (addingDeliveryPoint) {
-      console.log("Intersection to add to delivery points:", intersectionId);
-
       try {
         const response = await fetch(`http://localhost:8080/addDeliveryPointById`, {
           method: "POST",
@@ -225,27 +244,21 @@ const MapComponent = () => {
 
         if (response.ok) {
           const result = await response.json();
-          console.log("Successfully adding delivery:", intersectionId, "Response:", result);
-
-          setDeliveryData((prevData) => ({
-            ...prevData,
-            deliveries: [...prevData.deliveries, result.deliveryRequest],
-          }));
-        } else {
-          const errorResult = await response.json();
-          console.error("Failed to add delivery point:", errorResult.message);
+          if (result.deliveryRequest) {
+            setDeliveryData((prevData) => ({
+              ...prevData,
+              deliveries: [...prevData.deliveries, result.deliveryRequest],
+            }));
+          }
         }
       } catch (error) {
         console.error("Error adding delivery request:", error);
       }
-
       setAddingDeliveryPoint(false);
-      console.log("End of the adding mode");
     }
   };
 
   const handleAddDeliveryPoint = () => {
-    console.log("Add Delivery Point button clicked");
     setAddingDeliveryPoint(true);
   };
 
@@ -279,6 +292,7 @@ const MapComponent = () => {
                 deliveryData={deliveryData.deliveries}
                 sections={mapData.sections}
                 onDelete={handleDelete}
+                warehouse={deliveryData.warehouse}
               />
             </div>
           )}

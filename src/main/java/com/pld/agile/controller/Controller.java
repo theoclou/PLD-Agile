@@ -319,6 +319,15 @@ public class Controller {
     }
 
     /**
+     * reinit
+     */
+    @PostMapping("/resetCommands")
+    public ResponseEntity<Void> resetCommands() {
+        commandManager = new CommandManager(); // Réinitialise le gestionnaire de commandes
+        return ResponseEntity.ok().build();
+    }
+
+    /**
      * Validates a delivery request.
      *
      * @param deliveryRequestId The ID of the delivery request to be validated
