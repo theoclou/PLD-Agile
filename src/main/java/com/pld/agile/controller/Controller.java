@@ -211,6 +211,7 @@ public class Controller {
      * @return String confirmation message with the deleted request ID
      */
     @DeleteMapping("/deleteDeliveryRequest")
+
     public ResponseEntity<Map<String, String>> deleteDeliveryRequest(@RequestBody String deliveryRequestId) {
         System.out.println("Received deliveryRequestId: " + deliveryRequestId);
         Map<String, String> response = new HashMap<>();

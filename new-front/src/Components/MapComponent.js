@@ -192,17 +192,19 @@ const MapComponent = () => {
       });
 
       if (response.ok) {
-        const result = await response.json();
-        console.log("Successfully deleted delivery:", deliveryId, "Response:", result);
+        const deletedId = await response.text(); // Récupère l'ID retourné
+        console.log("Successfully deleted delivery with ID:", deletedId);
+
         setDeliveryData((prevData) => ({
           ...prevData,
           deliveries: prevData.deliveries.filter(
-            (delivery) => delivery.deliveryAdress.id !== deliveryId
+            (delivery) => delivery.deliveryAdress.id !== deletedId // Utilise l'ID retourné
           ),
+          warehouse: prevData.warehouse, // Conserver le warehouse
         }));
       } else {
-        const errorResult = await response.json();
-        console.error("Failed to delete delivery request:", errorResult.message);
+        const errorResult = await response.text(); // Obtiens le message d'erreur
+        console.error("Failed to delete delivery request:", errorResult);
       }
     } catch (error) {
       console.error("Error deleting delivery request:", error);
@@ -277,6 +279,7 @@ const MapComponent = () => {
             <div className="text-sidebar">
               <TextSidebar
                 deliveryData={deliveryData.deliveries}
+                warehouse={deliveryData.warehouse}
                 sections={mapData.sections}
                 onDelete={handleDelete}
               />
