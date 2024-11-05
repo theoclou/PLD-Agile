@@ -220,18 +220,18 @@ public class Controller {
      * @return String confirmation message with the deleted request ID
      */
     @DeleteMapping("/deleteDeliveryRequest")
-    public ResponseEntity<Map<String, String>> deleteDeliveryRequest(@RequestBody String deliveryRequestId) {
+    public ResponseEntity<String> deleteDeliveryRequest(@RequestBody String deliveryRequestId) {
         System.out.println("Received deliveryRequestId: " + deliveryRequestId); // Log to check the id reception
 
         boolean deleted = round.deleteDeliveryRequest(deliveryRequestId);
 
         if (deleted) {
             System.out.println(round.getDeliveryRequestList().size());
-            return ResponseEntity.ok(Collections.singletonMap("message", "Delivery request deleted successfully."));
+            return ResponseEntity.ok(deliveryRequestId);
         } else {
             System.out.println(round.getDeliveryRequestList().size());
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Collections.singletonMap("message", "Delivery request not found."));
+                    .body("Delivery request not found.");
         }
     }
 
