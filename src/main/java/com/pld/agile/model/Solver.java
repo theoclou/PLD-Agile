@@ -78,6 +78,7 @@ public class Solver {
      * Solves the TSP using the provided solving strategy.
      */
     public void solve() {
+        System.out.println("number of vertices: " + vertices.size());
         solvingStrategy.solve(g);
     }
 
@@ -207,13 +208,13 @@ public class Solver {
      */
     private void pointsToBeServed() {
         List<Integer> bestPath = getBestPath();
-        HashMap<Integer, LocalTime> pointsWithTime = new HashMap<>();
+        Map<Integer, LocalTime> pointsWithTime = new HashMap<>();
         double currentCost = 0;
         int servedPoints = 0;
         double speed = 1500.0;
         double possibleCost = 0;
         LocalTime currentTime = LocalTime.of(8, 0);
-        while (currentCost / speed + servedPoints / 12.0 < 8 && servedPoints < bestPath.size()) { // Temps en heure
+        while (currentCost / speed + servedPoints / 12.0 < 8 && servedPoints < bestPath.size() - 1) { // Temps en heure
             int currentPosition = bestPath.get(servedPoints);
             int nextPosition = bestPath.get(servedPoints + 1);
             currentCost += g.getCost(currentPosition, nextPosition);
