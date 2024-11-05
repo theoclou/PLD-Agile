@@ -42,7 +42,6 @@ public class Round {
             courierList.add(new Courier(i));
         }
         this.plan = plan;
-        this.deliveryRequestList = new ArrayList<DeliveryRequest>();
         this.tourAttribution = new HashMap<Courier, DeliveryTour>();
     }
     /**
@@ -63,13 +62,16 @@ public class Round {
         // While the Delivery Request list isn't empty
         // we will launch the graph calculation, create a DeliveryTour ith the result,
         // assign it to a courier and update TourAttribution, then delete the DeliveryRequest we used from the list
+        System.out.println("Number of delivery requestin compute round: " + deliveryRequestList.size());
         List<Integer> indexedID= new ArrayList<Integer>();
 
+        System.out.println("Number of deliveries: " + deliveryRequestList.size());
         List<DeliveryRequest> remainingDeliveries = new ArrayList<>(deliveryRequestList);
+        System.out.println("Number of remaining deliveries: " + remainingDeliveries.size());
 
         int baseDeliveriesPerCourier = remainingDeliveries.size() / courierList.size();
         int extraDeliveries = remainingDeliveries.size() % courierList.size();
-
+        System.out.println("Base deliveries per courier: " + baseDeliveriesPerCourier);
         int currentIndex = 0;
 
         for (Courier courier : courierList) {
@@ -86,7 +88,8 @@ public class Round {
             }
 
             //Solve the courier tour : To keep after change of code (creation of delivery tour)
-            Solver solver= new Solver(plan, indexedID, new BnBStrategy()).init();
+            System.out.println("Courier " + courier.getId() + " is assigned " + courierDeliveryIndices.size() + " deliveries.");
+            Solver solver= new Solver(plan, courierDeliveryIndices, new BnBStrategy()).init();
             solver.solve();
             solver.computePointsToBeServed();
 
