@@ -129,21 +129,23 @@ const MapComponent = () => {
       });
 
       if (response.ok) {
-        const result = await response.json(); // Assurez-vous de récupérer le message
-        console.log("Successfully deleted delivery:", deliveryId, "Response:", result); // Log de confirmation
+        const deletedId = await response.text(); // Récupère l'ID retourné
+        console.log("Successfully deleted delivery with ID:", deletedId); // Log de confirmation
         setDeliveryData((prevData) => ({
           deliveries: prevData.deliveries.filter(
-              (delivery) => delivery.deliveryAdress.id !== deliveryId
+              (delivery) => delivery.deliveryAdress.id !== deletedId // Utilise l'ID retourné
           ),
+          warehouse: prevData.warehouse, // Conserver le warehouse
         }));
       } else {
-        const errorResult = await response.json(); // Obtenez le message d'erreur
-        console.error("Failed to delete delivery request:", errorResult.message); // Log d'erreur avec message
+        const errorResult = await response.text(); // Obtiens le message d'erreur
+        console.error("Failed to delete delivery request:", errorResult); // Log d'erreur avec message
       }
     } catch (error) {
       console.error("Error deleting delivery request:", error);
     }
   };
+
 
 
   const handleIntersectionClick = async (intersectionId) => {
@@ -218,6 +220,7 @@ const MapComponent = () => {
             <div className="text-sidebar">
               <TextSidebar
                 deliveryData={deliveryData.deliveries}
+                warehouse={deliveryData.warehouse}
                 sections={mapData.sections}
                 onDelete={handleDelete}
               />
