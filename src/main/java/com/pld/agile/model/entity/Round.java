@@ -240,7 +240,45 @@ public class Round {
             }
         }
     }
+    private double[][] setUpData() {
+        List<DeliveryRequest> remainingDeliveries = new ArrayList<>(deliveryRequestList);
+        double[][] data = new double[remainingDeliveries.size()][2];
+        Integer index = 0;
+        for (DeliveryRequest delivery : remainingDeliveries) {
+            Intersection intersection = delivery.getDeliveryAdress();
+            double xcoord = intersection.getLatitude();
+            double ycoord = intersection.getLongitude();
+            data[index][0] = xcoord;
+            data[index][1] = ycoord;
+            index += 1;
+        }
 
+        return data;
+    }
+
+    private ArrayList<ArrayList<String>> getIntersectionGroups(ArrayList<ArrayList<Integer>> groups) {
+        List<DeliveryRequest> remainingDeliveries = new ArrayList<>(deliveryRequestList);
+
+        ArrayList<ArrayList<String>> intersectionsClusters = new ArrayList<>();
+        Integer index = 0;
+        for (ArrayList<Integer> cluster : groups) {
+            intersectionsClusters.add(new ArrayList<String>());
+            for (Integer element : cluster) {
+                intersectionsClusters.get(index).add(remainingDeliveries.get(element).getDeliveryAdress().getId());
+            }
+            index += 1;
+        }
+        return intersectionsClusters;
+    }
+
+    public ArrayList<ArrayList<String>> computeRoundOptimized() {
+        double[][] data = setUpData();
+        Integer couriersNumber = courierList.size();
+        ArrayList<ArrayList<Integer>> groups = KNN.predictClusters(data, couriersNumber);
+        ArrayList<ArrayList<String>> finalGroups = getIntersectionGroups(groups);
+
+        return finalGroups;
+    }
     public Intersection getWarehouse() {
         return warehouse;
     }
