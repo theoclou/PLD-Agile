@@ -185,11 +185,11 @@ public class Controller {
      * @return String indicating the status of tour computation
      */
     @PostMapping("/compute")
-    public Map<Courier, DeliveryTour> computeTours() {
+    public Map<String, DeliveryTour> computeTours() {
         map.preprocessData();
         round.init(numberOfCouriers, map);
-        round.computeRound();
-        Map<Courier, DeliveryTour> tourAttribution = round.getTourAttribution();
+        round.computeRoundOptimized();
+        Map<String, DeliveryTour> tourAttribution = round.getTourAttribution();
         return tourAttribution;
     }
 
