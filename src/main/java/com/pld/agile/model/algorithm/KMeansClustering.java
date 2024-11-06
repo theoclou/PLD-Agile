@@ -16,6 +16,7 @@ public class KMeansClustering {
     public  ArrayList<ArrayList<Integer>> predictClusters(double[][] data, int couriersNumber) {
         // Create a KMeans++ clusterer
         ArrayList<ArrayList<Integer>> groups= new ArrayList<>();
+        System.out.println("Number of couriers: " + couriersNumber);
         KMeansPlusPlusClusterer<DoublePoint> kMeans = new KMeansPlusPlusClusterer<>(couriersNumber);
         List<CentroidCluster<DoublePoint>> clusters = kMeans.cluster(createPoints(data));
 

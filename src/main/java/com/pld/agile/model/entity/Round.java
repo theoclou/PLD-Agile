@@ -31,7 +31,7 @@ public class Round {
     private Plan plan;
     private List<Courier> courierList=new ArrayList<>();
     private List<DeliveryRequest> deliveryRequestList=new ArrayList<>();
-    private Map<Courier, DeliveryTour> tourAttribution= new HashMap<>();
+    private Map<String, DeliveryTour> tourAttribution= new HashMap<>();
     private Intersection warehouse;
     private KMeansClustering KNN=new KMeansClustering();
     public Round() {}
@@ -42,18 +42,20 @@ public class Round {
      * @param plan            the {@code Plan} object containing intersections and sections
      */
     public void init(Integer CourierQuantity, Plan plan) {
+        System.out.println("Number of couriers given in the round: " + CourierQuantity);
+        courierList.clear();
         for (int i = 0; i< CourierQuantity; i++) {
             courierList.add(new Courier(i));
         }
         this.plan = plan;
-        this.tourAttribution = new HashMap<Courier, DeliveryTour>();
+        this.tourAttribution = new HashMap<String, DeliveryTour>();
     }
     /**
      * Returns the map of courier assignments to delivery tours.
      *
      * @return a map where each {@code Courier} is assigned a {@code DeliveryTour}
      */
-    public Map<Courier, DeliveryTour> getTourAttribution() {
+    public Map<String, DeliveryTour> getTourAttribution() {
         return tourAttribution;
     }
 
@@ -123,7 +125,8 @@ public class Round {
             }
 
             DeliveryTour courierDeliveryTour = new DeliveryTour(courier,endTime, courierDeliveryRequests, bestRoute, arrivalTimes);
-            tourAttribution.put(courier, courierDeliveryTour);
+
+            tourAttribution.put(courier.getId(), courierDeliveryTour);
 
             extraDeliveries--;
         }
@@ -276,10 +279,63 @@ public class Round {
     }
 
     public ArrayList<ArrayList<String>> computeRoundOptimized() {
+
+        // Definition of the groups of intersections to assign Couriers
         double[][] data = setUpData();
+        System.out.println("Number of Couriers in the round: " + courierList.size());
         Integer couriersNumber = courierList.size();
         ArrayList<ArrayList<Integer>> groups = KNN.predictClusters(data, couriersNumber);
         ArrayList<ArrayList<String>> finalGroups = getIntersectionGroups(groups);
+
+        // Assigning the groups to the couriers
+        Integer index = 0;
+        for (Courier courier : courierList) {
+            List<String> group = finalGroups.get(index);
+            List<Integer> courierDeliveryIndices = new ArrayList<>();
+            for (String intersectionId : group) {
+                courierDeliveryIndices.add(plan.getIndexById(intersectionId));
+            }
+
+            //Solve the courier tour : To keep after change of code (creation of delivery tour)
+            System.out.println("Courier " + courier.getId() + " is assigned " + courierDeliveryIndices.size() + " deliveries.");
+            Solver solver= new Solver(plan, courierDeliveryIndices, new BnBStrategy()).init();
+            solver.solve();
+            solver.computePointsToBeServed();
+
+            double bestCost = solver.getBestPossibleCost();
+            double bestTime = bestCost/(COURIER_SPEED * 1000) * 3600; //In seconds
+            LocalTime endTime = LocalTime.of(8,0).plusSeconds((long) bestTime);
+
+            List<DeliveryRequest> courierDeliveryRequests = new ArrayList<>();
+            for(Integer requestIndex : courierDeliveryIndices) {
+                DeliveryRequest deliveryRequest = new DeliveryRequest(plan.getIntersectionById(plan.getIdByIndex(requestIndex)));
+                deliveryRequest.setCourier(courier);
+                courierDeliveryRequests.add(deliveryRequest);
+            }
+
+            //TODO remplir ceci avec les résultats du GPS
+            List<Integer> bestRouteIndexes = solver.getBestPossiblePath(); //jsp
+            List<Intersection> bestRoute = new ArrayList<>(); //Might need to turn that into a String and only keep the ID
+            bestRoute.add(warehouse);
+            for (Integer i : bestRouteIndexes) {
+                bestRoute.add(plan.getIntersectionById(plan.getIdByIndex(i)));
+            }
+            bestRoute.add(warehouse);
+
+            Map<Integer, LocalTime> arrivalTimesByIndex = solver.getPointsWithTime();
+            Map<Intersection, LocalTime> arrivalTimes = new HashMap<>(); //Might need to turn that into a String and only keep the ID
+            arrivalTimes.put(warehouse, LocalTime.of(8,0));
+            for (Map.Entry<Integer, LocalTime> entry : arrivalTimesByIndex.entrySet()) {
+                arrivalTimes.put(plan.getIntersectionById(plan.getIdByIndex(entry.getKey())), entry.getValue());
+            }
+            arrivalTimes.put(warehouse, endTime);
+
+            DeliveryTour courierDeliveryTour = new DeliveryTour(courier,endTime, courierDeliveryRequests, bestRoute, arrivalTimes);
+            tourAttribution.put(courier.getId(), courierDeliveryTour);
+
+            index += 1;
+        }
+
 
         return finalGroups;
     }
