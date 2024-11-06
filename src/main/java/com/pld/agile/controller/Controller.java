@@ -124,7 +124,7 @@ public class Controller {
             //Create response object
             Map<String, Object> response = new HashMap<>();
             System.out.println("File received: " + file.getOriginalFilename());
-            round.loadRequestsByfile(file);
+            round.loadRequests(file);
             List<DeliveryRequest> deliveryRequestList = round.getDeliveryRequestList();
             System.out.println("Delivery request list size: " + deliveryRequestList.size());
             response.put("deliveries", deliveryRequestList);
