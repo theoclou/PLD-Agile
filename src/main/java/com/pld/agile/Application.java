@@ -1,14 +1,16 @@
 package com.pld.agile;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import com.pld.agile.model.Solver;
 import com.pld.agile.model.entity.Courier;
 import com.pld.agile.model.entity.Round;
 import com.pld.agile.model.graph.Plan;
+import com.pld.agile.model.strategy.BnBStrategy;
 
 @SpringBootApplication
 public class Application {
@@ -29,20 +31,21 @@ public class Application {
 			System.exit(1); // Arrêter le programme avec un code d'erreur
 		}
 
-		// plan.preprocessData();
-		// List<Integer> vertices = Arrays.asList(0, 256, 233, 127);
+		plan.preprocessData();
+		List<Integer> vertices = Arrays.asList(0, 256, 233, 127);
 		/*
 		 * If using a list of ids use instead this :
 		 * List<Integer> vertices =plan.formatInput(List<String> idIntersections)
 		 */
 
-		// Solver solver = new Solver(plan, vertices, new BnBStrategy());
-		// solver.init();
-		// solver.solve();
-		// List<Integer> bestPath = solver.getBestPath();
-		// System.out.println(bestPath);
-		// plan.computeTour(bestPath);
-		// System.out.println("finished");
+		Solver solver = new Solver(plan, vertices, new BnBStrategy());
+		solver.init();
+		solver.solve();
+		solver.computePointsToBeServed();
+		List<Integer> bestPath = solver.getBestPossiblePath();
+		System.out.println(bestPath);
+		plan.computeTour(bestPath);
+		System.out.println("finished");
 
 		// Création Round
 		Round round = new Round();

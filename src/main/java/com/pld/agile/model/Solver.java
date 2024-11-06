@@ -192,6 +192,7 @@ public class Solver {
      * @return the best possible cost
      */
     public double getBestPossibleCost() {
+
         double cost = (double) resultPoint.get("cost");
         return cost;
     }
