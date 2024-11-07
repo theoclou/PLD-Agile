@@ -1,41 +1,54 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import PropTypes from "prop-types";
 import deliveryMarker from "../Assets/deliveryMarker.png";
 
-const icon = L.icon({
-  iconUrl: deliveryMarker,
-  iconSize: [30, 30], // size of the icon
-  iconAnchor: [15, 15], // point of the icon which will correspond to marker's location
-  popupAnchor: [0, -10], // point from which the popup should open relative to the iconAnchor
-});
-
 // Composant DeliveryPointMarker optimisé
-const DeliveryPointMarker = React.memo(({ delivery }) => {
+const DeliveryPointMarker = React.memo(({ delivery, highlighted, onMouseEnter, onMouseLeave }) => {
+  const markerRef = useRef();
+
+  const icon = L.icon({
+    iconUrl: deliveryMarker,
+    iconSize: highlighted ? [40, 40] : [30, 30],
+    iconAnchor: [15, 15],
+    popupAnchor: [0, -10],
+  });
+
+  useEffect(() => {
+    const marker = markerRef.current;
+    if (marker) {
+      // Ajouter les écouteurs d'événements directement sur l'instance du marker
+      marker.on("mouseover", () => onMouseEnter(delivery.deliveryAdress.id));
+      marker.on("mouseout", onMouseLeave);
+
+      // Nettoyer les écouteurs d'événements quand le composant est démonté
+      return () => {
+        marker.off("mouseover");
+        marker.off("mouseout");
+      };
+    }
+  }, [onMouseEnter, onMouseLeave, delivery.deliveryAdress.id]);
+
   return (
-    <Marker
-      position={[
-        delivery.deliveryAdress.latitude,
-        delivery.deliveryAdress.longitude,
-      ]}
-      icon={icon} // Utiliser l'icône prédéfinie
-    >
-      <Popup>
-        Intersection ID: {delivery.deliveryAdress.id}
-        <br />
-        Latitude: {delivery.deliveryAdress.latitude}
-        <br />
-        Longitude: {delivery.deliveryAdress.longitude}
-        <br />
-        Courier:{" "}
-        {delivery.courier === null ? "Unassigned" : delivery.courier.id}
-      </Popup>
-    </Marker>
+      <Marker
+          ref={markerRef} // Utiliser ref directement ici
+          position={[delivery.deliveryAdress.latitude, delivery.deliveryAdress.longitude]}
+          icon={icon}
+      >
+        <Popup>
+          Intersection ID: {delivery.deliveryAdress.id}
+          <br />
+          Latitude: {delivery.deliveryAdress.latitude}
+          <br />
+          Longitude: {delivery.deliveryAdress.longitude}
+          <br />
+          Courier: {delivery.courier === null ? "Unassigned" : delivery.courier.id}
+        </Popup>
+      </Marker>
   );
 });
 
-//Props Validation
 DeliveryPointMarker.propTypes = {
   delivery: PropTypes.shape({
     deliveryAdress: PropTypes.shape({
@@ -44,12 +57,12 @@ DeliveryPointMarker.propTypes = {
       longitude: PropTypes.number.isRequired,
     }).isRequired,
     courier: PropTypes.shape({
-      id: PropTypes.number.isRequired,
-    }).isRequired,
-  }),
+      id: PropTypes.number,
+    }),
+  }).isRequired,
+  highlighted: PropTypes.bool,
+  onMouseEnter: PropTypes.func.isRequired,
+  onMouseLeave: PropTypes.func.isRequired,
 };
-
-//display name definition
-DeliveryPointMarker.displayName = "DeliveryPointMarker";
 
 export default DeliveryPointMarker;

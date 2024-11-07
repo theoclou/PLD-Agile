@@ -46,7 +46,10 @@ const MapDisplay = ({
                       zoom,
                       setZoom,
                       onIntersectionClick,
-                      addingDeliveryPoint
+                      addingDeliveryPoint,
+                      highlightedDeliveryId,
+                      onMouseEnterDelivery,
+                      onMouseLeaveDelivery,
                     }) => {
   const memoizedIntersections = useMemo(() => mapData.intersections || [], [mapData]);
   const memoizedSections = useMemo(() => mapData.sections || [], [mapData]);
@@ -117,6 +120,9 @@ const MapDisplay = ({
           <DeliveryPointMarker
             key={delivery.deliveryAdress.id}
             delivery={delivery}
+            highlighted={highlightedDeliveryId === delivery.deliveryAdress.id}
+            onMouseEnter={onMouseEnterDelivery}
+            onMouseLeave={onMouseLeaveDelivery}
           />
         ) : null
       )}
@@ -150,6 +156,7 @@ const MapDisplay = ({
         }
         return null;
       })}
+
     </MapContainer>
   );
 };

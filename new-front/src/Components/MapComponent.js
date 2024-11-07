@@ -22,6 +22,13 @@ const MapComponent = () => {
   const [courierCount, setCourierCount] = useState(2);
   const [deliveryLoaded, setDeliveryLoaded] = useState(false);
   const [addingDeliveryPoint, setAddingDeliveryPoint] = useState(false);
+  const [highlightedDeliveryId, setHighlightedDeliveryId] = useState(null);
+  const handleMouseEnterDelivery = (deliveryId) => {
+    setHighlightedDeliveryId(deliveryId);
+  };
+  const handleMouseLeaveDelivery = () => {
+    setHighlightedDeliveryId(null);
+  };
 
   // Add keyboard event listener for undo/redo
   useEffect(() => {
@@ -284,6 +291,9 @@ const MapComponent = () => {
             setZoom={setZoom}
             onIntersectionClick={handleIntersectionClick}
             addingDeliveryPoint={addingDeliveryPoint}
+            highlightedDeliveryId={highlightedDeliveryId}
+            onMouseEnterDelivery={handleMouseEnterDelivery}
+            onMouseLeaveDelivery={handleMouseLeaveDelivery}
           />
 
           {deliveryLoaded && (
@@ -293,6 +303,9 @@ const MapComponent = () => {
                 sections={mapData.sections}
                 onDelete={handleDelete}
                 warehouse={deliveryData.warehouse}
+                highlightedDeliveryId={highlightedDeliveryId} // <--- Passer l'état
+                onMouseEnterDelivery={handleMouseEnterDelivery} // <--- Méthode pour survol
+                onMouseLeaveDelivery={handleMouseLeaveDelivery} // <--- Méthode pour sortir du survol
               />
             </div>
           )}

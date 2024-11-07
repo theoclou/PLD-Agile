@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete }) => {
+const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, highlightedDeliveryId, onMouseEnterDelivery,onMouseLeaveDelivery }) => {
   // Check if no delivery data is available
   if (!deliveryData || !sections || deliveryData.length === 0) {
     return (
@@ -130,7 +130,14 @@ const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete })
           const limitedSections = uniqueSections.slice(0, 2);
 
           return (
-            <div key={delivery.deliveryAdress.id} className="border rounded-lg p-4 bg-gray-50">
+
+
+            <div key={delivery.deliveryAdress.id}
+                 onMouseEnter={() => onMouseEnterDelivery(delivery.deliveryAdress.id)}
+                 onMouseLeave={onMouseLeaveDelivery}
+                 className={`delivery-item ${highlightedDeliveryId === delivery.deliveryAdress.id ? "highlighted" : ""}`}
+                 style={{ backgroundColor: highlightedDeliveryId === delivery.deliveryAdress.id ? 'yellow' : 'transparent' }}>
+
               <h3 className="font-medium text-gray-900">
                 Delivery Point #{delivery.deliveryAdress.id}
               </h3>
@@ -208,6 +215,7 @@ TextSidebar.propTypes = {
     })
   ),
   onDelete: PropTypes.func.isRequired,
+    highlightedDeliveryId: PropTypes.string,
 };
 
 TextSidebar.displayName = "TextSidebar";
