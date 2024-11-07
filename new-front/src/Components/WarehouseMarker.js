@@ -6,7 +6,7 @@ import warehouseMarker from "../Assets/warehouseMarker.png";
 
 const icon = L.icon({
   iconUrl: warehouseMarker,
-  iconSize: [24, 24], // size of the icon
+  iconSize: [32, 32], // size of the icon
   iconAnchor: [8, 8], // point of the icon which will correspond to marker's location
   popupAnchor: [0, -10], // point from which the popup should open relative to the iconAnchor
 });

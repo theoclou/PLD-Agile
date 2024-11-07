@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import MapDisplay from "./MapDisplay";
 import FileUploadButton from "./FileUploadButton";
 import ErrorPopup from "./ErrorPopup";
@@ -11,19 +11,84 @@ import AddDeliveryPoint from "./AddDeliveryPoint";
 
 const MapComponent = () => {
   const [mapData, setMapData] = useState({ intersections: [], sections: [] });
-  const [deliveryData, setDeliveryData] = useState({ deliveries: [] });
+  const [deliveryData, setDeliveryData] = useState({ deliveries: [], warehouse: null });
   const [loading, setLoading] = useState(false);
   const [bounds, setBounds] = useState(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [zoom, setZoom] = useState(8);
-  const mapRef = useRef(); // Reference for the MapContainer conponent
+  const mapRef = useRef();
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
-  const [courierCount, setCourierCount] = useState(2); // State for the number of couriers
+  const [courierCount, setCourierCount] = useState(2);
   const [deliveryLoaded, setDeliveryLoaded] = useState(false);
   const [addingDeliveryPoint, setAddingDeliveryPoint] = useState(false);
 
-  //TODO check why the plan loading sometimes fails
+  // Add keyboard event listener for undo/redo
+  useEffect(() => {
+    const handleKeyDown = async (event) => {
+      // Check if Ctrl key (or Cmd key on Mac) is pressed
+      if (!deliveryLoaded) return;
+
+      if (event.ctrlKey || event.metaKey) {
+        switch (event.key.toLowerCase()) {
+          case 'z':
+            event.preventDefault();
+            try {
+              const response = await fetch('http://localhost:8080/undo', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+              });
+
+              if (response.ok) {
+                const result = await response.json();
+                if (result.deliveryRequests) {
+                  setDeliveryData(prev => ({
+                    ...prev,
+                    deliveries: result.deliveryRequests
+                  }));
+                }
+              }
+            } catch (error) {
+              console.error('Error during undo:', error);
+            }
+            break;
+
+          case 'y':
+            event.preventDefault();
+            try {
+              const response = await fetch('http://localhost:8080/redo', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+              });
+
+              if (response.ok) {
+                const result = await response.json();
+                if (result.deliveryRequests) {
+                  setDeliveryData(prev => ({
+                    ...prev,
+                    deliveries: result.deliveryRequests
+                  }));
+                }
+              }
+            } catch (error) {
+              console.error('Error during redo:', error);
+            }
+            break;
+
+          default:
+            break;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [deliveryLoaded]);
+
   const handleFetchData = useCallback(async () => {
     try {
       const response = await fetch("http://localhost:8080/map");
@@ -34,7 +99,6 @@ const MapComponent = () => {
       const result = await response.json();
       if (result && result.intersections) {
         setMapData(result);
-        setDeliveryData({ deliveries: [] });
         const latitudes = result.intersections.map((i) => i.latitude);
         const longitudes = result.intersections.map((i) => i.longitude);
         const newBounds = [
@@ -52,7 +116,7 @@ const MapComponent = () => {
       }
     } catch (error) {
       setPopupMessage(error.message);
-      setPopupVisible(true); // Affiche le pop-up
+      setPopupVisible(true);
     } finally {
       setLoading(false);
     }
@@ -63,6 +127,10 @@ const MapComponent = () => {
     const selectedFile = event.target.files[0];
 
     if (selectedFile) {
+      // Reset states
+      setDeliveryData({ deliveries: [], warehouse: null });
+      setDeliveryLoaded(false);
+
       const formData = new FormData();
       formData.append("file", selectedFile);
 
@@ -73,7 +141,6 @@ const MapComponent = () => {
         });
         if (!response.ok) {
           setMapLoaded(false);
-          setDeliveryLoaded(false);
           setLoading(false);
           throw new Error("Failed to upload file, try again");
         }
@@ -93,16 +160,22 @@ const MapComponent = () => {
     const selectedFile = event.target.files[0];
 
     if (selectedFile) {
-      console.log(`File Name: ${selectedFile.name}`);
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-
       try {
+        // First, reset the command history
+        await fetch('http://localhost:8080/resetCommands', {
+          method: 'POST',
+        });
+
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+
         const response = await fetch("http://localhost:8080/loadDelivery", {
           method: "POST",
           body: formData,
         });
+
         if (!response.ok) throw new Error("Failed to upload file, try again");
+
         const result = await response.json();
         if (result && result.deliveries) {
           setDeliveryData(result);
@@ -113,11 +186,17 @@ const MapComponent = () => {
       } catch (error) {
         setPopupMessage(error.message);
         setPopupVisible(true);
+        setDeliveryLoaded(false);
       }
     }
   };
 
   const handleDelete = async (deliveryId) => {
+    if (!deliveryId) {
+      console.error("No delivery ID provided for deletion");
+      return;
+    }
+
     console.log("Attempting to delete delivery with ID:", deliveryId);
     try {
       const response = await fetch(`http://localhost:8080/deleteDeliveryRequest`, {
@@ -129,66 +208,58 @@ const MapComponent = () => {
       });
 
       if (response.ok) {
-        const deletedId = await response.text(); // Récupère l'ID retourné
-        console.log("Successfully deleted delivery with ID:", deletedId); // Log de confirmation
-        setDeliveryData((prevData) => ({
-          deliveries: prevData.deliveries.filter(
-              (delivery) => delivery.deliveryAdress.id !== deletedId // Utilise l'ID retourné
-          ),
-          warehouse: prevData.warehouse, // Conserver le warehouse
-        }));
+        const result = await response.json();
+        console.log("Delete response:", result);
+
+        if (result.message === "Delivery request deleted successfully.") {
+          setDeliveryData((prevData) => ({
+            ...prevData,
+            deliveries: prevData.deliveries.filter(
+              (delivery) => delivery.deliveryAdress.id !== deliveryId
+            ),
+          }));
+        } else {
+          console.error("Unexpected server response:", result);
+        }
       } else {
-        const errorResult = await response.text(); // Obtiens le message d'erreur
-        console.error("Failed to delete delivery request:", errorResult); // Log d'erreur avec message
+        console.error("Server returned error status:", response.status);
+        const errorText = await response.text();
+        console.error("Error response:", errorText);
       }
     } catch (error) {
-      console.error("Error deleting delivery request:", error);
+      console.error("Error during delete request:", error);
     }
   };
 
-
-
   const handleIntersectionClick = async (intersectionId) => {
-    console.log("ID of the Intersection clicked :", intersectionId);
     if (addingDeliveryPoint) {
-      console.log("Intersection to add to delivery points :", intersectionId);
-
       try {
         const response = await fetch(`http://localhost:8080/addDeliveryPointById`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({intersectionId}),
+          body: JSON.stringify({ intersectionId }),
         });
 
         if (response.ok) {
           const result = await response.json();
-          console.log("Successfully adding delivery:", intersectionId, "Response:", result);
-          console.log("Result : ", result);
-
-          // Update of deliveryData with the new delivery point
-          setDeliveryData((prevData) => ({
-            deliveries: [...prevData.deliveries, result], // Add the new point
-          }));
-
-        } else {
-          const errorResult = await response.json(); // Get error message
-          console.error("Failed to add delivery point:", errorResult.message);
+          if (result.deliveryRequest) {
+            setDeliveryData((prevData) => ({
+              ...prevData,
+              deliveries: [...prevData.deliveries, result.deliveryRequest],
+            }));
+          }
         }
       } catch (error) {
         console.error("Error adding delivery request:", error);
       }
-
-      // Turn off the delivery point adding mode
       setAddingDeliveryPoint(false);
-      console.log("End of the adding mode");
     }
   };
 
   const handleAddDeliveryPoint = () => {
-    console.log("Add Delivery Point button clicked");
-    setAddingDeliveryPoint(true); // change the state of AddingDeliveryPoint to launch the Add Delivery Point mode
+    setAddingDeliveryPoint(true);
   };
 
   return (
@@ -199,7 +270,6 @@ const MapComponent = () => {
       {mapLoaded && <LoadDeliveryButton onFileChange={handleLoadDelivery} />}
       <CourierCounter count={courierCount} setCount={setCourierCount} />
 
-      {/* Button to add a delivery Point */}
       {deliveryLoaded && <AddDeliveryPoint onClick={handleAddDeliveryPoint} />}
 
       {loading && <div>Loading...</div>}
@@ -212,17 +282,17 @@ const MapComponent = () => {
             bounds={bounds}
             zoom={zoom}
             setZoom={setZoom}
-            onIntersectionClick={handleIntersectionClick} // Pass the click function
-            addingDeliveryPoint={addingDeliveryPoint} // Pass the state of the selection mode
+            onIntersectionClick={handleIntersectionClick}
+            addingDeliveryPoint={addingDeliveryPoint}
           />
 
           {deliveryLoaded && (
             <div className="text-sidebar">
               <TextSidebar
                 deliveryData={deliveryData.deliveries}
-                warehouse={deliveryData.warehouse}
                 sections={mapData.sections}
                 onDelete={handleDelete}
+                warehouse={deliveryData.warehouse}
               />
             </div>
           )}

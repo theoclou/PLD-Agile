@@ -6,8 +6,8 @@ import deliveryMarker from "../Assets/deliveryMarker.png";
 
 const icon = L.icon({
   iconUrl: deliveryMarker,
-  iconSize: [16, 16], // size of the icon
-  iconAnchor: [8, 8], // point of the icon which will correspond to marker's location
+  iconSize: [30, 30], // size of the icon
+  iconAnchor: [15, 15], // point of the icon which will correspond to marker's location
   popupAnchor: [0, -10], // point from which the popup should open relative to the iconAnchor
 });
 

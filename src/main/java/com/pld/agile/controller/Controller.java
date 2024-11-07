@@ -19,7 +19,6 @@ import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.io.IOException;
 
-
 /**
  * REST Controller for managing delivery planning and map operations.
  * This controller handles operations related to courier management, map loading,
@@ -31,7 +30,10 @@ import java.io.IOException;
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
 public class Controller {
-
+    /**
+     *  Command for undo/redo tasks
+     */
+    private CommandManager commandManager = new CommandManager();
     /**
      * Represents the city map with intersections and sections.
      */
@@ -203,63 +205,127 @@ public class Controller {
     }
 
     /**
-     * Adds a new delivery request to the system.
-     *
-     * @param deliveryRequest The delivery request to be added
-     * @return String confirmation message with request details
-     */
-    @PostMapping("/addDeliveryRequest")
-    public String addDeliveryRequest(@RequestBody DeliveryRequest deliveryRequest) {
-        return String.format("Delivery request added: %s", deliveryRequest);
-    }
-
-    /**
      * Deletes a delivery request from the system.
      *
      * @param deliveryRequestId The ID of the delivery request to be deleted
      * @return String confirmation message with the deleted request ID
      */
     @DeleteMapping("/deleteDeliveryRequest")
-    public ResponseEntity<String> deleteDeliveryRequest(@RequestBody String deliveryRequestId) {
-        System.out.println("Received deliveryRequestId: " + deliveryRequestId); // Log to check the id reception
+    public ResponseEntity<Map<String, String>> deleteDeliveryRequest(@RequestBody String deliveryRequestId) {
+        System.out.println("Received deliveryRequestId: " + deliveryRequestId);
+        Map<String, String> response = new HashMap<>();
 
-        boolean deleted = round.deleteDeliveryRequest(deliveryRequestId);
+        // Créer et exécuter la commande de suppression
+        DeleteDeliveryCommand command = new DeleteDeliveryCommand(round, deliveryRequestId);
+        commandManager.executeCommand(command);
 
-        if (deleted) {
-            System.out.println(round.getDeliveryRequestList().size());
-            return ResponseEntity.ok(deliveryRequestId);
-        } else {
-            System.out.println(round.getDeliveryRequestList().size());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Delivery request not found.");
-        }
+        // Après l'exécution de la commande, round est automatiquement mis à jour
+        System.out.println("Nombre de livraisons restantes : " + round.getDeliveryRequestList().size());
+
+        response.put("message", "Delivery request deleted successfully.");
+        return ResponseEntity.ok(response);
     }
-
 
     /**
-     * Adds a delivery request from the system.
+     * Add a delivery request from the system.
      *
-     * @param request The intersection object "intersectionId" : id to be added
-     * @return String confirmation message with the adding request ID
+     * @param request (json which contains the id of the selected intersection)
+     * @return Confirmation of the action
      */
     @PostMapping("/addDeliveryPointById")
-    public ResponseEntity<Object> addDeliveryPoint(@RequestBody Map<String, String> request) {
-        String intersectionId = request.get("intersectionId"); // get the intersection id to add
+    public ResponseEntity<Map<String, Object>> addDeliveryPoint(@RequestBody Map<String, String> request) {
+        Map<String, Object> response = new HashMap<>();
+
+        String intersectionId = request.get("intersectionId");
         if (intersectionId == null) {
-            return ResponseEntity.badRequest().body(Collections.singletonMap("message", "Intersection ID is required."));
+            response.put("status", "error");
+            response.put("message", "Intersection ID is required");
+            return ResponseEntity.badRequest().body(response);
         }
-        // Add the delivery point
-        DeliveryRequest newDeliveryRequest = round.addDeliveryIntersection(intersectionId);
+
+        // create and execute command
+        AddDeliveryPointCommand command = new AddDeliveryPointCommand(round, intersectionId);
+        commandManager.executeCommand(command);
+
+        DeliveryRequest newDeliveryRequest = round.getDeliveryRequestById(intersectionId);
         if (newDeliveryRequest != null) {
-            System.out.println("Point successfully added: " + intersectionId);
-            return ResponseEntity.ok(newDeliveryRequest);
+            response.put("status", "success");
+            response.put("message", "Delivery point added successfully");
+            response.put("deliveryRequest", newDeliveryRequest);
+            response.put("currentDeliveryCount", round.getDeliveryRequestList().size());
+            return ResponseEntity.ok(response);
         } else {
-            System.out.println(round.getDeliveryRequestList().size());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Collections.singletonMap("message", "Delivery request not found."));
+            response.put("status", "error");
+            response.put("message", "Failed to add delivery point");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 
+    /**
+     * Undo function
+     */
+    @PostMapping("/undo")
+    public ResponseEntity<Map<String, Object>> undo() {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            commandManager.undo();
+            Command lastCommand = commandManager.getLastCommand();
+            Round currentRound = lastCommand != null ? lastCommand.getRound() : round;
+
+            response.put("status", "success");
+            response.put("message", "Undo successful");
+            response.put("currentDeliveryCount", currentRound.getDeliveryRequestList().size());
+            response.put("deliveryRequests", currentRound.getDeliveryRequestList());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "Failed to undo: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    /**
+     * Redo function
+     */
+    @PostMapping("/redo")
+    public ResponseEntity<Map<String, Object>> redo() {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            commandManager.redo();
+            Command lastCommand = commandManager.getLastCommand();
+
+            if (lastCommand != null) {
+                Round currentRound = lastCommand.getRound();
+                response.put("status", "success");
+                response.put("message", "Redo successful");
+                response.put("currentDeliveryCount", currentRound.getDeliveryRequestList().size());
+                response.put("deliveryRequests", currentRound.getDeliveryRequestList());
+            } else {
+                response.put("status", "success");
+                response.put("message", "Nothing to redo");
+                response.put("currentDeliveryCount", round.getDeliveryRequestList().size());
+                response.put("deliveryRequests", round.getDeliveryRequestList());
+            }
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "Failed to redo: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    /**
+     * reinit
+     */
+    @PostMapping("/resetCommands")
+    public ResponseEntity<Void> resetCommands() {
+        commandManager = new CommandManager(); // Réinitialise le gestionnaire de commandes
+        return ResponseEntity.ok().build();
+    }
 
     /**
      * Validates a delivery request.
