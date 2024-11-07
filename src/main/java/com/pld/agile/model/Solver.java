@@ -177,8 +177,6 @@ public class Solver {
         List<Integer> bestPath = getBestPath();
         int servedPoints = (int) resultPoint.get("served");
         List<Integer> bestPathSubList = bestPath.subList(0, servedPoints + 1);
-        bestPathSubList.add(warehouse); //We add the warehouse at the end and beginning of the path
-        bestPathSubList.addFirst(warehouse); //TODO change that to add the warehouse in the calculation of the best path
         return bestPathSubList;
     }
 
@@ -216,7 +214,6 @@ public class Solver {
         double serviceTimePerPoint = 5.0 / 60.0; // in hours (5 minutes)
         double timeLimit = 8.0; // in hours
         LocalTime currentTime = LocalTime.of(8, 0);
-
         int pathSize = bestPath.size();
         for (int i = 0; i < pathSize - 1; i++) {
             int currentPosition = bestPath.get(i);
@@ -239,11 +236,12 @@ public class Solver {
 
             currentCost += distanceMeters;
             servedPoints = i + 1; // since i starts from 0
-
+            pointsWithTime.put(currentPosition, currentTime);
             // Update current time
             currentTime = LocalTime.of(8, 0).plusSeconds((long) (cumulativeTime * 3600));
-            pointsWithTime.put(currentPosition, currentTime);
+
         }
+        pointsWithTime.put(bestPath.getLast(), currentTime);
 
         resultPoint.put("served", servedPoints);
         resultPoint.put("cost", currentCost);

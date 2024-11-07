@@ -515,7 +515,6 @@ public class Plan {
     public List<Intersection> computeTour(List<Integer> path) {
         constructTour(path);
         List<Intersection> finalResult = makeIntersectionsTour();
-        System.out.println(finalResult);
         return finalResult;
     }
 
