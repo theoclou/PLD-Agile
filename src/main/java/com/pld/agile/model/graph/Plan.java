@@ -156,6 +156,11 @@ public class Plan {
         intersectionMap.clear();
         intersections.clear();
         sections.clear();
+        indexes.clear();
+        reverseIndexes.clear();
+        costsMatrix.clear();
+        tour.clear();
+        IntersectionsTour.clear();
     }
 
     /**

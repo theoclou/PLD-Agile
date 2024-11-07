@@ -283,9 +283,8 @@ public class BranchAndBound {
      * @return the best path
      */
     public List<Integer> getBestPath() {
-        List<Integer> integerList = Arrays.stream(this.bestPath) // Convert int[] to IntStream
+        return Arrays.stream(this.bestPath) // Convert int[] to IntStream
                 .boxed() // Convert IntStream to Stream<Integer>
                 .collect(Collectors.toList());
-        return integerList;
     }
 }

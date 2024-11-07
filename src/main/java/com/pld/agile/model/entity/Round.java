@@ -35,7 +35,7 @@ public class Round {
     private Plan plan;
     private List<Courier> courierList = new ArrayList<>();
     private List<DeliveryRequest> deliveryRequestList = new ArrayList<>();
-    private Map<String, DeliveryTour> tourAttribution = new HashMap<>();
+    private List<DeliveryTour> tourAttribution = new ArrayList<>();
     private Intersection warehouse;
     private KMeansClustering KNN = new KMeansClustering();
 
@@ -56,7 +56,7 @@ public class Round {
             courierList.add(new Courier(i));
         }
         this.plan = plan;
-        this.tourAttribution = new HashMap<String, DeliveryTour>();
+        this.tourAttribution = new ArrayList<DeliveryTour>();
     }
 
     /**
@@ -64,7 +64,7 @@ public class Round {
      *
      * @return a map where each {@code Courier} is assigned a {@code DeliveryTour}
      */
-    public Map<String, DeliveryTour> getTourAttribution() {
+    public List<DeliveryTour> getTourAttribution() {
         return tourAttribution;
     }
 
@@ -93,6 +93,7 @@ public class Round {
 
         for (Courier courier : courierList) {
             List<Integer> courierDeliveryIndices = new ArrayList<>();
+            courierDeliveryIndices.add(plan.getIndexById(warehouse.getId()));
 
             // Number of deliveries for this Courier
             int deliveriesForThisCourier = baseDeliveriesPerCourier + (extraDeliveries > 0 ? 1 : 0);
@@ -125,7 +126,8 @@ public class Round {
             }
 
             // TODO remplir ceci avec les résultats du GPS
-            List<Integer> bestRouteIndexes = solver.getBestPossiblePath(); // jsp
+            Integer warehouseIndex = plan.getIndexById(warehouse.getId());
+            List<Integer> bestRouteIndexes = solver.getBestPossiblePath(warehouseIndex); // jsp
             List<Intersection> bestRoute = new ArrayList<>();
             for (Integer index : bestRouteIndexes) {
                 bestRoute.add(plan.getIntersectionById(plan.getIdByIndex(index)));
@@ -140,7 +142,7 @@ public class Round {
             DeliveryTour courierDeliveryTour = new DeliveryTour(courier, endTime, courierDeliveryRequests, bestRoute,
                     arrivalTimes);
 
-            tourAttribution.put(courier.getId(), courierDeliveryTour);
+            tourAttribution.add(courierDeliveryTour);
 
             extraDeliveries--;
         }
@@ -511,9 +513,12 @@ public class Round {
         for (Courier courier : courierList) {
             List<String> group = finalGroups.get(index);
             List<Integer> courierDeliveryIndices = new ArrayList<>();
+            courierDeliveryIndices.add(plan.getIndexById(warehouse.getId()));
             for (String intersectionId : group) {
                 courierDeliveryIndices.add(plan.getIndexById(intersectionId));
             }
+
+
 
             // Solve the courier tour : To keep after change of code (creation of delivery
             // tour)
@@ -525,7 +530,6 @@ public class Round {
 
             double bestCost = solver.getBestPossibleCost();
             double bestTime = bestCost / (COURIER_SPEED * 1000) * 3600; // In seconds
-            LocalTime endTime = LocalTime.of(8, 0).plusSeconds((long) bestTime);
 
             List<DeliveryRequest> courierDeliveryRequests = new ArrayList<>();
             for (Integer requestIndex : courierDeliveryIndices) {
@@ -536,27 +540,33 @@ public class Round {
             }
 
             // TODO remplir ceci avec les résultats du GPS
-            List<Integer> bestRouteIndexes = solver.getBestPossiblePath(); // jsp
-            List<Intersection> bestRoute = new ArrayList<>(); // Might need to turn that into a String and only keep the
-                                                              // ID
-            bestRoute.add(warehouse);
-            for (Integer i : bestRouteIndexes) {
-                bestRoute.add(plan.getIntersectionById(plan.getIdByIndex(i)));
-            }
-            bestRoute.add(warehouse);
+            Integer warehouseIndex = plan.getIndexById(warehouse.getId());
+            List<Integer> bestRouteIndexes = solver.getBestPossiblePath(warehouseIndex); // jsp
+            // Turning the path between delivery points into a global path with all intersections
+            List<Intersection> bestRoute = plan.computeTour(bestRouteIndexes);
+
+
+
+//
+//            List<Intersection> bestRoute = new ArrayList<>(); // Might need to turn that into a String and only keep the
+//                                                              // ID
+//            bestRoute.add(warehouse);
+//            for (Integer i : bestRouteIndexes) {
+//                bestRoute.add(plan.getIntersectionById(plan.getIdByIndex(i)));
+//            }
+//            bestRoute.add(warehouse);
 
             Map<Integer, LocalTime> arrivalTimesByIndex = solver.getPointsWithTime();
             Map<Intersection, LocalTime> arrivalTimes = new HashMap<>(); // Might need to turn that into a String and
                                                                          // only keep the ID
-            arrivalTimes.put(warehouse, LocalTime.of(8, 0));
             for (Map.Entry<Integer, LocalTime> entry : arrivalTimesByIndex.entrySet()) {
                 arrivalTimes.put(plan.getIntersectionById(plan.getIdByIndex(entry.getKey())), entry.getValue());
             }
-            arrivalTimes.put(warehouse, endTime);
+            LocalTime endTime = arrivalTimesByIndex.get(warehouseIndex); //TODO doesnt seem to work well, maybe warehouseIndex is not the right index or solver does not treat him first
 
             DeliveryTour courierDeliveryTour = new DeliveryTour(courier, endTime, courierDeliveryRequests, bestRoute,
                     arrivalTimes);
-            tourAttribution.put(courier.getId(), courierDeliveryTour);
+            tourAttribution.add(courierDeliveryTour);
 
             index += 1;
         }
