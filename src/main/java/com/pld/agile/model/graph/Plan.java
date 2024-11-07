@@ -28,6 +28,7 @@ import org.xml.sax.SAXException;
 
 import com.pld.agile.model.entity.Intersection;
 import com.pld.agile.model.entity.Section;
+
 /**
  * The {@code Plan} class is responsible for reading and processing a city plan
  * in XML format, which consists of intersections and sections between them.
@@ -48,7 +49,8 @@ public class Plan {
     private ArrayList<ArrayList<Double>> costsMatrix = new ArrayList<>();
     private ArrayList<Integer> tour = new ArrayList<>();
     private ArrayList<Intersection> IntersectionsTour = new ArrayList<>();
-     /**
+
+    /**
      * Default constructor for the {@code Plan} class.
      */
     public Plan() {
@@ -146,6 +148,7 @@ public class Plan {
         System.out.println("Nombre d'intersections : " + intersections.size());
         System.out.println("Nombre de tronçons : " + sections.size());
     }
+
     /**
      * Resets the map, clearing all intersections and sections previously loaded.
      */
@@ -153,7 +156,13 @@ public class Plan {
         intersectionMap.clear();
         intersections.clear();
         sections.clear();
+        indexes.clear();
+        reverseIndexes.clear();
+        costsMatrix.clear();
+        tour.clear();
+        IntersectionsTour.clear();
     }
+
     /**
      * Returns the list of sections in the plan.
      *
@@ -176,9 +185,12 @@ public class Plan {
      * Returns the intersection by its ID.
      *
      * @param id the ID of the intersection
-     * @return the {@code Intersection} object with the given ID, or {@code null} if not found
+     * @return the {@code Intersection} object with the given ID, or {@code null} if
+     *         not found
      */
-    public Intersection getIntersectionById(String id) {return intersectionMap.get(id);}
+    public Intersection getIntersectionById(String id) {
+        return intersectionMap.get(id);
+    }
 
     /**
      * Adds a new intersection to the plan.
@@ -224,7 +236,8 @@ public class Plan {
     }
 
     /**
-     * gets all intersection's ids using the predefined indexes in <code> reIndexIntersections() </code>.
+     * gets all intersection's ids using the predefined indexes in
+     * <code> reIndexIntersections() </code>.
      */
     private void reverseIndexation() {
         for (Map.Entry<String, Integer> pair : indexes.entrySet()) {
@@ -251,6 +264,7 @@ public class Plan {
             costsMatrix.add(row);
         }
     }
+
     /**
      * Fills the cost matrix based on the sections read from the XML file.
      */
@@ -268,6 +282,7 @@ public class Plan {
             costsMatrix.get(originIndex).set(destinationIndex, length);
         }
     }
+
     /**
      * makes the cost matrix using the values extarcted from the file
      */
@@ -276,8 +291,10 @@ public class Plan {
         initializeCostsMatrix();
         fillCostsMAtrix();
     }
+
     /**
-     * Processes the data by creating indexing the ids of the intersections of the map  and creating the cost matrix.
+     * Processes the data by creating indexing the ids of the intersections of the
+     * map and creating the cost matrix.
      */
     public void preprocessData() {
         reIndexIntersections();
@@ -287,12 +304,14 @@ public class Plan {
 
     /**
      * Initializes an array of distances for Dijkstra's algorithm. All distances are
-     * initially set to {@code Double.MAX_VALUE} (infinity), except for the origin node,
+     * initially set to {@code Double.MAX_VALUE} (infinity), except for the origin
+     * node,
      * which is set to 0.
      *
      * @param numNodes the total number of nodes in the graph
      * @param origin   the index of the origin node
-     * @return a {@code double[]} array where the distance to the origin node is 0 and all other distances are infinity
+     * @return a {@code double[]} array where the distance to the origin node is 0
+     *         and all other distances are infinity
      */
     private double[] initializeDistances(int numNodes, int origin) {
         double[] distances = new double[numNodes];
@@ -315,17 +334,22 @@ public class Plan {
     }
 
     /**
-     * Updates the distances of neighboring nodes for the current node during Dijkstra's algorithm.
-     * This method checks unvisited neighbors and updates their distance and predecessor
-     * if a shorter path is found through the current node. It then adds the neighbor to
+     * Updates the distances of neighboring nodes for the current node during
+     * Dijkstra's algorithm.
+     * This method checks unvisited neighbors and updates their distance and
+     * predecessor
+     * if a shorter path is found through the current node. It then adds the
+     * neighbor to
      * the priority queue for further exploration.
      *
      * @param currentNode   the index of the current node being processed
      * @param numNodes      the total number of nodes in the graph
      * @param distances     the array of current shortest distances from the origin
      * @param visited       the array indicating whether a node has been visited
-     * @param previousNodes the array storing the previous node for each node in the shortest path
-     * @param priorityQueue the priority queue for selecting the next node to process
+     * @param previousNodes the array storing the previous node for each node in the
+     *                      shortest path
+     * @param priorityQueue the priority queue for selecting the next node to
+     *                      process
      * @param costsMatrix   the adjacency matrix representing the cost between nodes
      */
     private void updateNeighborDistances(int currentNode, int numNodes, double[] distances, boolean[] visited,
@@ -343,16 +367,19 @@ public class Plan {
         }
     }
 
-
     /**
-     * Reconstructs the shortest path from the origin to the destination using the previous
-     * nodes array generated by Dijkstra's algorithm. The path is traced backwards from
+     * Reconstructs the shortest path from the origin to the destination using the
+     * previous
+     * nodes array generated by Dijkstra's algorithm. The path is traced backwards
+     * from
      * the destination to the origin.
      *
      * @param destination   the index of the destination node
      * @param origin        the index of the origin node
-     * @param previousNodes the array storing the previous node for each node in the shortest path
-     * @return a {@code List<Integer>} representing the shortest path from the origin to the destination.
+     * @param previousNodes the array storing the previous node for each node in the
+     *                      shortest path
+     * @return a {@code List<Integer>} representing the shortest path from the
+     *         origin to the destination.
      *         If no path exists, an empty list is returned.
      */
     private List<Integer> reconstructPath(int destination, int origin, int[] previousNodes) {
@@ -365,7 +392,7 @@ public class Plan {
         // Check if the destination is reachable
         if (path.size() == 1 && path.getFirst() != origin) {
 
-            System.out.println("No path found between"+ origin+" and "+destination+".");
+            System.out.println("No path found between" + origin + " and " + destination + ".");
             return new ArrayList<>();
         }
 
@@ -415,7 +442,8 @@ public class Plan {
     }
 
     /**
-     * Finds the shortest path between two nodes (origin and destination) and returns
+     * Finds the shortest path between two nodes (origin and destination) and
+     * returns
      * it as a list of node indices.
      *
      * @param origin      the index of the starting node
@@ -430,7 +458,8 @@ public class Plan {
     }
 
     /**
-     * Finds the shortest distance between two nodes (origin and destination) and returns a double
+     * Finds the shortest distance between two nodes (origin and destination) and
+     * returns a double
      *
      * @param origin      the index of the starting node
      * @param destination the index of the destination node
@@ -451,12 +480,9 @@ public class Plan {
      */
     private void constructTour(List<Integer> path) {
         for (int i = 0; i < path.size() - 1; i++) {
-            if (i==0)
-            {
+            if (i == 0) {
                 tour.addAll(findShortestPath(path.get(i), path.get(i + 1)));
-            }
-            else
-            {
+            } else {
                 List<Integer> subPath = findShortestPath(path.get(i), path.get(i + 1));
                 tour.addAll(subPath.subList(1, subPath.size()));
             }
@@ -478,6 +504,7 @@ public class Plan {
         }
         return IntersectionsTour;
     }
+
     /**
      * Computes the complete tour of intersections based on a given path and returns
      * the result as a list of intersection IDs.
@@ -488,9 +515,9 @@ public class Plan {
     public List<Intersection> computeTour(List<Integer> path) {
         constructTour(path);
         List<Intersection> finalResult = makeIntersectionsTour();
-        System.out.println(finalResult);
         return finalResult;
     }
+
     /**
      * Formats the input list of intersection IDs into a list of node indices.
      *
@@ -505,10 +532,10 @@ public class Plan {
         return formattedInput;
     }
 
-
     // --------------------------------------------------------------------------------------
     /**
-     * Reads an XML file from a {@code MultipartFile} and parses its content into the
+     * Reads an XML file from a {@code MultipartFile} and parses its content into
+     * the
      * list of intersections and sections.
      *
      * @param file the uploaded XML file
@@ -589,8 +616,8 @@ public class Plan {
     public Map<String, Intersection> getIntersectionMap() {
         return intersectionMap;
     }
-public Map<String,Integer> getIndexesmap()
-{
-    return this.indexes;
-}
+
+    public Map<String, Integer> getIndexesmap() {
+        return this.indexes;
+    }
 }

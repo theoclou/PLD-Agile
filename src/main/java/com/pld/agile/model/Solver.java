@@ -1,5 +1,6 @@
 package com.pld.agile.model;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +23,7 @@ public class Solver {
     private Plan plan;
     private SolvingStrategy solvingStrategy;
     private CompleteGraph g;
+    private Map<String, Object> resultPoint;
 
     /**
      * Constructs a {@code Solver} with the given plan, vertices, and solving
@@ -36,6 +38,7 @@ public class Solver {
         this.plan = plan;
         this.vertices = vertices;
         this.solvingStrategy = solvingStrategy;
+        this.resultPoint = new HashMap<>();
     }
 
     /**
@@ -55,7 +58,6 @@ public class Solver {
      */
     public CompleteGraph createCompleteGraph() {
         int size = vertices.size();
-        System.out.printf("i=%d", vertices.size());
         for (int i = 0; i < size; i++) {
             ArrayList<Double> row = new ArrayList<>();
             for (int j = 0; j < size; j++) {
@@ -139,10 +141,9 @@ public class Solver {
      * @return the best path as a list of vertices
      */
     public List<Integer> getBestPath() {
-        List<Integer> path=solvingStrategy.getBestPath();
-        List<Integer>result = new ArrayList<>();
-        for(int i=0;i<path.size();i++)
-        {
+        List<Integer> path = solvingStrategy.getBestPath();
+        List<Integer> result = new ArrayList<>();
+        for (int i = 0; i < path.size(); i++) {
             result.add(vertices.get(path.get(i)));
         }
 
@@ -150,7 +151,7 @@ public class Solver {
     }
 
     /**
-     * Returns the completeGraph object used to solve the tsp 
+     * Returns the completeGraph object used to solve the tsp
      *
      * @return the complete graph
      */
@@ -172,11 +173,15 @@ public class Solver {
      *
      * @return the best possible path as a list of vertices
      */
-    public List<Integer> getBestPossiblePath() {
+    public List<Integer> getBestPossiblePath(Integer warehouse) {
         List<Integer> bestPath = getBestPath();
-        int servedPoints = (int) pointsToBeServed().get("served");
+        int servedPoints = (int) resultPoint.get("served");
         List<Integer> bestPathSubList = bestPath.subList(0, servedPoints + 1);
         return bestPathSubList;
+    }
+
+    public Map<Integer, LocalTime> getPointsWithTime() {
+        return (Map<Integer, LocalTime>) resultPoint.get("pointsWithTime");
     }
 
     /**
@@ -185,34 +190,62 @@ public class Solver {
      * @return the best possible cost
      */
     public double getBestPossibleCost() {
-        double cost = (double) pointsToBeServed().get("cost");
+
+        double cost = (double) resultPoint.get("cost");
         return cost;
+    }
+
+    public void computePointsToBeServed() {
+        pointsToBeServed();
     }
 
     /**
      * Determines how many points can be served and the cost within a given time
-     * limit (8 hours).
-     *
-     * @return a map containing the number of served points and the total cost
+     * limit (8 hours), given that the courier is traveling at 15 km/h and spends
+     * an additional 5 minutes at each delivery point.
      */
-    private Map<String, Object> pointsToBeServed() {
+    private void pointsToBeServed() {
         List<Integer> bestPath = getBestPath();
-        double currentCost = 0;
+        Map<Integer, LocalTime> pointsWithTime = new HashMap<>();
+        double currentCost = 0.0;
+        double cumulativeTime = 0.0; // in hours
         int servedPoints = 0;
-        double speed = 1500.0;
-        double possibleCost = 0;
-        while (currentCost / speed + servedPoints / 12.0 < 8 && servedPoints < bestPath.size()) {
-            int currentPosition = bestPath.get(servedPoints);
-            int nextPosition = bestPath.get(servedPoints + 1);
-            currentCost += g.getCost(currentPosition, nextPosition);
-            if (currentCost / speed + servedPoints / 12.0 < 8 && servedPoints < bestPath.size() - 1) {
-                servedPoints += 1;
+        double speed = 15.0; // km/h
+        double serviceTimePerPoint = 5.0 / 60.0; // in hours (5 minutes)
+        double timeLimit = 8.0; // in hours
+        LocalTime currentTime = LocalTime.of(8, 0);
+        int pathSize = bestPath.size();
+        for (int i = 0; i < pathSize - 1; i++) {
+            int currentPosition = bestPath.get(i);
+            int nextPosition = bestPath.get(i + 1);
+            double distanceMeters = g.getCost(i, (i + 1)%vertices.size()); // in meters
+
+            double distanceKm = distanceMeters / 1000.0; // convert to kilometers
+            double timeToNextPoint = distanceKm / speed; // time in hours
+            cumulativeTime += timeToNextPoint;
+
+            // Add service time at each delivery point (except for the starting point)
+            if (i > 0) {
+                cumulativeTime += serviceTimePerPoint;
             }
-            possibleCost = currentCost;
+
+            // Check if the cumulative time exceeds the 8-hour limit
+            if (cumulativeTime > timeLimit) {
+                break;
+            }
+
+            currentCost += distanceMeters;
+            servedPoints = i + 1; // since i starts from 0
+            pointsWithTime.put(currentPosition, currentTime);
+            // Update current time
+            currentTime = LocalTime.of(8, 0).plusSeconds((long) (cumulativeTime * 3600));
+
         }
-        Map<String, Object> points = new HashMap<>();
-        points.put("served", servedPoints);
-        points.put("cost", possibleCost);
-        return points;
+        pointsWithTime.put(bestPath.getLast(), currentTime);
+
+        resultPoint.put("served", servedPoints);
+        resultPoint.put("cost", currentCost);
+        resultPoint.put("pointsWithTime", pointsWithTime);
     }
+
 }

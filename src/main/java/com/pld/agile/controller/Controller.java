@@ -1,10 +1,7 @@
 package com.pld.agile.controller;
 
-import com.pld.agile.model.entity.DeliveryRequest;
-import com.pld.agile.model.entity.Intersection;
-import com.pld.agile.model.entity.Round;
+import com.pld.agile.model.entity.*;
 import com.pld.agile.model.graph.Plan;
-import com.pld.agile.model.entity.Section;
 import com.pld.agile.model.entity.Round;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,7 +58,7 @@ public class Controller {
      * @param payload A map containing the new courier count with key "count"
      * @return ResponseEntity<Void> with HTTP 200 OK if successful
      */
-    @PostMapping("/courriers")
+    @PostMapping("/couriers")
     public ResponseEntity<Void> updateCouriers(@RequestBody Map<String, Integer> payload) {
         numberOfCouriers = payload.get("count");
         System.out.println("Update courriers : " + numberOfCouriers);
@@ -73,7 +70,7 @@ public class Controller {
      *
      * @return String containing courier information
      */
-    @GetMapping("/Courriers")
+    @GetMapping("/Couriers")
     public String getCouriers() {
         return "Here are the Couriers";
     }
@@ -129,7 +126,7 @@ public class Controller {
             //Create response object
             Map<String, Object> response = new HashMap<>();
             System.out.println("File received: " + file.getOriginalFilename());
-            round.loadRequestsByfile(file);
+            round.loadRequests(file);
             List<DeliveryRequest> deliveryRequestList = round.getDeliveryRequestList();
             System.out.println("Delivery request list size: " + deliveryRequestList.size());
             response.put("deliveries", deliveryRequestList);
@@ -190,8 +187,14 @@ public class Controller {
      * @return String indicating the status of tour computation
      */
     @PostMapping("/compute")
-    public String computeTours() {
-        return "Tours Computed";
+    public Map<String, List<DeliveryTour>> computeTours() {
+        map.preprocessData();
+        round.init(numberOfCouriers, map);
+        round.computeRoundOptimized();
+        List<DeliveryTour> tourAttribution = round.getTourAttribution();
+        Map<String, List<DeliveryTour>> tourMap = new HashMap<>();
+        tourMap.put("tours", tourAttribution);
+        return tourMap;
     }
 
     /**
