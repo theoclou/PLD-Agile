@@ -36,7 +36,6 @@ public class BnBStrategy implements SolvingStrategy {
     @Override
     public void solve(CompleteGraph completeGraph) {
         bnb.setCompleteGraph(completeGraph);
-        System.out.println("number of vertices: " + completeGraph.getNbVertices());
         bnb.findBestCost();
     }
     /**

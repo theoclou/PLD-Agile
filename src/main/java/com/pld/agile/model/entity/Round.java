@@ -79,16 +79,12 @@ public class Round {
         // we will launch the graph calculation, create a DeliveryTour ith the result,
         // assign it to a courier and update TourAttribution, then delete the
         // DeliveryRequest we used from the list
-        System.out.println("Number of delivery requestin compute round: " + deliveryRequestList.size());
         List<Integer> indexedID = new ArrayList<Integer>();
 
-        System.out.println("Number of deliveries: " + deliveryRequestList.size());
         List<DeliveryRequest> remainingDeliveries = new ArrayList<>(deliveryRequestList);
-        System.out.println("Number of remaining deliveries: " + remainingDeliveries.size());
 
         int baseDeliveriesPerCourier = remainingDeliveries.size() / courierList.size();
         int extraDeliveries = remainingDeliveries.size() % courierList.size();
-        System.out.println("Base deliveries per courier: " + baseDeliveriesPerCourier);
         int currentIndex = 0;
 
         for (Courier courier : courierList) {
@@ -559,6 +555,7 @@ public class Round {
             Map<Integer, LocalTime> arrivalTimesByIndex = solver.getPointsWithTime();
             Map<Intersection, LocalTime> arrivalTimes = new HashMap<>(); // Might need to turn that into a String and
                                                                          // only keep the ID
+
             for (Map.Entry<Integer, LocalTime> entry : arrivalTimesByIndex.entrySet()) {
                 arrivalTimes.put(plan.getIntersectionById(plan.getIdByIndex(entry.getKey())), entry.getValue());
             }

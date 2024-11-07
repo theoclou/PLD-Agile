@@ -191,7 +191,6 @@ public class Controller {
         round.computeRoundOptimized();
         List<DeliveryTour> tourAttribution = round.getTourAttribution();
         Map<String, List<DeliveryTour>> tourMap = new HashMap<>();
-        System.out.println("Tour attribution size: " + tourAttribution.size());
         tourMap.put("tours", tourAttribution);
         return tourMap;
     }
