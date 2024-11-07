@@ -58,7 +58,6 @@ public class Solver {
      */
     public CompleteGraph createCompleteGraph() {
         int size = vertices.size();
-        System.out.printf("i=%d", vertices.size());
         for (int i = 0; i < size; i++) {
             ArrayList<Double> row = new ArrayList<>();
             for (int j = 0; j < size; j++) {
@@ -79,7 +78,6 @@ public class Solver {
      * Solves the TSP using the provided solving strategy.
      */
     public void solve() {
-        System.out.println("number of vertices: " + vertices.size());
         solvingStrategy.solve(g);
     }
 
@@ -175,10 +173,12 @@ public class Solver {
      *
      * @return the best possible path as a list of vertices
      */
-    public List<Integer> getBestPossiblePath() {
+    public List<Integer> getBestPossiblePath(Integer warehouse) {
         List<Integer> bestPath = getBestPath();
         int servedPoints = (int) resultPoint.get("served");
         List<Integer> bestPathSubList = bestPath.subList(0, servedPoints + 1);
+        bestPathSubList.add(warehouse); //We add the warehouse at the end and beginning of the path
+        bestPathSubList.addFirst(warehouse); //TODO change that to add the warehouse in the calculation of the best path
         return bestPathSubList;
     }
 
@@ -221,11 +221,10 @@ public class Solver {
         for (int i = 0; i < pathSize - 1; i++) {
             int currentPosition = bestPath.get(i);
             int nextPosition = bestPath.get(i + 1);
+            double distanceMeters = g.getCost(i, (i + 1)%vertices.size()); // in meters
 
-            double distanceMeters = g.getCost(currentPosition, nextPosition); // in meters
             double distanceKm = distanceMeters / 1000.0; // convert to kilometers
             double timeToNextPoint = distanceKm / speed; // time in hours
-
             cumulativeTime += timeToNextPoint;
 
             // Add service time at each delivery point (except for the starting point)
