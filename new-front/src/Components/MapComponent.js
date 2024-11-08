@@ -146,6 +146,7 @@ const MapComponent = () => {
       setDeliveryLoaded(false);
       setRoutes([]);
       setTours([]);
+      setRoutesWithCouriers([]);
 
       const formData = new FormData();
       formData.append("file", selectedFile);
@@ -284,8 +285,27 @@ const MapComponent = () => {
     setAddingDeliveryPoint(true);
   };
 
+  const setCourierNumber = async (courierNumber) => {
+    try {
+      const response = await fetch("http://localhost:8080/couriers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ count: courierNumber }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to set courier number");
+      }
+    } catch (error) {
+      throw new Error("Failed to set courier number");
+    }
+  };
+
   const handleComputeTour = async () => {
     try {
+      // Set the number of couriers
+      await setCourierNumber(courierCount);
       const response = await fetch("http://localhost:8080/compute", {
         method: "POST",
         headers: {
@@ -333,8 +353,6 @@ const MapComponent = () => {
             deliveries: updatedDeliveries,
           };
         });
-
-        console.log("Computed tours:", data.tours);
       } else {
         throw new Error("Failed to compute tour");
       }

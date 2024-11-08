@@ -95,6 +95,20 @@ const MapDisplay = ({
     [deliveryData]
   );
 
+  function arraysEqual(arr1, arr2) {
+    if (arr1 === undefined || arr2 === undefined) return false;
+    if (arr1.length !== arr2.length) return false;
+    for (let i = 0; i < arr1.length; i++) {
+      if (
+        arr1[i].id !== arr2[i].id ||
+        arr1[i].latitude !== arr2[i].latitude ||
+        arr1[i].longitude !== arr2[i].longitude
+      ) {
+        return false;
+      }
+    }
+    return true;
+  }
   // Nouvelle fonction pour trouver la route et le coursier associé à une section
   const findRouteAndCourier = useCallback(
     (origin, destination) => {
