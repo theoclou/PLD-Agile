@@ -47,65 +47,68 @@ const MapDisplay = ({ mapData, deliveryData, bounds, zoom, setZoom, onIntersecti
   }, [zoom, memoizedIntersections, memoizedDeliveries]);
 
   return (
-    <MapContainer
-      bounds={
-        bounds || [
-          [48.8566, 2.3522],
-          [48.8566, 2.3522],
-        ]
-      }
-      zoom={zoom}
-      className="map"
-    >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      />
-      <ZoomListener />
-      console.log("Adding Delivery Point mode:", addingDeliveryPoint);
-      {filteredIntersections.map((intersection) => (
-        <MapMarker
-            key={intersection.id}
-            intersection={intersection}
-            onIntersectionClick={addingDeliveryPoint ? onIntersectionClick : null}/>
-      ))}
-      {memoizedDeliveries.map((delivery) => (
-        <DeliveryPointMarker key={delivery.id} delivery={delivery} />
-      ))}
-      {memoizedWarehouse && (
-        <WarehouseMarker
-          key={memoizedWarehouse.id}
-          warehouse={memoizedWarehouse}
-        />
-      )}
+      <div className="w-full h-full relative">
+        <MapContainer
+            bounds={
+                bounds || [
+                  [48.8566, 2.3522],
+                  [48.8566, 2.3522],
+                ]
+            }
+            zoom={zoom}
+            className="h-full w-full"
+            style={{ height: "100%", width: "100%" }}
+        >
+          <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          />
+          <ZoomListener/>
+          console.log("Adding Delivery Point mode:", addingDeliveryPoint);
+          {filteredIntersections.map((intersection) => (
+              <MapMarker
+                  key={intersection.id}
+                  intersection={intersection}
+                  onIntersectionClick={addingDeliveryPoint ? onIntersectionClick : null}/>
+          ))}
+          {memoizedDeliveries.map((delivery) => (
+              <DeliveryPointMarker key={delivery.id} delivery={delivery}/>
+          ))}
+          {memoizedWarehouse && (
+              <WarehouseMarker
+                  key={memoizedWarehouse.id}
+                  warehouse={memoizedWarehouse}
+              />
+          )}
 
-      {memoizedSections.map((section, index) => {
-        const originIntersection = section.origin;
-        const destinationIntersection = section.destination;
+          {memoizedSections.map((section, index) => {
+            const originIntersection = section.origin;
+            const destinationIntersection = section.destination;
 
-        if (originIntersection && destinationIntersection) {
-          const latLngs = [
-            [originIntersection.latitude, originIntersection.longitude],
-            [
-              destinationIntersection.latitude,
-              destinationIntersection.longitude,
-            ],
-          ];
+            if (originIntersection && destinationIntersection) {
+              const latLngs = [
+                [originIntersection.latitude, originIntersection.longitude],
+                [
+                  destinationIntersection.latitude,
+                  destinationIntersection.longitude,
+                ],
+              ];
 
-          return (
-            <Polyline
-              key={index}
-              positions={latLngs}
-              color="darkgrey"
-              weight={2}
-              opacity={1}
-            />
-          );
-        }
-        return null;
-      })}
-    </MapContainer>
+              return (
+                  <Polyline
+                      key={index}
+                      positions={latLngs}
+                      color="darkgrey"
+                      weight={2}
+                      opacity={1}
+                  />
+              );
+            }
+            return null;
+          })}
+        </MapContainer>
+      </div>
   );
 };
 
-export default MapDisplay;
+        export default MapDisplay;

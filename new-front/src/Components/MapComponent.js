@@ -5,7 +5,8 @@ import ErrorPopup from "./ErrorPopup";
 import LoadDeliveryButton from "./LoadDeliveryButton";
 import CourierCounter from "./CourierCounter";
 import "leaflet/dist/leaflet.css";
-import "./MapComponent.css";
+import "../index.css"
+//import "./MapComponent.css";
 import TextSidebar from "./TextSidebar";
 import AddDeliveryPoint from "./AddDeliveryPoint";
 
@@ -190,47 +191,58 @@ const MapComponent = () => {
   };
 
   return (
-    <div className="container">
-      <h1 className="title">Pick'One</h1>
-      <FileUploadButton onFileChange={handleFileChange} />
+      <div
+          className="flex flex-col min-h-screen"> {/*flex flex-col items-center justify-center p-6 bg-white min-h-screen*/}
+        <h1 className="text-7xl font-bold text-center py-4">Pick'One</h1> {/*fixed top-16 left-1/2 transform -translate-x-1/2 text-7xl font-bold mb-4*/}
 
-      {mapLoaded && <LoadDeliveryButton onFileChange={handleLoadDelivery} />}
-      <CourierCounter count={courierCount} setCount={setCourierCount} />
+        <div className="flex flex-row gap-4 p-4 h-[calc(100vh-120px)]"> {/* Container principal */}
+          <div className="w-1/5 flex flex-col gap-4"> {/*Left container for the buttons*/}
+            <FileUploadButton onFileChange={handleFileChange}/>
 
-      {/* Button to add a delivery Point */}
-      {deliveryLoaded && <AddDeliveryPoint onClick={handleAddDeliveryPoint} />}
+            {mapLoaded && <LoadDeliveryButton onFileChange={handleLoadDelivery} className="mb-4"/>}
+            <CourierCounter count={courierCount} setCount={setCourierCount} className="mb-4"/>
 
-      {loading && <div>Loading...</div>}
+            {/* Button to add a delivery Point */}
+            {deliveryLoaded && <AddDeliveryPoint onClick={handleAddDeliveryPoint} className="mb-4"/>}
+          </div>
 
-      {mapLoaded && (
-        <div className="map-sidebar-container">
-          <MapDisplay
-            mapData={mapData}
-            deliveryData={deliveryData}
-            bounds={bounds}
-            zoom={zoom}
-            setZoom={setZoom}
-            onIntersectionClick={handleIntersectionClick} // Pass the click function
-            addingDeliveryPoint={addingDeliveryPoint} // Pass the state of the selection mode
-          />
+          <div className="w-3/5 flex-grow"> {/* Middle container for the map */}
+            {loading && <div>Loading...</div>}
 
-          {deliveryLoaded && (
-            <div className="text-sidebar">
-              <TextSidebar
-                deliveryData={deliveryData.deliveries}
-                sections={mapData.sections}
-                onDelete={handleDelete}
-              />
-            </div>
-          )}
+            {mapLoaded && (
+                <div className="flex-grow"> {/*flex flex-col w-full*/}
+                  <MapDisplay
+                      mapData={mapData}
+                      deliveryData={deliveryData}
+                      bounds={bounds}
+                      zoom={zoom}
+                      setZoom={setZoom}
+                      onIntersectionClick={handleIntersectionClick} // Pass the click function
+                      addingDeliveryPoint={addingDeliveryPoint} // Pass the state of the selection mode
+                  />
+                </div>
+                )}
+          </div>
+
+          <div className="w-1/5"> {/* Right container for textual display */}
+              {deliveryLoaded && (
+                  {/*<div className="w-1/4">  /*mt-4*/}
+                    <TextSidebar
+                        deliveryData={deliveryData.deliveries}
+                        sections={mapData.sections}
+                        onDelete={handleDelete}
+                    />
+          </div>
+              )}
+
         </div>
-      )}
 
-      {popupVisible && (
-        <ErrorPopup message={popupMessage} onClose={handleClosePopup} />
-      )}
-    </div>
-  );
-};
 
-export default MapComponent;
+              {popupVisible && (
+                  <ErrorPopup message={popupMessage} onClose={handleClosePopup}/>
+              )}
+
+        </div>
+        );
+
+        export default MapComponent;
