@@ -2,7 +2,7 @@ import React from 'react';
 
 const LoadDeliveryButton = ({ onFileChange }) => {
   return (
-    <div className="buttonContainer">
+    <div className="button">
       <input
         type="file"
         id="file-upload-2"
@@ -10,7 +10,7 @@ const LoadDeliveryButton = ({ onFileChange }) => {
         style={{ display: 'none' }}
         onChange={onFileChange}
       />
-      <label htmlFor="file-upload-2" className="custom-file-upload">Load Delivery</label>
+      <label htmlFor="file-upload-2" className="button">Load Deliveries</label>
     </div>
   );
 };

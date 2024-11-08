@@ -1,5 +1,5 @@
 import React from "react";
-import "./CourierCounter.css";
+import "./MapComponent.css"
 
 const CourierCounter = ({ count, setCount }) => {
   const increment = () => {
@@ -15,11 +15,11 @@ const CourierCounter = ({ count, setCount }) => {
   };
 
   return (
-    <div className="courier-counter">
-      <h2>Couriers: {count}</h2>
-      <button onClick={decrement}>-</button>
-      <button onClick={increment}>+</button>
-    </div>
+      <div className="custom-courier-counter">
+        <button className="button" onClick={decrement}>-</button>
+        <h2 className="custom-courier-counter">{count} Couriers</h2>
+        <button className="button" onClick={increment}>+</button>
+      </div>
   );
 };
 

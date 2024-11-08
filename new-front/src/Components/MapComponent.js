@@ -270,53 +270,56 @@ const MapComponent = () => {
   };
 
   return (
-    <div className="container">
-      <h1 className="title">Pick'One</h1>
-      <FileUploadButton onFileChange={handleFileChange} />
+      <div className="container">
+        <h1 className="title">Pick'One</h1>
 
-      {mapLoaded && <LoadDeliveryButton onFileChange={handleLoadDelivery} />}
-      <CourierCounter count={courierCount} setCount={setCourierCount} />
+        <div className="buttonGlobalContainer">
+          <FileUploadButton onFileChange={handleFileChange}/>
+          {mapLoaded && <LoadDeliveryButton onFileChange={handleLoadDelivery}/>}
+          <CourierCounter count={courierCount} setCount={setCourierCount}/>
+          {deliveryLoaded && <AddDeliveryPoint onClick={handleAddDeliveryPoint}/>}
+        </div>
 
-      {deliveryLoaded && <AddDeliveryPoint onClick={handleAddDeliveryPoint} />}
+        {loading && <div>Loading...</div>}
 
-      {loading && <div>Loading...</div>}
+        {mapLoaded && (
+            <div className="map-sidebar-container">
+              <div className="map-container">
+                <MapDisplay
+                    mapData={mapData}
+                    deliveryData={deliveryData}
+                    bounds={bounds}
+                    zoom={zoom}
+                    setZoom={setZoom}
+                    onIntersectionClick={handleIntersectionClick}
+                    addingDeliveryPoint={addingDeliveryPoint}
+                    highlightedDeliveryId={highlightedDeliveryId}
+                    onMouseEnterDelivery={handleMouseEnterDelivery}
+                    onMouseLeaveDelivery={handleMouseLeaveDelivery}
+                />
+              </div>
 
-      {mapLoaded && (
-        <div className="map-sidebar-container">
-          <MapDisplay
-            mapData={mapData}
-            deliveryData={deliveryData}
-            bounds={bounds}
-            zoom={zoom}
-            setZoom={setZoom}
-            onIntersectionClick={handleIntersectionClick}
-            addingDeliveryPoint={addingDeliveryPoint}
-            highlightedDeliveryId={highlightedDeliveryId}
-            onMouseEnterDelivery={handleMouseEnterDelivery}
-            onMouseLeaveDelivery={handleMouseLeaveDelivery}
-          />
+                {deliveryLoaded && (
+                    <div className="text-sidebar">
+                      <TextSidebar
+                          deliveryData={deliveryData.deliveries}
+                          sections={mapData.sections}
+                          onDelete={handleDelete}
+                          warehouse={deliveryData.warehouse}
+                          highlightedDeliveryId={highlightedDeliveryId} // <--- Passer l'état
+                          onMouseEnterDelivery={handleMouseEnterDelivery} // <--- Méthode pour survol
+                          onMouseLeaveDelivery={handleMouseLeaveDelivery} // <--- Méthode pour sortir du survol
+                      />
+                    </div>
+                )}
+              </div>
+          )}
 
-          {deliveryLoaded && (
-            <div className="text-sidebar">
-              <TextSidebar
-                deliveryData={deliveryData.deliveries}
-                sections={mapData.sections}
-                onDelete={handleDelete}
-                warehouse={deliveryData.warehouse}
-                highlightedDeliveryId={highlightedDeliveryId} // <--- Passer l'état
-                onMouseEnterDelivery={handleMouseEnterDelivery} // <--- Méthode pour survol
-                onMouseLeaveDelivery={handleMouseLeaveDelivery} // <--- Méthode pour sortir du survol
-              />
-            </div>
+          {popupVisible && (
+              <ErrorPopup message={popupMessage} onClose={handleClosePopup}/>
           )}
         </div>
-      )}
+        );
+        };
 
-      {popupVisible && (
-        <ErrorPopup message={popupMessage} onClose={handleClosePopup} />
-      )}
-    </div>
-  );
-};
-
-export default MapComponent;
+        export default MapComponent;

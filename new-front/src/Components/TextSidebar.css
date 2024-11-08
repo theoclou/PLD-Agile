@@ -1,0 +1,113 @@
+/* TextSidebar.css */
+
+/* Styles de la barre latérale */
+.textual-sidebar {
+    padding: 16px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    max-height: 100vh;
+}
+
+/* Container du warehouse */
+.section-container {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    min-height: 50px;
+    height: auto;
+}
+
+/* Titre du warehouse */
+.warehouse-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    color: #111827;
+    margin-top: 0;
+    padding-top: 0;
+}
+
+/* Section details du warehouse */
+.under-section-container {
+    margin-top: 8px;
+}
+
+/* Détails du warehouse */
+.section-info {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+}
+
+/* Sections autour du warehouse */
+.section-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    color: #111827;
+    margin-top: 0;
+    padding-top: 0;
+}
+
+/* Liste des sections */
+.section-list {
+    margin-left: 8px;
+    margin-top: 4px;
+}
+
+.section-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-dot {
+    width: 8px;
+    height: 8px;
+    background-color:grey;
+    border-radius: 50%;
+}
+
+.section-name {
+    color: #4b5563;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+}
+
+.no-sections {
+    color: #9ca3af;
+}
+
+/* Section des points de livraison */
+.delivery-point {
+    padding: 16px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.delivery-point.highlighted {
+    background-color: yellow;
+}
+
+/* Détails du point de livraison */
+.delivery-title {
+    font-weight: 500;
+    color: #111827;
+}
+
+.delivery-info {
+    margin-top: 8px;
+}
+
+.delivery-info-text {
+    font-size: 14px;
+}
+
+.delivery-button {
+    color: #ef4444;
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-size: 20px;
+}

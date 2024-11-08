@@ -5,20 +5,31 @@
   justify-content: center;
   height: 100vh;
   width: 100%;
-  background-color: #cac7c7;
+  background-color: #ffffff ; {/*#cac7c7*/}
 }
 
 .title {
-  margin-bottom: 20px;
-  text-align: center;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 400;
+  position: fixed;
+  top: 2%; /* Positionne le titre à 5% du haut de la page */
+  left: 50%; /* Centre horizontalement */
+  transform: translateX(-50%); /* Centre précisément en soustrayant 50% de sa largeur */
   font-size: 4.5rem;
-  color: #333;
+  color: #333333;
+  margin: 0;
 }
 
 .map-sidebar-container {
   display: flex;
   width: 100%;
   height: 70%; /* Adjust this value as needed */
+  margin-top: 2%;
+}
+
+.map-container {
+  flex: 2; /* The map takes all the space except the textual container */
+  height: 100%; /* The map uses all the height */
 }
 
 .map {
@@ -36,6 +47,8 @@
 
 .buttonContainer {
   display: flex;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 400;
   align-items: center;
   justify-content: center;
   width: 100%;
@@ -43,20 +56,39 @@
   margin-bottom: 15px;
 }
 
+.buttonGlobalContainer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* Button aligned on the left*/
+  width: 100%;
+  margin-top: 10%; /* Space between Title and buttons */
+  gap: 2px; /* Space between each button */
+}
+
 .button {
-  padding: 10px 15px;
+  padding: 6px 8px;
   font-size: 1rem;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 400;
   color: white;
-  background-color: #3d5978;
-  border: none;
-  border-radius: 5px;
+  background-color: #737373;
+  border: 2px solid transparent;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-right: 10px;
+  transition: all 0.3s ease-in-out;
+  margin-right: 2%;
+  margin-left: 2%;
+  white-space: nowrap
 }
 
 .button:hover {
-  background-color: #485d77;
+  background-color: #b8b8b8;
+  transform: scale(1.05);
+  border-radius: 8px;
+}
+
+.button:active {
+  transform: translateY(1%); /* Pression effect on the Click */
 }
 
 .inputField {
@@ -90,4 +122,17 @@
 
 .custom-file-upload:hover {
   background-color: #485d77;
+}
+
+.custom-courier-counter {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 400;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Centre le contenu */
+  margin-right: 4%;
+  margin-left: 4%;
+  white-space: nowrap;
+  gap: 10px;
 }
