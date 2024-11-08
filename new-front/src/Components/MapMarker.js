@@ -60,7 +60,7 @@ const MapMarker = React.memo(({ intersection, onAddDeliveryPoint  }) => {
 
 MapMarker.propTypes = {
   intersection: PropTypes.shape({
-    id: PropTypes.number.isRequired,
+    id: PropTypes.string.isRequired,
     latitude: PropTypes.number.isRequired,
     longitude: PropTypes.number.isRequired,
   }).isRequired,

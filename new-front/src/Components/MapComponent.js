@@ -7,10 +7,14 @@ import CourierCounter from "./CourierCounter";
 import "leaflet/dist/leaflet.css";
 import "./MapComponent.css";
 import TextSidebar from "./TextSidebar";
+import ComputeTour from "./ComputeTour";
 
 const MapComponent = () => {
   const [mapData, setMapData] = useState({ intersections: [], sections: [] });
-  const [deliveryData, setDeliveryData] = useState({ deliveries: [], warehouse: null });
+  const [deliveryData, setDeliveryData] = useState({
+    deliveries: [],
+    warehouse: null,
+  });
   const [loading, setLoading] = useState(false);
   const [bounds, setBounds] = useState(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -21,6 +25,9 @@ const MapComponent = () => {
   const [courierCount, setCourierCount] = useState(2);
   const [deliveryLoaded, setDeliveryLoaded] = useState(false);
   const [highlightedDeliveryId, setHighlightedDeliveryId] = useState(null);
+  const [tours, setTours] = useState([]);
+  const [routes, setRoutes] = useState([]);
+  const [routesWithCouriers, setRoutesWithCouriers] = useState([]);
   const handleMouseEnterDelivery = (deliveryId) => {
     setHighlightedDeliveryId(deliveryId);
   };
@@ -36,51 +43,51 @@ const MapComponent = () => {
 
       if (event.ctrlKey || event.metaKey) {
         switch (event.key.toLowerCase()) {
-          case 'z':
+          case "z":
             event.preventDefault();
             try {
-              const response = await fetch('http://localhost:8080/undo', {
-                method: 'POST',
+              const response = await fetch("http://localhost:8080/undo", {
+                method: "POST",
                 headers: {
-                  'Content-Type': 'application/json',
+                  "Content-Type": "application/json",
                 },
               });
 
               if (response.ok) {
                 const result = await response.json();
                 if (result.deliveryRequests) {
-                  setDeliveryData(prev => ({
+                  setDeliveryData((prev) => ({
                     ...prev,
-                    deliveries: result.deliveryRequests
+                    deliveries: result.deliveryRequests,
                   }));
                 }
               }
             } catch (error) {
-              console.error('Error during undo:', error);
+              console.error("Error during undo:", error);
             }
             break;
 
-          case 'y':
+          case "y":
             event.preventDefault();
             try {
-              const response = await fetch('http://localhost:8080/redo', {
-                method: 'POST',
+              const response = await fetch("http://localhost:8080/redo", {
+                method: "POST",
                 headers: {
-                  'Content-Type': 'application/json',
+                  "Content-Type": "application/json",
                 },
               });
 
               if (response.ok) {
                 const result = await response.json();
                 if (result.deliveryRequests) {
-                  setDeliveryData(prev => ({
+                  setDeliveryData((prev) => ({
                     ...prev,
-                    deliveries: result.deliveryRequests
+                    deliveries: result.deliveryRequests,
                   }));
                 }
               }
             } catch (error) {
-              console.error('Error during redo:', error);
+              console.error("Error during redo:", error);
             }
             break;
 
@@ -90,8 +97,8 @@ const MapComponent = () => {
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [deliveryLoaded]);
 
   const handleFetchData = useCallback(async () => {
@@ -135,6 +142,9 @@ const MapComponent = () => {
       setLoading(true);
       setDeliveryData({ deliveries: [], warehouse: null });
       setDeliveryLoaded(false);
+      setRoutes([]);
+      setTours([]);
+      setRoutesWithCouriers([]);
 
       const formData = new FormData();
       formData.append("file", selectedFile);
@@ -167,8 +177,8 @@ const MapComponent = () => {
     if (selectedFile) {
       try {
         // First, reset the command history
-        await fetch('http://localhost:8080/resetCommands', {
-          method: 'POST',
+        await fetch("http://localhost:8080/resetCommands", {
+          method: "POST",
         });
 
         const formData = new FormData();
@@ -204,13 +214,16 @@ const MapComponent = () => {
 
     console.log("Attempting to delete delivery with ID:", deliveryId);
     try {
-      const response = await fetch(`http://localhost:8080/deleteDeliveryRequest`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: deliveryId,
-      });
+      const response = await fetch(
+        `http://localhost:8080/deleteDeliveryRequest`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: deliveryId,
+        }
+      );
 
       if (response.ok) {
         const result = await response.json();
@@ -263,6 +276,84 @@ const MapComponent = () => {
 
 
 
+  const setCourierNumber = async (courierNumber) => {
+    try {
+      const response = await fetch("http://localhost:8080/couriers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ count: courierNumber }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to set courier number");
+      }
+    } catch (error) {
+      throw new Error("Failed to set courier number");
+    }
+  };
+
+  const handleComputeTour = async () => {
+    try {
+      // Set the number of couriers
+      await setCourierNumber(courierCount);
+      const response = await fetch("http://localhost:8080/compute", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setTours(data.tours);
+
+        // Transformer les tours en routes avec information du courier
+        const routesWithCourierInfo = data.tours.map((tour) => ({
+          path: tour.route,
+          courierId: tour.courier.id,
+        }));
+        setRoutesWithCouriers(routesWithCourierInfo);
+
+        // Mise à jour des données de livraison avec les informations des tournées
+        setDeliveryData((prevData) => {
+          const updatedDeliveries = [...prevData.deliveries];
+
+          data.tours.forEach((tour) => {
+            tour.deliveryRequests.forEach((tourDelivery) => {
+              const deliveryIndex = updatedDeliveries.findIndex(
+                (delivery) =>
+                  delivery.deliveryAdress.id === tourDelivery.deliveryAdress.id
+              );
+
+              if (deliveryIndex !== -1) {
+                updatedDeliveries[deliveryIndex] = {
+                  ...updatedDeliveries[deliveryIndex],
+                  courier: tourDelivery.courier,
+                  arrivalTime:
+                    tour.arrivalTimes[
+                      `Intersection{id='${tourDelivery.deliveryAdress.id}', latitude=${tourDelivery.deliveryAdress.latitude}, longitude=${tourDelivery.deliveryAdress.longitude}}`
+                    ],
+                };
+              }
+            });
+          });
+
+          return {
+            ...prevData,
+            deliveries: updatedDeliveries,
+          };
+        });
+      } else {
+        throw new Error("Failed to compute tour");
+      }
+    } catch (error) {
+      console.error("Error during tour computation:", error);
+      setPopupMessage("Error computing tour: " + error.message);
+      setPopupVisible(true);
+    }
+  };
+
   return (
     <div className="container">
       <h1 className="title">Pick'One</h1>
@@ -270,6 +361,8 @@ const MapComponent = () => {
 
       {mapLoaded && <LoadDeliveryButton onFileChange={handleLoadDelivery} />}
       <CourierCounter count={courierCount} setCount={setCourierCount} />
+
+      {deliveryLoaded && <ComputeTour onClick={handleComputeTour} />}
 
       {loading && <div>Loading...</div>}
 
@@ -285,6 +378,7 @@ const MapComponent = () => {
             highlightedDeliveryId={highlightedDeliveryId}
             onMouseEnterDelivery={handleMouseEnterDelivery}
             onMouseLeaveDelivery={handleMouseLeaveDelivery}
+            routes={routesWithCouriers} // Utilisation des routes avec info courier
           />
 
           {deliveryLoaded && (
