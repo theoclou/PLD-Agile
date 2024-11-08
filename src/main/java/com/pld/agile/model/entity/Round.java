@@ -123,7 +123,7 @@ public class Round {
 
             // TODO remplir ceci avec les résultats du GPS
             Integer warehouseIndex = plan.getIndexById(warehouse.getId());
-            List<Integer> bestRouteIndexes = solver.getBestPossiblePath(warehouseIndex); // jsp
+            List<Integer> bestRouteIndexes = solver.getBestPossiblePath(); // jsp
             List<Intersection> bestRoute = new ArrayList<>();
             for (Integer index : bestRouteIndexes) {
                 bestRoute.add(plan.getIntersectionById(plan.getIdByIndex(index)));
@@ -537,7 +537,7 @@ public class Round {
 
             // TODO remplir ceci avec les résultats du GPS
             Integer warehouseIndex = plan.getIndexById(warehouse.getId());
-            List<Integer> bestRouteIndexes = solver.getBestPossiblePath(warehouseIndex); // jsp
+            List<Integer> bestRouteIndexes = solver.getBestPossiblePath(); // jsp
             // Turning the path between delivery points into a global path with all intersections
             List<Intersection> bestRoute = plan.computeTour(bestRouteIndexes);
 

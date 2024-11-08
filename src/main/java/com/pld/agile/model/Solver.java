@@ -173,10 +173,14 @@ public class Solver {
      *
      * @return the best possible path as a list of vertices
      */
-    public List<Integer> getBestPossiblePath(Integer warehouse) {
+    public List<Integer> getBestPossiblePath() {
         List<Integer> bestPath = getBestPath();
         int servedPoints = (int) resultPoint.get("served");
+        System.out.println("We will serve :" + servedPoints + " points");
         List<Integer> bestPathSubList = bestPath.subList(0, servedPoints + 1);
+        if (servedPoints > 0 && bestPathSubList.getFirst() != bestPathSubList.getLast()) {
+            bestPathSubList.add(bestPathSubList.getFirst());
+        }
         return bestPathSubList;
     }
 
@@ -204,87 +208,140 @@ public class Solver {
      * limit (8 hours), given that the courier is traveling at 15 km/h and spends
      * an additional 5 minutes at each delivery point.
      */
+    // private void pointsToBeServed() {
+    // List<Integer> bestPath = getBestPath();
+    // Map<Integer, LocalTime> pointsWithTime = new HashMap<>();
+    // double currentCost = 0.0;
+    // double cumulativeTime = 0.0; // in hours
+    // int servedPoints = 0;
+    // double speed = 0.001; // km/h
+    // double serviceTimePerPoint = 5.0 / 60.0; // in hours (5 minutes)
+    // double timeLimit = 8.0; // in hours
+    // LocalTime currentTime = LocalTime.of(8, 0);
+    // int pathSize = bestPath.size();
+    // int initialPosition = bestPath.get(0);
+
+    // for (int i = 0; i < pathSize - 1; i++) {
+    // int currentPosition = bestPath.get(i);
+    // int nextPosition = bestPath.get(i + 1);
+
+    // // Compute distance and time to the next point
+    // double distanceToNextMeters = g.getCost(currentPosition, nextPosition); // in
+    // meters
+    // double distanceKmToNext = distanceToNextMeters / 1000.0; // convert to
+    // kilometers
+    // double timeToNextPoint = distanceKmToNext / speed; // time in hours
+
+    // // Service time at the next point
+    // double serviceTimeAtNextPoint = serviceTimePerPoint;
+
+    // // Compute time to return home from the next point
+    // double distanceToHomeFromNextMeters = g.getCost(nextPosition,
+    // initialPosition);
+    // double timeToReturnHomeFromNext = (distanceToHomeFromNextMeters / 1000.0) /
+    // speed; // time in hours
+
+    // // Compute total time if proceeding to the next point and then returning home
+    // double totalTimeIfProceedAndReturn = cumulativeTime + timeToNextPoint +
+    // serviceTimeAtNextPoint + timeToReturnHomeFromNext;
+
+    // // Check if total time exceeds the time limit
+    // if (totalTimeIfProceedAndReturn > timeLimit) {
+    // // Return home from the current position
+    // double distanceToHomeFromCurrentMeters = g.getCost(currentPosition,
+    // initialPosition);
+    // double timeToReturnHomeFromCurrent = (distanceToHomeFromCurrentMeters /
+    // 1000.0) / speed;
+
+    // cumulativeTime += timeToReturnHomeFromCurrent;
+    // // Update current time
+    // currentTime = LocalTime.of(8, 0).plusSeconds((long) (cumulativeTime * 3600));
+
+    // // Add cost to return home
+    // currentCost += distanceToHomeFromCurrentMeters;
+
+    // // Break the loop
+    // break;
+    // } else {
+    // // Proceed to the next point
+    // cumulativeTime += timeToNextPoint + serviceTimeAtNextPoint;
+
+    // // Update current time
+    // currentTime = LocalTime.of(8, 0).plusSeconds((long) (cumulativeTime * 3600));
+
+    // currentCost += distanceToNextMeters;
+
+    // servedPoints = i + 1;
+
+    // pointsWithTime.put(currentPosition, currentTime);
+    // }
+    // }
+
+    // // After the loop, return home from the last visited position if within time
+    // limit
+    // if (cumulativeTime <= timeLimit) {
+    // int lastPosition = servedPoints > 0 ? bestPath.get(servedPoints) :
+    // initialPosition;
+
+    // double distanceToHomeFromLastMeters = g.getCost(lastPosition,
+    // initialPosition);
+    // double timeToReturnHomeFromLast = (distanceToHomeFromLastMeters / 1000.0) /
+    // speed;
+
+    // cumulativeTime += timeToReturnHomeFromLast;
+    // currentTime = LocalTime.of(8, 0).plusSeconds((long) (cumulativeTime * 3600));
+
+    // currentCost += distanceToHomeFromLastMeters;
+
+    // pointsWithTime.put(initialPosition, currentTime);
+    // }
+
+    // resultPoint.put("served", servedPoints);
+    // resultPoint.put("cost", currentCost);
+    // resultPoint.put("pointsWithTime", pointsWithTime);
+    // }
     private void pointsToBeServed() {
         List<Integer> bestPath = getBestPath();
         Map<Integer, LocalTime> pointsWithTime = new HashMap<>();
         double currentCost = 0.0;
         double cumulativeTime = 0.0; // in hours
         int servedPoints = 0;
-        double speed = 15.0; // km/h
+        double speed = 1.0; // km/h
         double serviceTimePerPoint = 5.0 / 60.0; // in hours (5 minutes)
         double timeLimit = 8.0; // in hours
         LocalTime currentTime = LocalTime.of(8, 0);
         int pathSize = bestPath.size();
-        int initialPosition = bestPath.get(0);
-    
         for (int i = 0; i < pathSize - 1; i++) {
             int currentPosition = bestPath.get(i);
             int nextPosition = bestPath.get(i + 1);
-    
-            // Compute distance and time to the next point
-            double distanceToNextMeters = g.getCost(currentPosition, nextPosition); // in meters
-            double distanceKmToNext = distanceToNextMeters / 1000.0; // convert to kilometers
-            double timeToNextPoint = distanceKmToNext / speed; // time in hours
-    
-            // Service time at the next point
-            double serviceTimeAtNextPoint = serviceTimePerPoint;
-    
-            // Compute time to return home from the next point
-            double distanceToHomeFromNextMeters = g.getCost(nextPosition, initialPosition);
-            double timeToReturnHomeFromNext = (distanceToHomeFromNextMeters / 1000.0) / speed; // time in hours
-    
-            // Compute total time if proceeding to the next point and then returning home
-            double totalTimeIfProceedAndReturn = cumulativeTime + timeToNextPoint + serviceTimeAtNextPoint + timeToReturnHomeFromNext;
-    
-            // Check if total time exceeds the time limit
-            if (totalTimeIfProceedAndReturn > timeLimit) {
-                // Return home from the current position
-                double distanceToHomeFromCurrentMeters = g.getCost(currentPosition, initialPosition);
-                double timeToReturnHomeFromCurrent = (distanceToHomeFromCurrentMeters / 1000.0) / speed;
-    
-                cumulativeTime += timeToReturnHomeFromCurrent;
-                // Update current time
-                currentTime = LocalTime.of(8, 0).plusSeconds((long) (cumulativeTime * 3600));
-    
-                // Add cost to return home
-                currentCost += distanceToHomeFromCurrentMeters;
-    
-                // Break the loop
-                break;
-            } else {
-                // Proceed to the next point
-                cumulativeTime += timeToNextPoint + serviceTimeAtNextPoint;
-    
-                // Update current time
-                currentTime = LocalTime.of(8, 0).plusSeconds((long) (cumulativeTime * 3600));
-    
-                currentCost += distanceToNextMeters;
-    
-                servedPoints = i + 1;
-    
-                pointsWithTime.put(currentPosition, currentTime);
+            double distanceMeters = g.getCost(i, (i + 1) % vertices.size()); // in meters
+
+            double distanceKm = distanceMeters / 1000.0; // convert to kilometers
+            double timeToNextPoint = distanceKm / speed; // time in hours
+            cumulativeTime += timeToNextPoint;
+
+            // Add service time at each delivery point (except for the starting point)
+            if (i > 0) {
+                cumulativeTime += serviceTimePerPoint;
             }
-        }
-    
-        // After the loop, return home from the last visited position if within time limit
-        if (cumulativeTime <= timeLimit) {
-            int lastPosition = servedPoints > 0 ? bestPath.get(servedPoints) : initialPosition;
-    
-            double distanceToHomeFromLastMeters = g.getCost(lastPosition, initialPosition);
-            double timeToReturnHomeFromLast = (distanceToHomeFromLastMeters / 1000.0) / speed;
-    
-            cumulativeTime += timeToReturnHomeFromLast;
+
+            // Check if the cumulative time exceeds the 8-hour limit
+            if (cumulativeTime > timeLimit) {
+                break;
+            }
+
+            currentCost += distanceMeters;
+            servedPoints = i + 1; // since i starts from 0
+            pointsWithTime.put(currentPosition, currentTime);
+            // Update current time
             currentTime = LocalTime.of(8, 0).plusSeconds((long) (cumulativeTime * 3600));
-    
-            currentCost += distanceToHomeFromLastMeters;
-    
-            pointsWithTime.put(initialPosition, currentTime);
+
         }
-    
+        pointsWithTime.put(bestPath.getLast(), currentTime);
+
         resultPoint.put("served", servedPoints);
         resultPoint.put("cost", currentCost);
         resultPoint.put("pointsWithTime", pointsWithTime);
     }
-    
 
 }
