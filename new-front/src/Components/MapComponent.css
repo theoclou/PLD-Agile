@@ -91,3 +91,11 @@
 .custom-file-upload:hover {
   background-color: #485d77;
 }
+
+.cursor-crosshair {
+  cursor: crosshair;
+}
+
+.leaflet-container.cursor-crosshair {
+  cursor: crosshair !important;
+}

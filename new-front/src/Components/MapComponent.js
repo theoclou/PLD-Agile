@@ -7,7 +7,6 @@ import CourierCounter from "./CourierCounter";
 import "leaflet/dist/leaflet.css";
 import "./MapComponent.css";
 import TextSidebar from "./TextSidebar";
-import AddDeliveryPoint from "./AddDeliveryPoint";
 
 const MapComponent = () => {
   const [mapData, setMapData] = useState({ intersections: [], sections: [] });
@@ -21,7 +20,6 @@ const MapComponent = () => {
   const [popupMessage, setPopupMessage] = useState("");
   const [courierCount, setCourierCount] = useState(2);
   const [deliveryLoaded, setDeliveryLoaded] = useState(false);
-  const [addingDeliveryPoint, setAddingDeliveryPoint] = useState(false);
   const [highlightedDeliveryId, setHighlightedDeliveryId] = useState(null);
   const handleMouseEnterDelivery = (deliveryId) => {
     setHighlightedDeliveryId(deliveryId);
@@ -130,11 +128,11 @@ const MapComponent = () => {
   }, []);
 
   const handleFileChange = async (event) => {
-    setLoading(true);
     const selectedFile = event.target.files[0];
 
     if (selectedFile) {
       // Reset states
+      setLoading(true);
       setDeliveryData({ deliveries: [], warehouse: null });
       setDeliveryLoaded(false);
 
@@ -238,36 +236,32 @@ const MapComponent = () => {
     }
   };
 
-  const handleIntersectionClick = async (intersectionId) => {
-    if (addingDeliveryPoint) {
-      try {
-        const response = await fetch(`http://localhost:8080/addDeliveryPointById`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ intersectionId }),
-        });
+  const handleAddDeliveryPoint = async (intersectionId) => {
+    try {
+      const response = await fetch(`http://localhost:8080/addDeliveryPointById`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ intersectionId }),
+      });
 
-        if (response.ok) {
-          const result = await response.json();
-          if (result.deliveryRequest) {
-            setDeliveryData((prevData) => ({
-              ...prevData,
-              deliveries: [...prevData.deliveries, result.deliveryRequest],
-            }));
-          }
+      if (response.ok) {
+        const result = await response.json();
+        if (result.deliveryRequest) {
+          setDeliveryData((prevData) => ({
+            ...prevData,
+            deliveries: [...prevData.deliveries, result.deliveryRequest],
+          }));
         }
-      } catch (error) {
-        console.error("Error adding delivery request:", error);
+        setPopupVisible(false);
       }
-      setAddingDeliveryPoint(false);
+    } catch (error) {
+      console.error("Erreur lors de l'ajout du point de livraison:", error);
     }
   };
 
-  const handleAddDeliveryPoint = () => {
-    setAddingDeliveryPoint(true);
-  };
+
 
   return (
     <div className="container">
@@ -276,8 +270,6 @@ const MapComponent = () => {
 
       {mapLoaded && <LoadDeliveryButton onFileChange={handleLoadDelivery} />}
       <CourierCounter count={courierCount} setCount={setCourierCount} />
-
-      {deliveryLoaded && <AddDeliveryPoint onClick={handleAddDeliveryPoint} />}
 
       {loading && <div>Loading...</div>}
 
@@ -289,8 +281,7 @@ const MapComponent = () => {
             bounds={bounds}
             zoom={zoom}
             setZoom={setZoom}
-            onIntersectionClick={handleIntersectionClick}
-            addingDeliveryPoint={addingDeliveryPoint}
+            addingDeliveryPoint={handleAddDeliveryPoint}
             highlightedDeliveryId={highlightedDeliveryId}
             onMouseEnterDelivery={handleMouseEnterDelivery}
             onMouseLeaveDelivery={handleMouseLeaveDelivery}
@@ -303,9 +294,9 @@ const MapComponent = () => {
                 sections={mapData.sections}
                 onDelete={handleDelete}
                 warehouse={deliveryData.warehouse}
-                highlightedDeliveryId={highlightedDeliveryId} // <--- Passer l'état
-                onMouseEnterDelivery={handleMouseEnterDelivery} // <--- Méthode pour survol
-                onMouseLeaveDelivery={handleMouseLeaveDelivery} // <--- Méthode pour sortir du survol
+                highlightedDeliveryId={highlightedDeliveryId}
+                onMouseEnterDelivery={handleMouseEnterDelivery}
+                onMouseLeaveDelivery={handleMouseLeaveDelivery}
               />
             </div>
           )}

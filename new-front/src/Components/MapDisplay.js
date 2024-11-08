@@ -45,7 +45,6 @@ const MapDisplay = ({
                       bounds,
                       zoom,
                       setZoom,
-                      onIntersectionClick,
                       addingDeliveryPoint,
                       highlightedDeliveryId,
                       onMouseEnterDelivery,
@@ -111,7 +110,7 @@ const MapDisplay = ({
         <MapMarker
           key={intersection.id}
           intersection={intersection}
-          onIntersectionClick={addingDeliveryPoint ? onIntersectionClick : null}
+          onAddDeliveryPoint={addingDeliveryPoint}
         />
       ))}
 
