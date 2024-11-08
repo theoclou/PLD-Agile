@@ -64,7 +64,6 @@ const MapDisplay = ({
   bounds,
   zoom,
   setZoom,
-  onIntersectionClick,
   addingDeliveryPoint,
   highlightedDeliveryId,
   onMouseEnterDelivery,

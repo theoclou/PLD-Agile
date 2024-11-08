@@ -60,6 +60,14 @@ public class Round {
     }
 
     /**
+     * Soft resets the round by clearing KNN and tourAttribution.
+     */
+    public void softReset() {
+        KNN = new KMeansClustering();
+        tourAttribution = new ArrayList<DeliveryTour>();
+    }
+
+    /**
      * Returns the map of courier assignments to delivery tours.
      *
      * @return a map where each {@code Courier} is assigned a {@code DeliveryTour}

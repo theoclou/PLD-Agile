@@ -166,6 +166,18 @@ public class Plan {
         IntersectionsTour.clear();
     }
 
+
+    /**
+     * Soft resets the map, clearing all but the intersections and sections.
+     */
+    public void softResetMap() {
+        indexes.clear();
+        reverseIndexes.clear();
+        costsMatrix.clear();
+        tour.clear();
+        IntersectionsTour.clear();
+    }
+
     /**
      * Returns the list of sections in the plan.
      *
