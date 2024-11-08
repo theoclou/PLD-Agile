@@ -5,36 +5,40 @@ import PropTypes from "prop-types";
 import deliveryMarker from "../Assets/deliveryMarker.png";
 
 // Composant DeliveryPointMarker optimisé
-const DeliveryPointMarker = React.memo(({ delivery, highlighted, onMouseEnter, onMouseLeave }) => {
-  const markerRef = useRef();
+const DeliveryPointMarker = React.memo(
+  ({ delivery, highlighted, onMouseEnter, onMouseLeave }) => {
+    const markerRef = useRef();
 
-  const icon = L.icon({
-    iconUrl: deliveryMarker,
-    iconSize: highlighted ? [40, 40] : [30, 30],
-    iconAnchor: [15, 15],
-    popupAnchor: [0, -10],
-  });
+    const icon = L.icon({
+      iconUrl: deliveryMarker,
+      iconSize: highlighted ? [40, 40] : [30, 30],
+      iconAnchor: [15, 15],
+      popupAnchor: [0, -10],
+    });
 
-  useEffect(() => {
-    const marker = markerRef.current;
-    if (marker) {
-      // Ajouter les écouteurs d'événements directement sur l'instance du marker
-      marker.on("mouseover", () => onMouseEnter(delivery.deliveryAdress.id));
-      marker.on("mouseout", onMouseLeave);
+    useEffect(() => {
+      const marker = markerRef.current;
+      if (marker) {
+        // Ajouter les écouteurs d'événements directement sur l'instance du marker
+        marker.on("mouseover", () => onMouseEnter(delivery.deliveryAdress.id));
+        marker.on("mouseout", onMouseLeave);
 
-      // Nettoyer les écouteurs d'événements quand le composant est démonté
-      return () => {
-        marker.off("mouseover");
-        marker.off("mouseout");
-      };
-    }
-  }, [onMouseEnter, onMouseLeave, delivery.deliveryAdress.id]);
+        // Nettoyer les écouteurs d'événements quand le composant est démonté
+        return () => {
+          marker.off("mouseover");
+          marker.off("mouseout");
+        };
+      }
+    }, [onMouseEnter, onMouseLeave, delivery.deliveryAdress.id]);
 
-  return (
+    return (
       <Marker
-          ref={markerRef} // Utiliser ref directement ici
-          position={[delivery.deliveryAdress.latitude, delivery.deliveryAdress.longitude]}
-          icon={icon}
+        ref={markerRef} // Utiliser ref directement ici
+        position={[
+          delivery.deliveryAdress.latitude,
+          delivery.deliveryAdress.longitude,
+        ]}
+        icon={icon}
       >
         <Popup>
           Intersection ID: {delivery.deliveryAdress.id}
@@ -43,11 +47,17 @@ const DeliveryPointMarker = React.memo(({ delivery, highlighted, onMouseEnter, o
           <br />
           Longitude: {delivery.deliveryAdress.longitude}
           <br />
-          Courier: {delivery.courier === null ? "Unassigned" : delivery.courier.id}
+          Courier:{" "}
+          {delivery.courier === null ? "Unassigned" : delivery.courier.id}
+          <br />
+          {delivery.arrivalTime === null
+            ? ""
+            : "Arrival time: " + delivery.arrivalTime}
         </Popup>
       </Marker>
-  );
-});
+    );
+  }
+);
 
 DeliveryPointMarker.propTypes = {
   delivery: PropTypes.shape({
@@ -58,6 +68,10 @@ DeliveryPointMarker.propTypes = {
     }).isRequired,
     courier: PropTypes.shape({
       id: PropTypes.number,
+    }),
+    arrivalTime: PropTypes.shape({
+      hours: PropTypes.number.isRequired,
+      minutes: PropTypes.number.isRequired,
     }),
   }).isRequired,
   highlighted: PropTypes.bool,

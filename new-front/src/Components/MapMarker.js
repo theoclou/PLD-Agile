@@ -44,7 +44,7 @@ const MapMarker = React.memo(({ intersection, onIntersectionClick }) => {
         mouseout: () => {
           setIsHighlighted(false);
           setPopupOpen(false);
-        }
+        },
       }}
     >
       {popupOpen && (
@@ -62,7 +62,7 @@ const MapMarker = React.memo(({ intersection, onIntersectionClick }) => {
 
 MapMarker.propTypes = {
   intersection: PropTypes.shape({
-    id: PropTypes.number.isRequired,
+    id: PropTypes.string.isRequired,
     latitude: PropTypes.number.isRequired,
     longitude: PropTypes.number.isRequired,
   }).isRequired,
