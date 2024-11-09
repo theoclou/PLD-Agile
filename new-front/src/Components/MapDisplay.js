@@ -69,6 +69,7 @@ const MapDisplay = ({
   onMouseEnterDelivery,
   onMouseLeaveDelivery,
   routes = [],
+  returnTimes,
 }) => {
   const routesRef = useRef(routes);
   const [forceUpdate, setForceUpdate] = useState(0);
@@ -231,6 +232,7 @@ const MapDisplay = ({
         <WarehouseMarker
           key={memoizedWarehouse.id}
           warehouse={memoizedWarehouse}
+          returnTimes={returnTimes}
         />
       )}
 

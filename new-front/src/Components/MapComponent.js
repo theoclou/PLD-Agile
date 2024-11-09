@@ -25,9 +25,8 @@ const MapComponent = () => {
   const [courierCount, setCourierCount] = useState(2);
   const [deliveryLoaded, setDeliveryLoaded] = useState(false);
   const [highlightedDeliveryId, setHighlightedDeliveryId] = useState(null);
-  const [tours, setTours] = useState([]);
-  const [routes, setRoutes] = useState([]);
   const [routesWithCouriers, setRoutesWithCouriers] = useState([]);
+  const [returnTimes, setReturnTimes] = useState([]);
   const handleMouseEnterDelivery = (deliveryId) => {
     setHighlightedDeliveryId(deliveryId);
   };
@@ -142,8 +141,6 @@ const MapComponent = () => {
       setLoading(true);
       setDeliveryData({ deliveries: [], warehouse: null });
       setDeliveryLoaded(false);
-      setRoutes([]);
-      setTours([]);
       setRoutesWithCouriers([]);
 
       const formData = new FormData();
@@ -251,13 +248,16 @@ const MapComponent = () => {
 
   const handleAddDeliveryPoint = async (intersectionId) => {
     try {
-      const response = await fetch(`http://localhost:8080/addDeliveryPointById`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ intersectionId }),
-      });
+      const response = await fetch(
+        `http://localhost:8080/addDeliveryPointById`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ intersectionId }),
+        }
+      );
 
       if (response.ok) {
         const result = await response.json();
@@ -273,8 +273,6 @@ const MapComponent = () => {
       console.error("Erreur lors de l'ajout du point de livraison:", error);
     }
   };
-
-
 
   const setCourierNumber = async (courierNumber) => {
     try {
@@ -306,7 +304,6 @@ const MapComponent = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setTours(data.tours);
 
         // Transformer les tours en routes avec information du courier
         const routesWithCourierInfo = data.tours.map((tour) => ({
@@ -315,10 +312,20 @@ const MapComponent = () => {
         }));
         setRoutesWithCouriers(routesWithCourierInfo);
 
+        // Mise à jour des temps de retour
+        setReturnTimes(() => {
+          const newReturnTimes = [];
+          data.tours.forEach((tour) => {
+            newReturnTimes.push(tour.endTime);
+          });
+          return newReturnTimes;
+        });
+
         // Mise à jour des données de livraison avec les informations des tournées
         setDeliveryData((prevData) => {
           const updatedDeliveries = [...prevData.deliveries];
 
+          console.log("tour", data.tours);
           data.tours.forEach((tour) => {
             tour.deliveryRequests.forEach((tourDelivery) => {
               const deliveryIndex = updatedDeliveries.findIndex(
@@ -379,6 +386,7 @@ const MapComponent = () => {
             onMouseEnterDelivery={handleMouseEnterDelivery}
             onMouseLeaveDelivery={handleMouseLeaveDelivery}
             routes={routesWithCouriers} // Utilisation des routes avec info courier
+            returnTimes={returnTimes}
           />
 
           {deliveryLoaded && (
