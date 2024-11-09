@@ -11,7 +11,6 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-leaflet": "^4.2.1",
-    "react-leaflet-arrowheads": "^1.1.0",
     "react-leaflet-cluster": "^2.1.0",
     "react-leaflet-markercluster": "^2.0.0",
     "react-router-dom": "^6.27.0",
