@@ -170,6 +170,10 @@ const MapComponent = () => {
 
   const handleLoadDelivery = async (event) => {
     const selectedFile = event.target.files[0];
+    //Reset states
+    setDeliveryData({ deliveries: [], warehouse: null });
+    setDeliveryLoaded(false);
+    setRoutesWithCouriers([]);
 
     if (selectedFile) {
       try {
@@ -362,34 +366,34 @@ const MapComponent = () => {
   };
 
   return (
-      <div className="container">
-        <h1 className="title">Pick'One</h1>
+    <div className="container">
+      <h1 className="title">Pick'One</h1>
 
-        <div className="buttonGlobalContainer">
-          <FileUploadButton onFileChange={handleFileChange}/>
-          {mapLoaded && <LoadDeliveryButton onFileChange={handleLoadDelivery}/>}
-          <CourierCounter count={courierCount} setCount={setCourierCount}/>
-          {deliveryLoaded && <ComputeTour onClick={handleComputeTour}/>}
-        </div>
+      <div className="buttonGlobalContainer">
+        <FileUploadButton onFileChange={handleFileChange} />
+        {mapLoaded && <LoadDeliveryButton onFileChange={handleLoadDelivery} />}
+        <CourierCounter count={courierCount} setCount={setCourierCount} />
+        {deliveryLoaded && <ComputeTour onClick={handleComputeTour} />}
+      </div>
 
-          {loading && <div>Loading...</div>}
+      {loading && <div>Loading...</div>}
 
       {mapLoaded && (
         <div className="map-sidebar-container">
           <div className="map-container">
-          <MapDisplay
-            mapData={mapData}
-            deliveryData={deliveryData}
-            bounds={bounds}
-            zoom={zoom}
-            setZoom={setZoom}
-            addingDeliveryPoint={handleAddDeliveryPoint}
-            highlightedDeliveryId={highlightedDeliveryId}
-            onMouseEnterDelivery={handleMouseEnterDelivery}
-            onMouseLeaveDelivery={handleMouseLeaveDelivery}
-            routes={routesWithCouriers} // Utilisation des routes avec info courier
-            returnTimes={returnTimes}
-          />
+            <MapDisplay
+              mapData={mapData}
+              deliveryData={deliveryData}
+              bounds={bounds}
+              zoom={zoom}
+              setZoom={setZoom}
+              addingDeliveryPoint={handleAddDeliveryPoint}
+              highlightedDeliveryId={highlightedDeliveryId}
+              onMouseEnterDelivery={handleMouseEnterDelivery}
+              onMouseLeaveDelivery={handleMouseLeaveDelivery}
+              routes={routesWithCouriers} // Utilisation des routes avec info courier
+              returnTimes={returnTimes}
+            />
           </div>
 
           {deliveryLoaded && (
@@ -408,11 +412,11 @@ const MapComponent = () => {
         </div>
       )}
 
-          {popupVisible && (
-              <ErrorPopup message={popupMessage} onClose={handleClosePopup}/>
-          )}
-        </div>
-        );
-        };
+      {popupVisible && (
+        <ErrorPopup message={popupMessage} onClose={handleClosePopup} />
+      )}
+    </div>
+  );
+};
 
-        export default MapComponent;
+export default MapComponent;

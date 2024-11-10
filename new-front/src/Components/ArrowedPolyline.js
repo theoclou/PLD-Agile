@@ -19,9 +19,11 @@ const ArrowedPolyline = React.memo(
       // Fonction pour ajuster la taille des flèches selon le zoom
       const getArrowSize = () => {
         const zoom = map.getZoom();
+        console.log("zoom : " + zoom);
         // Ajustez ces valeurs selon vos besoins
-        if (zoom <= 12) return 6;
-        if (zoom <= 14) return 8;
+        if (zoom <= 10) return 2;
+        if (zoom <= 12) return 5;
+        if (zoom <= 14) return 7;
         if (zoom <= 16) return 10;
         return 12;
       };
@@ -30,8 +32,9 @@ const ArrowedPolyline = React.memo(
       const getArrowSpacing = () => {
         const zoom = map.getZoom();
         // Ajustez ces valeurs selon vos besoins
-        if (zoom <= 12) return 100;
-        if (zoom <= 14) return 80;
+        if (zoom <= 10) return 150;
+        if (zoom <= 12) return 120;
+        if (zoom <= 14) return 90;
         if (zoom <= 16) return 60;
         return 50;
       };
