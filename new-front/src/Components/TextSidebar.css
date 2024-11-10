@@ -86,9 +86,6 @@
     border: 1px solid #e5e7eb;
 }
 
-.delivery-point.highlighted {
-    background-color: yellow;
-}
 
 /* Détails du point de livraison */
 .delivery-title {
@@ -111,3 +108,33 @@
     background: none;
     font-size: 20px;
 }
+
+.deletebutton {
+    padding: 2px 6px;
+    font-size: 1rem;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 400;
+    color: white;
+    background-color: #b8b8b8; {/*#737373*/}
+    border: 2px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    margin-right: 2%;
+    margin-left: 2%;
+    white-space: nowrap;
+}
+
+.deletebutton:hover {
+    background-color: #b8b8b8;
+    transform: scale(1.05);
+    border-radius: 8px;
+}
+
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+

@@ -1,15 +1,17 @@
 // src/Components/Popup.js
 import React from "react";
-import "./ErrorPopup.css"; // Assurez-vous d'avoir un fichier CSS pour le style
+import "./ErrorPopup.css";
 import PropTypes from "prop-types";
 
 const ErrorPopup = ({ message, onClose }) => {
   return (
     <div className="popup-overlay">
       <div className="popup">
-        <h2>Error</h2>
+        <div className="popup-title"> Error </div>
         <p>{message}</p>
-        <button onClick={onClose}>Close</button>
+          <div className="button-container">
+              <button onClick={onClose}>Close</button>
+          </div>
       </div>
     </div>
   );

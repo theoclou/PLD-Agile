@@ -12,9 +12,9 @@
   font-family: 'Montserrat', sans-serif;
   font-weight: 400;
   position: fixed;
-  top: 2%; /* Positionne le titre à 5% du haut de la page */
-  left: 50%; /* Centre horizontalement */
-  transform: translateX(-50%); /* Centre précisément en soustrayant 50% de sa largeur */
+  top: 2%; /* Title at 5% of the top of the page */
+  left: 50%; /* Center horizontally */
+  transform: translateX(-50%); /* Center */
   font-size: 4.5rem;
   color: #333333;
   margin: 0;
@@ -78,7 +78,7 @@
   transition: all 0.3s ease-in-out;
   margin-right: 2%;
   margin-left: 2%;
-  white-space: nowrap
+  white-space: nowrap;
 }
 
 .button:hover {

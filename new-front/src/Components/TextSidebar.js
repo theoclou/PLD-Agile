@@ -107,7 +107,6 @@ const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, h
       )}
 
       <h2 className="section-title">Delivery Points</h2>
-        <div className="section-container">
             {deliveryData.map((delivery) => {
                 // Find sections that contain this delivery point
                 const relatedSections = sections.filter(
@@ -127,27 +126,26 @@ const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, h
                 const limitedSections = uniqueSections.slice(0, 2);
 
                 return (
-
-
+                    <div className="section-container">
                     <div key={delivery.deliveryAdress.id}
                          onMouseEnter={() => onMouseEnterDelivery(delivery.deliveryAdress.id)}
                          onMouseLeave={onMouseLeaveDelivery}
                          className={`delivery-item ${highlightedDeliveryId === delivery.deliveryAdress.id ? "highlighted" : ""}`}
-                         style={{backgroundColor: highlightedDeliveryId === delivery.deliveryAdress.id ? 'yellow' : 'transparent'}}>
+                         style={{backgroundColor: highlightedDeliveryId === delivery.deliveryAdress.id ? 'rgb(255, 233, 233)' : 'transparent'}}>
 
                         <h3 className="section-title">
                             Delivery Point #{delivery.deliveryAdress.id}
                         </h3>
 
                         <div className="warehouse-section">
-                            <div className="text-sm">
+                            <div>
                                 <span className="section-info">Courier ID: </span>
                                 <span className="section-info">
                     {delivery.courier === null ? "Unassigned" : delivery.courier.id}
                   </span>
                             </div>
 
-                            <div className="text-sm">
+                            <div>
                                 <span className="section-title">Sections around: </span>
                                 <div className="section-list">
                                     {limitedSections.length > 0 ? (
@@ -158,25 +156,27 @@ const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, h
                                             </div>
                                         ))
                                     ) : (
-                                        <span className="text-gray-500">No connected sections</span>
+                                        <span className="no-sections">No connected sections</span>
                                     )}
                                 </div>
                             </div>
                         </div>
+                        <div className="button-container">
                         <button
                             onClick={() => {
                                 console.log("Delete button clicked for ID:", delivery.deliveryAdress.id);
                                 onDelete(delivery.deliveryAdress.id);
                             }}
-                            className="text-red-500 hover:text-red-700"
+                            className="deletebutton"
                         >
                             &times; {/* Button to delete the delivery point */}
                         </button>
                     </div>
+                    </div>
+                    </div>
                 );
             })}
         </div>
-    </div>
   );
 });
 

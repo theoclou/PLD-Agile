@@ -1,5 +1,5 @@
 .popup-overlay {
-    position: fixed; /* Assure que le pop-up est fixé par rapport à la fenêtre */
+    position: fixed; /* Popup fixed on the window */
     top: 0;
     left: 0;
     right: 0;
@@ -8,17 +8,43 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000; /* Assurez-vous que le z-index est supérieur à celui de la carte */
+    z-index: 1000;
+}
+
+.popup-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 27px ;
 }
 
 .popup {
+    font-family: 'Montserrat', sans-serif;
     background: white;
     padding: 20px;
     border-radius: 5px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    z-index: 1001; /* Le pop-up doit être au-dessus de l'overlay */
+    z-index: 1001;
+}
+
+.popup .button-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
 }
 
 .popup button {
     margin-top: 10px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    padding: 10px 20px;
+    border-radius: 5px;
+    background-color: #737373;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.popup button:hover {
+    background-color: #b8b8b8;
 }
