@@ -60,11 +60,22 @@ public class Round {
     }
 
     /**
+     * Soft resets the round by clearing KNN and tourAttribution.
+     */
+    public void softReset() {
+        KNN = new KMeansClustering();
+        tourAttribution = new ArrayList<DeliveryTour>();
+    }
+
+    /**
      * Returns the map of courier assignments to delivery tours.
      *
      * @return a map where each {@code Courier} is assigned a {@code DeliveryTour}
      */
     public List<DeliveryTour> getTourAttribution() {
+        for(DeliveryTour tour : tourAttribution){
+            System.out.println("route : " + tour.getRoute());
+        }
         return tourAttribution;
     }
 
@@ -535,22 +546,11 @@ public class Round {
                 courierDeliveryRequests.add(deliveryRequest);
             }
 
-            // TODO remplir ceci avec les résultats du GPS
             Integer warehouseIndex = plan.getIndexById(warehouse.getId());
             List<Integer> bestRouteIndexes = solver.getBestPossiblePath(warehouseIndex); // jsp
             // Turning the path between delivery points into a global path with all intersections
             List<Intersection> bestRoute = plan.computeTour(bestRouteIndexes);
 
-
-
-//
-//            List<Intersection> bestRoute = new ArrayList<>(); // Might need to turn that into a String and only keep the
-//                                                              // ID
-//            bestRoute.add(warehouse);
-//            for (Integer i : bestRouteIndexes) {
-//                bestRoute.add(plan.getIntersectionById(plan.getIdByIndex(i)));
-//            }
-//            bestRoute.add(warehouse);
 
             Map<Integer, LocalTime> arrivalTimesByIndex = solver.getPointsWithTime();
             Map<Intersection, LocalTime> arrivalTimes = new HashMap<>(); // Might need to turn that into a String and
@@ -559,9 +559,8 @@ public class Round {
             for (Map.Entry<Integer, LocalTime> entry : arrivalTimesByIndex.entrySet()) {
                 arrivalTimes.put(plan.getIntersectionById(plan.getIdByIndex(entry.getKey())), entry.getValue());
             }
-            LocalTime endTime = arrivalTimesByIndex.get(warehouseIndex); //TODO doesnt seem to work well, maybe warehouseIndex is not the right index or solver does not treat him first
-
-            DeliveryTour courierDeliveryTour = new DeliveryTour(courier, endTime, courierDeliveryRequests, bestRoute,
+            LocalTime endTime = arrivalTimesByIndex.get(warehouseIndex);
+            DeliveryTour courierDeliveryTour = new DeliveryTour(courier, endTime, courierDeliveryRequests, new ArrayList<>(bestRoute),
                     arrivalTimes);
             tourAttribution.add(courierDeliveryTour);
 

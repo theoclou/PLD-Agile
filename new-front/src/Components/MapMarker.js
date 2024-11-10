@@ -20,53 +20,51 @@ const highlightedIcon = L.divIcon({
   popupAnchor: [0, -12],
 });
 
-const MapMarker = React.memo(({ intersection, onIntersectionClick }) => {
+const MapMarker = React.memo(({ intersection, onAddDeliveryPoint  }) => {
   const [isHighlighted, setIsHighlighted] = useState(false);
-  const [popupOpen, setPopupOpen] = useState(false);
 
   const handleClick = () => {
-    console.log("Intersection clicked:", intersection.id);
-    if (onIntersectionClick && intersection) {
-      onIntersectionClick(intersection.id);
-    }
+    onAddDeliveryPoint(intersection); // Appelle la fonction passée en prop
   };
 
   return (
-    <Marker
-      position={[intersection.latitude, intersection.longitude]}
-      icon={isHighlighted ? highlightedIcon : blackIcon}
-      eventHandlers={{
-        click: handleClick,
-        mouseover: () => {
-          setIsHighlighted(true);
-          setPopupOpen(true);
-        },
-        mouseout: () => {
-          setIsHighlighted(false);
-          setPopupOpen(false);
-        }
-      }}
-    >
-      {popupOpen && (
+      <Marker
+          position={[intersection.latitude, intersection.longitude]}
+          icon={isHighlighted ? highlightedIcon : blackIcon}
+          eventHandlers={{
+            click: handleClick,
+            mouseover: () => {
+              setIsHighlighted(true);
+            },
+            mouseout: () => {
+              setIsHighlighted(false);
+            },
+          }}
+      >
         <Popup>
-          Intersection ID: {intersection.id}
-          <br />
-          Latitude: {intersection.latitude}
-          <br />
-          Longitude: {intersection.longitude}
+          <div>
+            Intersection ID: {intersection.id}
+            <br/>
+            Latitude: {intersection.latitude}
+            <br/>
+            Longitude: {intersection.longitude}
+            <br/>
+            <button onClick={() => onAddDeliveryPoint(intersection.id)}>
+              Add to delivery points
+            </button>
+          </div>
         </Popup>
-      )}
-    </Marker>
+      </Marker>
   );
 });
 
 MapMarker.propTypes = {
   intersection: PropTypes.shape({
-    id: PropTypes.number.isRequired,
+    id: PropTypes.string.isRequired,
     latitude: PropTypes.number.isRequired,
     longitude: PropTypes.number.isRequired,
   }).isRequired,
-  onIntersectionClick: PropTypes.func,
+  onAddDeliveryPoint: PropTypes.func.isRequired,
 };
 
 MapMarker.displayName = "MapMarker";

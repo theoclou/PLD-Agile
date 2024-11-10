@@ -149,6 +149,9 @@ public class Plan {
         System.out.println("Nombre de tronçons : " + sections.size());
     }
 
+
+
+
     /**
      * Resets the map, clearing all intersections and sections previously loaded.
      */
@@ -156,6 +159,18 @@ public class Plan {
         intersectionMap.clear();
         intersections.clear();
         sections.clear();
+        indexes.clear();
+        reverseIndexes.clear();
+        costsMatrix.clear();
+        tour.clear();
+        IntersectionsTour.clear();
+    }
+
+
+    /**
+     * Soft resets the map, clearing all but the intersections and sections.
+     */
+    public void softResetMap() {
         indexes.clear();
         reverseIndexes.clear();
         costsMatrix.clear();
@@ -186,7 +201,7 @@ public class Plan {
      *
      * @param id the ID of the intersection
      * @return the {@code Intersection} object with the given ID, or {@code null} if
-     *         not found
+     * not found
      */
     public Intersection getIntersectionById(String id) {
         return intersectionMap.get(id);
@@ -311,7 +326,7 @@ public class Plan {
      * @param numNodes the total number of nodes in the graph
      * @param origin   the index of the origin node
      * @return a {@code double[]} array where the distance to the origin node is 0
-     *         and all other distances are infinity
+     * and all other distances are infinity
      */
     private double[] initializeDistances(int numNodes, int origin) {
         double[] distances = new double[numNodes];
@@ -353,7 +368,7 @@ public class Plan {
      * @param costsMatrix   the adjacency matrix representing the cost between nodes
      */
     private void updateNeighborDistances(int currentNode, int numNodes, double[] distances, boolean[] visited,
-            int[] previousNodes, PriorityQueue<Integer> priorityQueue, ArrayList<ArrayList<Double>> costsMatrix) {
+                                         int[] previousNodes, PriorityQueue<Integer> priorityQueue, ArrayList<ArrayList<Double>> costsMatrix) {
         for (int neighbor = 0; neighbor < numNodes; neighbor++) {
             if (!visited[neighbor] && costsMatrix.get(currentNode).get(neighbor) < Double.MAX_VALUE) {
                 double newDist = distances[currentNode] + costsMatrix.get(currentNode).get(neighbor);
@@ -379,8 +394,8 @@ public class Plan {
      * @param previousNodes the array storing the previous node for each node in the
      *                      shortest path
      * @return a {@code List<Integer>} representing the shortest path from the
-     *         origin to the destination.
-     *         If no path exists, an empty list is returned.
+     * origin to the destination.
+     * If no path exists, an empty list is returned.
      */
     private List<Integer> reconstructPath(int destination, int origin, int[] previousNodes) {
         List<Integer> path = new ArrayList<>();
@@ -513,8 +528,12 @@ public class Plan {
      * @return the list of intersection IDs in the order of the tour
      */
     public List<Intersection> computeTour(List<Integer> path) {
+        tour.clear();
+        IntersectionsTour.clear();
+
         constructTour(path);
         List<Intersection> finalResult = makeIntersectionsTour();
+        System.out.println("Tour size: " + finalResult.size());
         return finalResult;
     }
 
@@ -533,6 +552,7 @@ public class Plan {
     }
 
     // --------------------------------------------------------------------------------------
+
     /**
      * Reads an XML file from a {@code MultipartFile} and parses its content into
      * the

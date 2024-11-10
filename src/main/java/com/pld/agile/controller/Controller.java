@@ -188,7 +188,10 @@ public class Controller {
      */
     @PostMapping("/compute")
     public Map<String, List<DeliveryTour>> computeTours() {
+        map.softResetMap();
         map.preprocessData();
+
+        round.softReset();
         round.init(numberOfCouriers, map);
         round.computeRoundOptimized();
         List<DeliveryTour> tourAttribution = round.getTourAttribution();

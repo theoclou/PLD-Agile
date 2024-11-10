@@ -136,3 +136,11 @@
   white-space: nowrap;
   gap: 10px;
 }
+
+.cursor-crosshair {
+  cursor: crosshair;
+}
+
+.leaflet-container.cursor-crosshair {
+  cursor: crosshair !important;
+}

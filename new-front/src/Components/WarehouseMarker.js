@@ -3,6 +3,7 @@ import { Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import PropTypes from "prop-types";
 import warehouseMarker from "../Assets/warehouseMarker.png";
+import "./WarehouseMarker.css";
 
 const icon = L.icon({
   iconUrl: warehouseMarker,
@@ -12,7 +13,7 @@ const icon = L.icon({
 });
 
 // Composant DeliveryPointMarker optimisé
-const WarehouseMarker = React.memo(({ warehouse }) => {
+const WarehouseMarker = React.memo(({ warehouse, returnTimes }) => {
   return (
     <Marker
       position={[warehouse.latitude, warehouse.longitude]}
@@ -24,6 +25,17 @@ const WarehouseMarker = React.memo(({ warehouse }) => {
         Latitude: {warehouse.latitude}
         <br />
         Longitude: {warehouse.longitude}
+        <br />
+        Return Times :
+        <>
+          <ul className="no-vertical-margin">
+            {returnTimes.map((time, index) => (
+              <li key={index}>
+                Courier {index + 1}: {time}
+              </li>
+            ))}
+          </ul>
+        </>
       </Popup>
     </Marker>
   );
@@ -36,6 +48,7 @@ WarehouseMarker.propTypes = {
     latitude: PropTypes.number,
     longitude: PropTypes.number,
   }),
+  returnTimes: PropTypes.array,
 };
 
 //display name definition
