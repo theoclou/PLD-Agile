@@ -6,6 +6,7 @@ import React, {
   useRef,
 } from "react";
 import { MapContainer, TileLayer, Polyline, useMap } from "react-leaflet";
+import ArrowedPolyline from "./ArrowedPolyline";
 import MapMarker from "./MapMarker";
 import DeliveryPointMarker from "./DeliveryPointMarker";
 import WarehouseMarker from "./WarehouseMarker";
@@ -95,27 +96,17 @@ const MapDisplay = ({
     [deliveryData]
   );
 
-  function arraysEqual(arr1, arr2) {
-    if (arr1 === undefined || arr2 === undefined) return false;
-    if (arr1.length !== arr2.length) return false;
-    for (let i = 0; i < arr1.length; i++) {
-      if (
-        arr1[i].id !== arr2[i].id ||
-        arr1[i].latitude !== arr2[i].latitude ||
-        arr1[i].longitude !== arr2[i].longitude
-      ) {
-        return false;
-      }
-    }
-    return true;
-  }
   // Nouvelle fonction pour trouver la route et le coursier associé à une section
   const findRouteAndCourier = useCallback(
     (origin, destination) => {
       const sectionKey = `${origin.id}-${destination.id}`;
       const reverseSectionKey = `${destination.id}-${origin.id}`;
 
-      for (const route of routes) {
+      // Stocker toutes les utilisations de la section
+      const sectionUsages = [];
+
+      // Parcourir toutes les routes pour trouver les utilisations de la section
+      routes.forEach((route, routeIndex) => {
         const path = route.path;
         for (let i = 0; i < path.length - 1; i++) {
           const currentKey = `${path[i].id}-${path[i + 1].id}`;
@@ -123,21 +114,42 @@ const MapDisplay = ({
 
           if (
             currentKey === sectionKey ||
-            currentKey === reverseSectionKey ||
             reverseKey === sectionKey ||
+            currentKey === reverseSectionKey ||
             reverseKey === reverseSectionKey
           ) {
-            return {
-              found: true,
+            sectionUsages.push({
               courierId: route.courierId,
-            };
+              routeIndex,
+              pathIndex: i,
+              direction:
+                currentKey === sectionKey || reverseKey === reverseSectionKey
+                  ? "forward"
+                  : "reverse",
+            });
           }
         }
+      });
+
+      // S'il n'y a pas d'utilisation, retourner non trouvé
+      if (sectionUsages.length === 0) {
+        return {
+          found: false,
+          courierId: null,
+          direction: null,
+        };
       }
 
+      // S'il y a plusieurs utilisations, prendre celle qui a l'index de route le plus petit
+      // Cela garantit une cohérence dans l'affichage
+      const primaryUsage = sectionUsages.reduce((prev, curr) =>
+        prev.routeIndex < curr.routeIndex ? prev : curr
+      );
+
       return {
-        found: false,
-        courierId: null,
+        found: true,
+        courierId: primaryUsage.courierId,
+        direction: primaryUsage.direction,
       };
     },
     [routes]
@@ -171,33 +183,56 @@ const MapDisplay = ({
   }, [memoizedIntersections]);
 
   const renderedSections = useMemo(() => {
-    return memoizedSections.map((section, index) => {
-      const { origin, destination } = section;
-      if (!origin?.latitude || !destination?.latitude) return null;
+    const renderedSectionKeys = new Set();
 
-      const latLngs = [
-        [origin.latitude, origin.longitude],
-        [destination.latitude, destination.longitude],
-      ];
+    return memoizedSections
+      .map((section, index) => {
+        const { origin, destination } = section;
+        if (!origin?.latitude || !destination?.latitude) return null;
 
-      const { found, courierId } = findRouteAndCourier(origin, destination);
+        const sectionKey = `${origin.id}-${destination.id}`;
+        if (renderedSectionKeys.has(sectionKey)) return null;
+        renderedSectionKeys.add(sectionKey);
+        renderedSectionKeys.add(`${destination.id}-${origin.id}`);
 
-      return (
-        <Polyline
-          key={`${index}-${forceUpdate}`}
-          positions={latLngs}
-          color={
-            found
-              ? COURIER_COLORS[courierId] || DEFAULT_SECTION_COLOR
-              : DEFAULT_SECTION_COLOR
-          }
-          weight={found ? 3 : 2}
-          opacity={1}
-        />
-      );
-    });
+        const latLngs = [
+          [origin.latitude, origin.longitude],
+          [destination.latitude, destination.longitude],
+        ];
+
+        const { found, courierId, direction } = findRouteAndCourier(
+          origin,
+          destination
+        );
+
+        if (!found) {
+          return (
+            <Polyline
+              key={`${index}-${forceUpdate}`}
+              positions={latLngs}
+              color={DEFAULT_SECTION_COLOR}
+              weight={2}
+              opacity={0.7}
+            />
+          );
+        }
+
+        return (
+          <ArrowedPolyline
+            key={`${index}-${forceUpdate}`}
+            positions={
+              direction === "reverse" ? [...latLngs].reverse() : latLngs
+            }
+            color={COURIER_COLORS[courierId] || DEFAULT_SECTION_COLOR}
+            weight={3}
+            arrowSize={15}
+            arrowRepeat={50}
+            opacity={1}
+          />
+        );
+      })
+      .filter(Boolean);
   }, [memoizedSections, findRouteAndCourier, forceUpdate]);
-
   return (
     <MapContainer center={center} bounds={bounds} zoom={zoom} className="map">
       <TileLayer
