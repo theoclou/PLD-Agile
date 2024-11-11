@@ -105,7 +105,6 @@ const MapDisplay = ({
       // Stocker toutes les utilisations de la section
       const sectionUsages = [];
 
-      // Parcourir toutes les routes pour trouver les utilisations de la section
       routes.forEach((route, routeIndex) => {
         const path = route.path;
         for (let i = 0; i < path.length - 1; i++) {
@@ -120,36 +119,15 @@ const MapDisplay = ({
           ) {
             sectionUsages.push({
               courierId: route.courierId,
-              routeIndex,
-              pathIndex: i,
-              direction:
-                currentKey === sectionKey || reverseKey === reverseSectionKey
-                  ? "forward"
-                  : "reverse",
+              direction: currentKey === sectionKey || reverseKey === reverseSectionKey ? "forward" : "reverse",
             });
           }
         }
       });
 
-      // S'il n'y a pas d'utilisation, retourner non trouvé
-      if (sectionUsages.length === 0) {
-        return {
-          found: false,
-          courierId: null,
-          direction: null,
-        };
-      }
-
-      // S'il y a plusieurs utilisations, prendre celle qui a l'index de route le plus petit
-      // Cela garantit une cohérence dans l'affichage
-      const primaryUsage = sectionUsages.reduce((prev, curr) =>
-        prev.routeIndex < curr.routeIndex ? prev : curr
-      );
-
       return {
-        found: true,
-        courierId: primaryUsage.courierId,
-        direction: primaryUsage.direction,
+        found: sectionUsages.length > 0,
+        usages: sectionUsages
       };
     },
     [routes]
@@ -200,10 +178,7 @@ const MapDisplay = ({
           [destination.latitude, destination.longitude],
         ];
 
-        const { found, courierId, direction } = findRouteAndCourier(
-          origin,
-          destination
-        );
+        const { found, usages } = findRouteAndCourier(origin, destination);
 
         if (!found) {
           return (
@@ -217,20 +192,33 @@ const MapDisplay = ({
           );
         }
 
-        return (
-          <ArrowedPolyline
-            key={`${index}-${forceUpdate}`}
-            positions={
-              direction === "reverse" ? [...latLngs].reverse() : latLngs
-            }
-            color={COURIER_COLORS[courierId] || DEFAULT_SECTION_COLOR}
-            weight={3}
-            arrowSize={15}
-            arrowRepeat={50}
-            opacity={1}
-          />
+        // Calculer l'angle pour le décalage
+        const angle = Math.atan2(
+          destination.latitude - origin.latitude,
+          destination.longitude - origin.longitude
         );
+        const perpAngle = angle + Math.PI / 2;
+
+        // Retourner plusieurs polylines pour chaque usage
+        return usages.map((usage, usageIndex) => {
+          const offset = (usageIndex - (usages.length - 1) / 2) * 0.00005; // Ajuster cette valeur pour le décalage
+          const offsetLatLngs = latLngs.map(([lat, lng]) => [
+            lat + offset * Math.sin(perpAngle),
+            lng + offset * Math.cos(perpAngle)
+          ]);
+
+          return (
+            <ArrowedPolyline
+              key={`${index}-${usageIndex}-${forceUpdate}`}
+              positions={usage.direction === "reverse" ? [...offsetLatLngs].reverse() : offsetLatLngs}
+              color={COURIER_COLORS[usage.courierId] || DEFAULT_SECTION_COLOR}
+              weight={3}
+              opacity={1}
+            />
+          );
+        });
       })
+      .flat()
       .filter(Boolean);
   }, [memoizedSections, findRouteAndCourier, forceUpdate]);
   return (

@@ -3,6 +3,18 @@ import PropTypes from "prop-types";
 import "./TextSidebar.css"
 
 const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, highlightedDeliveryId, onMouseEnterDelivery,onMouseLeaveDelivery }) => {
+  // Définition des couleurs par coursier
+  const courierColors = {
+    0: "#FF0000",  // Rouge
+    1: "#0000FF",  // Bleu
+    2: "#00FF00",  // Vert
+    3: "#FFA500",  // Orange
+    4: "#800080",  // Violet
+    5: "#FF1493",  // Rose
+    6: "#00FFFF",  // Cyan
+    7: "#FFD700"   // Or
+  };
+
   // Check if no delivery data is available
   if (!deliveryData || !sections || deliveryData.length === 0) {
     return (
@@ -38,8 +50,8 @@ const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, h
                     return limitedSections.length > 0 ? (
                       limitedSections.map((section, index) => (
                         <div key={index} className="section-item">
-                            <div className="section-dot"> </div>
-                            <span className="section-name">{section.name}</span>
+                          <div className="section-dot"> </div>
+                          <span className="section-name">{section.name}</span>
                         </div>
                       ))
                     ) : (
@@ -58,9 +70,15 @@ const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, h
     );
   }
 
-  console.log(deliveryData);
-  console.log(sections);
-  console.log("onDelete function received:", onDelete);
+  // Groupe les livraisons par coursier
+  const groupedDeliveries = deliveryData.reduce((acc, delivery) => {
+    const courierId = delivery.courier ? delivery.courier.id : 'unassigned';
+    if (!acc[courierId]) {
+      acc[courierId] = [];
+    }
+    acc[courierId].push(delivery);
+    return acc;
+  }, {});
 
   return (
     <div className="textual-sidebar">
@@ -92,8 +110,8 @@ const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, h
                   return limitedSections.length > 0 ? (
                     limitedSections.map((section, index) => (
                       <div key={index} className="section-item">
-                          <div className="section-dot"> </div>
-                          <span className="section-name">{section.name}</span>
+                        <div className="section-dot"> </div>
+                        <span className="section-name">{section.name}</span>
                       </div>
                     ))
                   ) : (
@@ -106,77 +124,159 @@ const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, h
         </div>
       )}
 
-      <h2 className="section-title">Delivery Points</h2>
-            {deliveryData.map((delivery) => {
-                // Find sections that contain this delivery point
-                const relatedSections = sections.filter(
-                    (section) =>
-                        section.origin.id === delivery.deliveryAdress.id.toString() ||
-                        section.destination.id === delivery.deliveryAdress.id.toString()
-                );
+      {/* Points non assignés */}
+      {groupedDeliveries.unassigned && groupedDeliveries.unassigned.length > 0 && (
+        <div>
+          <h2 className="section-title">Unassigned Delivery Points</h2>
+          {groupedDeliveries.unassigned.map((delivery) => {
+            const relatedSections = sections.filter(
+              (section) =>
+                section.origin.id === delivery.deliveryAdress.id.toString() ||
+                section.destination.id === delivery.deliveryAdress.id.toString()
+            );
 
-                // Remove duplicate sections
-                const uniqueSections = Array.from(
-                    new Set(relatedSections.map((section) => section.name))
-                ).map((name) =>
-                    relatedSections.find((section) => section.name === name)
-                );
+            const uniqueSections = Array.from(
+              new Set(relatedSections.map((section) => section.name))
+            ).map((name) =>
+              relatedSections.find((section) => section.name === name)
+            );
 
-                // Limit to a maximum of 2 sections
-                const limitedSections = uniqueSections.slice(0, 2);
+            const limitedSections = uniqueSections.slice(0, 2);
 
-                return (
-                    <div className="section-container">
-                    <div key={delivery.deliveryAdress.id}
-                         onMouseEnter={() => onMouseEnterDelivery(delivery.deliveryAdress.id)}
-                         onMouseLeave={onMouseLeaveDelivery}
-                         className={`delivery-item ${highlightedDeliveryId === delivery.deliveryAdress.id ? "highlighted" : ""}`}
-                         style={{backgroundColor: highlightedDeliveryId === delivery.deliveryAdress.id ? 'rgb(255, 233, 233)' : 'transparent'}}>
+            return (
+              <div className="section-container" key={delivery.deliveryAdress.id}>
+                <div
+                  onMouseEnter={() => onMouseEnterDelivery(delivery.deliveryAdress.id)}
+                  onMouseLeave={onMouseLeaveDelivery}
+                  className={`delivery-item ${highlightedDeliveryId === delivery.deliveryAdress.id ? "highlighted" : ""}`}
+                  style={{
+                    backgroundColor: highlightedDeliveryId === delivery.deliveryAdress.id ? 'rgb(255, 233, 233)' : 'transparent',
+                    borderLeft: '4px solid #737373'
+                  }}
+                >
+                  <h3 className="section-title">
+                    Delivery Point #{delivery.deliveryAdress.id}
+                  </h3>
 
-                        <h3 className="section-title">
-                            Delivery Point #{delivery.deliveryAdress.id}
-                        </h3>
+                  <div className="warehouse-section">
+                    <div>
+                      <span className="section-info">Courier ID: </span>
+                      <span className="section-info">Unassigned</span>
+                    </div>
 
-                        <div className="warehouse-section">
-                            <div>
-                                <span className="section-info">Courier ID: </span>
-                                <span className="section-info">
-                    {delivery.courier === null ? "Unassigned" : delivery.courier.id}
-                  </span>
+                    <div>
+                      <span className="section-title">Sections around: </span>
+                      <div className="section-list">
+                        {limitedSections.length > 0 ? (
+                          limitedSections.map((section, index) => (
+                            <div key={index} className="section-item">
+                              <div className="section-dot"></div>
+                              <span className="section-name">{section.name}</span>
                             </div>
+                          ))
+                        ) : (
+                          <span className="no-sections">No connected sections</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
 
-                            <div>
-                                <span className="section-title">Sections around: </span>
-                                <div className="section-list">
-                                    {limitedSections.length > 0 ? (
-                                        limitedSections.map((section, index) => (
-                                            <div key={index} className="section-item">
-                                                <div className="section-dot"></div>
-                                                <span className="section-name">{section.name}</span>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <span className="no-sections">No connected sections</span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="button-container">
-                        <button
-                            onClick={() => {
-                                console.log("Delete button clicked for ID:", delivery.deliveryAdress.id);
-                                onDelete(delivery.deliveryAdress.id);
-                            }}
-                            className="deletebutton"
-                        >
-                            &times; {/* Button to delete the delivery point */}
-                        </button>
-                    </div>
-                    </div>
-                    </div>
-                );
-            })}
+                  <div className="button-container">
+                    <button
+                      onClick={() => {
+                        console.log("Delete button clicked for ID:", delivery.deliveryAdress.id);
+                        onDelete(delivery.deliveryAdress.id);
+                      }}
+                      className="deletebutton"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
+      )}
+
+      {/* Points assignés, groupés par coursier */}
+      {Object.entries(groupedDeliveries)
+        .filter(([courierId]) => courierId !== 'unassigned')
+        .map(([courierId, deliveries]) => (
+          <div key={courierId}>
+            <h2 className="section-title" style={{ color: courierColors[courierId] }}>
+              Courier {courierId} Delivery Points
+            </h2>
+            {deliveries.map((delivery) => {
+              const relatedSections = sections.filter(
+                (section) =>
+                  section.origin.id === delivery.deliveryAdress.id.toString() ||
+                  section.destination.id === delivery.deliveryAdress.id.toString()
+              );
+
+              const uniqueSections = Array.from(
+                new Set(relatedSections.map((section) => section.name))
+              ).map((name) =>
+                relatedSections.find((section) => section.name === name)
+              );
+
+              const limitedSections = uniqueSections.slice(0, 2);
+
+              return (
+                <div className="section-container" key={delivery.deliveryAdress.id}>
+                  <div
+                    onMouseEnter={() => onMouseEnterDelivery(delivery.deliveryAdress.id)}
+                    onMouseLeave={onMouseLeaveDelivery}
+                    className={`delivery-item ${highlightedDeliveryId === delivery.deliveryAdress.id ? "highlighted" : ""}`}
+                    style={{
+                      backgroundColor: highlightedDeliveryId === delivery.deliveryAdress.id ? 'rgb(255, 233, 233)' : 'transparent',
+                      borderLeft: `4px solid ${courierColors[courierId]}`
+                    }}
+                  >
+                    <h3 className="section-title">
+                      Delivery Point #{delivery.deliveryAdress.id}
+                    </h3>
+
+                    <div className="warehouse-section">
+                      <div>
+                        <span className="section-info">Courier ID: </span>
+                        <span className="section-info" style={{ color: courierColors[courierId] }}>
+                          {delivery.courier.id}
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="section-title">Sections around: </span>
+                        <div className="section-list">
+                          {limitedSections.length > 0 ? (
+                            limitedSections.map((section, index) => (
+                              <div key={index} className="section-item">
+                                <div className="section-dot"></div>
+                                <span className="section-name">{section.name}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <span className="no-sections">No connected sections</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="button-container">
+                      <button
+                        onClick={() => onDelete(delivery.deliveryAdress.id)}
+                        className="deletebutton"
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+    </div>
   );
 });
 
@@ -189,8 +289,8 @@ TextSidebar.propTypes = {
         longitude: PropTypes.number.isRequired,
       }).isRequired,
       courier: PropTypes.shape({
-        id: PropTypes.number.isRequired,
-      }).isRequired,
+        id: PropTypes.number,
+      }),
     })
   ),
   sections: PropTypes.arrayOf(
@@ -210,7 +310,9 @@ TextSidebar.propTypes = {
     })
   ),
   onDelete: PropTypes.func.isRequired,
-    highlightedDeliveryId: PropTypes.string,
+  highlightedDeliveryId: PropTypes.string,
+  onMouseEnterDelivery: PropTypes.func.isRequired,
+  onMouseLeaveDelivery: PropTypes.func.isRequired
 };
 
 TextSidebar.displayName = "TextSidebar";

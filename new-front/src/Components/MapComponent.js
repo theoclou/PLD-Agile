@@ -8,6 +8,7 @@ import "leaflet/dist/leaflet.css";
 import "./MapComponent.css";
 import TextSidebar from "./TextSidebar";
 import ComputeTour from "./ComputeTour";
+import boxImage from "../Assets/box.png";  // Make sure the path is correct
 
 const MapComponent = () => {
   const [mapData, setMapData] = useState({ intersections: [], sections: [] });
@@ -367,14 +368,21 @@ const MapComponent = () => {
 
   return (
     <div className="container">
-      <h1 className="title">Pick'One</h1>
+      <header className="header">
+        <h1 className="title">Pick'One</h1>
+        <div className="button-container">
+          <FileUploadButton onFileChange={handleFileChange} />
+          {mapLoaded && <LoadDeliveryButton onFileChange={handleLoadDelivery} />}
+          <CourierCounter count={courierCount} setCount={setCourierCount} />
+          {deliveryLoaded && <ComputeTour onClick={handleComputeTour} />}
+        </div>
+      </header>
 
-      <div className="buttonGlobalContainer">
-        <FileUploadButton onFileChange={handleFileChange} />
-        {mapLoaded && <LoadDeliveryButton onFileChange={handleLoadDelivery} />}
-        <CourierCounter count={courierCount} setCount={setCourierCount} />
-        {deliveryLoaded && <ComputeTour onClick={handleComputeTour} />}
-      </div>
+      {!mapLoaded && (
+        <div className="welcome-container">
+          <img src={boxImage} alt="Welcome" className="welcome-image" />
+        </div>
+      )}
 
       {loading && <div>Loading...</div>}
 
@@ -391,7 +399,7 @@ const MapComponent = () => {
               highlightedDeliveryId={highlightedDeliveryId}
               onMouseEnterDelivery={handleMouseEnterDelivery}
               onMouseLeaveDelivery={handleMouseLeaveDelivery}
-              routes={routesWithCouriers} // Utilisation des routes avec info courier
+              routes={routesWithCouriers}
               returnTimes={returnTimes}
             />
           </div>
