@@ -58,12 +58,3 @@ public class KMeansClustering {
     }
 }
 
-/*
- * public static void main(String[] args) {
- * double[][] data = {
- * {1.0, 2.0}, {2.0, 3.0}, {3.0, 4.0},
- * {10.0, 10.0}, {11.0, 11.0}, {12.0, 12.0}
- * };
- * predictClusters(data, 2);
- * }
- */

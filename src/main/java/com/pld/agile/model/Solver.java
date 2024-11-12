@@ -168,6 +168,32 @@ public class Solver {
         return solvingStrategy.getBestCost();
     }
 
+    public List<Integer> addDeliveryPoint(Integer intersection, List<Integer> bestPath) {
+        vertices.add(intersection);
+        g = createCompleteGraph();
+        Double minimuDistance = Double.MAX_VALUE;
+        Integer index = 0;
+        for (int i = 0; i < bestPath.size() - 1; i++) {
+            Double currentDistance = g.getCost(bestPath.get(i), intersection)
+                    + g.getCost(intersection, bestPath.get(i));
+            if (currentDistance < minimuDistance) {
+                minimuDistance = currentDistance;
+                index = i;
+            }
+        }
+        bestPath.add(index + 1, intersection);
+        return bestPath;
+    }
+
+    public List<Integer> deleteDeliveryPoint(Integer intersection, List<Integer> bestPath) {
+        if (!bestPath.contains(intersection)) { // Check if intersection is in bestPath
+            throw new IllegalArgumentException("Error: Intersection not in bestPath");
+        } else {
+            bestPath.remove(intersection); // Remove intersection if it exists in bestPath
+        }
+        return bestPath; // Return the modified bestPath
+    }
+
     /**
      * Returns the best possible path that can be served within the time limit.
      *
@@ -201,6 +227,50 @@ public class Solver {
 
     public void computePointsToBeServed() {
         pointsToBeServed();
+    }
+
+    private void pointsToBeServed() {
+        List<Integer> bestPath = getBestPath();
+        Map<Integer, LocalTime> pointsWithTime = new HashMap<>();
+        double currentCost = 0.0;
+        double cumulativeTime = 0.0; // in hours
+        int servedPoints = 0;
+        double speed = 1.0; // km/h
+        double serviceTimePerPoint = 5.0 / 60.0; // in hours (5 minutes)
+        double timeLimit = 8.0; // in hours
+        LocalTime currentTime = LocalTime.of(8, 0);
+        int pathSize = bestPath.size();
+        for (int i = 0; i < pathSize - 1; i++) {
+            int currentPosition = bestPath.get(i);
+            int nextPosition = bestPath.get(i + 1);
+            double distanceMeters = g.getCost(i, (i + 1) % vertices.size()); // in meters
+
+            double distanceKm = distanceMeters / 1000.0; // convert to kilometers
+            double timeToNextPoint = distanceKm / speed; // time in hours
+            cumulativeTime += timeToNextPoint;
+
+            // Add service time at each delivery point (except for the starting point)
+            if (i > 0) {
+                cumulativeTime += serviceTimePerPoint;
+            }
+
+            // Check if the cumulative time exceeds the 8-hour limit
+            if (cumulativeTime > timeLimit) {
+                break;
+            }
+
+            currentCost += distanceMeters;
+            servedPoints = i + 1; // since i starts from 0
+            pointsWithTime.put(currentPosition, currentTime);
+            // Update current time
+            currentTime = LocalTime.of(8, 0).plusSeconds((long) (cumulativeTime * 3600));
+
+        }
+        pointsWithTime.put(bestPath.getLast(), currentTime);
+
+        resultPoint.put("served", servedPoints);
+        resultPoint.put("cost", currentCost);
+        resultPoint.put("pointsWithTime", pointsWithTime);
     }
 
     /**
@@ -300,48 +370,5 @@ public class Solver {
     // resultPoint.put("cost", currentCost);
     // resultPoint.put("pointsWithTime", pointsWithTime);
     // }
-    private void pointsToBeServed() {
-        List<Integer> bestPath = getBestPath();
-        Map<Integer, LocalTime> pointsWithTime = new HashMap<>();
-        double currentCost = 0.0;
-        double cumulativeTime = 0.0; // in hours
-        int servedPoints = 0;
-        double speed = 1.0; // km/h
-        double serviceTimePerPoint = 5.0 / 60.0; // in hours (5 minutes)
-        double timeLimit = 8.0; // in hours
-        LocalTime currentTime = LocalTime.of(8, 0);
-        int pathSize = bestPath.size();
-        for (int i = 0; i < pathSize - 1; i++) {
-            int currentPosition = bestPath.get(i);
-            int nextPosition = bestPath.get(i + 1);
-            double distanceMeters = g.getCost(i, (i + 1) % vertices.size()); // in meters
-
-            double distanceKm = distanceMeters / 1000.0; // convert to kilometers
-            double timeToNextPoint = distanceKm / speed; // time in hours
-            cumulativeTime += timeToNextPoint;
-
-            // Add service time at each delivery point (except for the starting point)
-            if (i > 0) {
-                cumulativeTime += serviceTimePerPoint;
-            }
-
-            // Check if the cumulative time exceeds the 8-hour limit
-            if (cumulativeTime > timeLimit) {
-                break;
-            }
-
-            currentCost += distanceMeters;
-            servedPoints = i + 1; // since i starts from 0
-            pointsWithTime.put(currentPosition, currentTime);
-            // Update current time
-            currentTime = LocalTime.of(8, 0).plusSeconds((long) (cumulativeTime * 3600));
-
-        }
-        pointsWithTime.put(bestPath.getLast(), currentTime);
-
-        resultPoint.put("served", servedPoints);
-        resultPoint.put("cost", currentCost);
-        resultPoint.put("pointsWithTime", pointsWithTime);
-    }
 
 }

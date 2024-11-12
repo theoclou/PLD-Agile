@@ -41,9 +41,11 @@ public class Application {
 		solver.solve();
 		solver.computePointsToBeServed();
 		List<Integer> bestPath = solver.getBestPossiblePath();
+		 bestPath = solver.getBestPossiblePath();
+
 		System.out.println(bestPath);
 		plan.computeTour(bestPath);
-		System.out.println("finished");
+
 
 		// // Création Round
 		// Round round = new Round();
