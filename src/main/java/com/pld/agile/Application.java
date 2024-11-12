@@ -1,5 +1,6 @@
 package com.pld.agile;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -7,8 +8,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import com.pld.agile.model.Solver;
+import com.pld.agile.model.entity.Round;
 import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.strategy.BnBStrategy;
+import com.pld.agile.model.entity.Courier;
 
 @SpringBootApplication
 public class Application {
@@ -44,15 +47,19 @@ public class Application {
 		System.out.println(bestPath);
 		plan.computeTour(bestPath);
 
-		// // Création Round
-		// String requestPath = "src/data/demandeGrand9.xml";
-		// try {
-		// 	round.loadRequests(requestPath);
-		// } catch (Exception e) {
-		// 	System.err.println("Erreur : " + e.getMessage());
-		// }
-		// ArrayList<ArrayList<String>> groups = round.computeRoundOptimized();
-		// System.out.println(groups);
-		// System.exit(0);
+		// Création Round
+		Round round = new Round();
+		List<Courier> couriers;
+		couriers = new ArrayList<>();
+		round.init(2, plan);
+		String requestPath = "src/data/demandeGrand9.xml";
+		try {
+			round.loadRequests(requestPath);
+		} catch (Exception e) {
+			System.err.println("Erreur : " + e.getMessage());
+		}
+		ArrayList<ArrayList<String>> groups = round.computeRoundOptimized();
+		System.out.println(groups);
+		System.exit(0);
 	}
 }

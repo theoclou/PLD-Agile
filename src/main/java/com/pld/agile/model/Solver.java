@@ -24,7 +24,7 @@ public class Solver {
     private SolvingStrategy solvingStrategy;
     private CompleteGraph g;
     private Map<String, Object> resultPoint;
-
+    private List <Integer> bestPath=new ArrayList<>();
     /**
      * Constructs a {@code Solver} with the given plan, vertices, and solving
      * strategy.
@@ -146,7 +146,7 @@ public class Solver {
         for (int i = 0; i < path.size(); i++) {
             result.add(vertices.get(path.get(i)));
         }
-
+        this.bestPath=result;
         return result;
     }
 
@@ -200,7 +200,10 @@ public class Solver {
      * @return the best possible path as a list of vertices
      */
     public List<Integer> getBestPossiblePath() {
-        List<Integer> bestPath = getBestPath();
+        if (this.bestPath.size()==0)
+        {
+            this.bestPath = getBestPath();
+        }
         int servedPoints = (int) resultPoint.get("served");
         System.out.println("We will serve :" + servedPoints + " points");
         List<Integer> bestPathSubList = bestPath.subList(0, servedPoints + 1);
@@ -327,7 +330,11 @@ public class Solver {
     // resultPoint.put("pointsWithTime", pointsWithTime);
     // }
     private void pointsToBeServed() {
-        List<Integer> bestPath = getBestPath();
+        if (this.bestPath.size()==0)
+        {
+            this.bestPath = getBestPath();
+        }
+
         Map<Integer, LocalTime> pointsWithTime = new HashMap<>();
         double currentCost = 0.0;
         double cumulativeTime = 0.0; // in hours
@@ -336,10 +343,10 @@ public class Solver {
         double serviceTimePerPoint = 5.0 / 60.0; // in hours (5 minutes)
         double timeLimit = 8.0; // in hours
         LocalTime currentTime = LocalTime.of(8, 0);
-        int pathSize = bestPath.size();
+        int pathSize = this.bestPath.size();
         for (int i = 0; i < pathSize - 1; i++) {
-            int currentPosition = bestPath.get(i);
-            int nextPosition = bestPath.get(i + 1);
+            int currentPosition = this.bestPath.get(i);
+            int nextPosition = this.bestPath.get(i + 1);
             double distanceMeters = g.getCost(i, (i + 1) % vertices.size()); // in meters
 
             double distanceKm = distanceMeters / 1000.0; // convert to kilometers
@@ -363,7 +370,7 @@ public class Solver {
             currentTime = LocalTime.of(8, 0).plusSeconds((long) (cumulativeTime * 3600));
 
         }
-        pointsWithTime.put(bestPath.getLast(), currentTime);
+        pointsWithTime.put(this.bestPath.getLast(), currentTime);
 
         resultPoint.put("served", servedPoints);
         resultPoint.put("cost", currentCost);
