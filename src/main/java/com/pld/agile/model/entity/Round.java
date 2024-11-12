@@ -645,4 +645,22 @@ public class Round {
         deliveryRequestList.add(deliveryRequest);
         return deliveryRequest;
     }
+
+    public Intersection defineWarehousePoint(String intersectionId) {
+        intersectionId = intersectionId.trim();
+        Intersection intersection = plan.getIntersectionById(intersectionId);
+
+        if (intersection == null) {
+            System.out.println("Intersection not found in intersectionMap for ID: " + intersectionId);
+            return null;
+        }
+
+        warehouse = intersection;
+        return warehouse;
+    }
+
+    public void deleteWarehouse() {
+        System.out.println("Trying to delete the warehouse");
+        warehouse = null;
+    }
 }
