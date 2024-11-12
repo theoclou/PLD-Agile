@@ -14,7 +14,12 @@ import javax.management.InstanceNotFoundException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -644,5 +649,103 @@ public class Round {
         DeliveryRequest deliveryRequest = new DeliveryRequest(intersection);
         deliveryRequestList.add(deliveryRequest);
         return deliveryRequest;
+    }
+    /**
+     *generate a save of the current tour in a file text
+     */
+    public String generateTourReport() {
+        StringBuilder fileContent = new StringBuilder();
+        fileContent.append("DELIVERY TOURS REPORT\n");
+        fileContent.append("===================\n\n");
+
+        List<DeliveryTour> tours = getTourAttribution();
+
+        for (DeliveryTour tour : tours) {
+            fileContent.append("Courier #").append(tour.getCourier().getId()).append("\n");
+            fileContent.append("-------------\n");
+            fileContent.append("Starting from warehouse at: 08:00\n\n");
+
+            List<Intersection> route = tour.getRoute();
+            Map<Intersection, LocalTime> arrivalTimes = tour.getArrivalTimes();
+            List<DeliveryRequest> deliveryRequests = tour.getDeliveryRequests();
+            int sectionCounter = 1;
+
+            String currentStreetName = null;
+            double accumulatedDistance = 0;
+
+            // We don't take the warehouse
+            for (int i = 0; i < route.size() - 3; i++) {
+                Intersection currentIntersection = route.get(i);
+                Intersection nextIntersection = route.get(i + 1);
+
+                Section currentSection = plan.getSections().stream()
+                        .filter(s -> (s.getOrigin().equals(currentIntersection.getId()) &&
+                                s.getDestination().equals(nextIntersection.getId())) ||
+                                (s.getDestination().equals(currentIntersection.getId()) &&
+                                        s.getOrigin().equals(nextIntersection.getId())))
+                        .findFirst()
+                        .orElse(null);
+
+                if (currentSection != null) {
+                    String streetName = currentSection.getName().trim();
+                    if (streetName.isEmpty()) {
+                        streetName = "Undefined street";
+                    }
+
+                    if (streetName.equals(currentStreetName)) {
+                        accumulatedDistance += currentSection.getLength();
+                    } else {
+                        if (currentStreetName != null) {
+                            fileContent.append(String.format("%d. %s (%.2f m)\n", sectionCounter++, currentStreetName, accumulatedDistance));
+                        }
+                        currentStreetName = streetName;
+                        accumulatedDistance = currentSection.getLength();
+                    }
+                }
+
+                // Check if delivery in the next intersection
+                boolean isDeliveryPoint = deliveryRequests.stream()
+                        .anyMatch(dr -> dr.getDeliveryAdress().getId().equals(nextIntersection.getId()));
+
+                if (isDeliveryPoint) {
+                    if (currentStreetName != null) {
+                        fileContent.append(String.format("%d. %s (%.2f m)\n", sectionCounter++, currentStreetName, accumulatedDistance));
+                    }
+
+                    LocalTime arrivalTime = arrivalTimes.get(nextIntersection);
+                    if (arrivalTime != null) {
+                        fileContent.append("\n   >>> Delivery Point for ");
+                        fileContent.append(String.format("%s <<<\n",currentStreetName));
+                        fileContent.append(String.format("   Arrival: %s\n", arrivalTime));
+                        LocalTime departureTime = arrivalTime.plusMinutes(5);
+                        fileContent.append(String.format("   Departure: %s\n", departureTime));
+                        fileContent.append("\n");
+                    }
+
+                    currentStreetName = null;
+                    accumulatedDistance = 0;
+                }
+            }
+
+            // If necessary, write last street
+            if (currentStreetName != null && accumulatedDistance > 0) {
+                fileContent.append(String.format("%d. %s (%.2f m)\n", sectionCounter, currentStreetName, accumulatedDistance));
+            }
+
+            fileContent.append("\nReturn to warehouse at: ").append(arrivalTimes.get(route.get(route.size() - 2))).append("\n\n");
+        }
+
+        String fileName = "";
+        try {
+            fileName = "./src/tours/delivery_tours_" +
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) +
+                    ".txt";
+            Path filePath = Paths.get(fileName);
+            Files.write(filePath, fileContent.toString().getBytes());
+        } catch (IOException e) {
+            System.err.println("Error writing report file: " + e.getMessage());
+        }
+
+        return fileName;
     }
 }
