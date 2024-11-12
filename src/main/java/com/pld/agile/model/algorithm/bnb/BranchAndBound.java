@@ -1,10 +1,8 @@
 package com.pld.agile.model.algorithm.bnb;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import com.pld.agile.model.graph.CompleteGraph;
@@ -19,10 +17,14 @@ import com.pld.agile.model.graph.CompleteGraph;
  */
 public class BranchAndBound {
     private long nbCalls = 0; // Number of calls to the recursive permut function
-    // private ArrayList<ArrayList<Double>> costsMatrix = new ArrayList<>();
     private double best = Double.MAX_VALUE;
     private int[] bestPath; // To store the best path found
     private CompleteGraph g;
+
+    // Time tracking variables
+    private long startTime;
+    private final long timeLimit = 20000;
+    private volatile boolean timeExceeded = false;
 
     /**
      * Constructor for the BranchAndBound class.
@@ -57,6 +59,10 @@ public class BranchAndBound {
 
         bestPath = new int[n + 1]; // +1 for the return to starting point
 
+        // Initialize time tracking
+        startTime = System.currentTimeMillis();
+        timeExceeded = false;
+
         // Start the recursive permutation
         permut(visited, 1, notVisited, n - 1, 0.0);
 
@@ -86,13 +92,28 @@ public class BranchAndBound {
      */
     private void permut(int[] visited, int nbVisited, int[] notVisited, int nbNotVisited, double distance) {
         nbCalls++;
-
-        // eliminate paths exceeding current best distance
+    
+        // **Early Check:**
+        if (timeExceeded) {
+            System.out.println("weird1");
+            return; // Terminate recursion immediately
+        }
+    
+        // **Time Check:**
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - startTime >= timeLimit) {
+            timeExceeded = true;
+            System.out.println("Time out after " + (currentTime - startTime) + " ms");
+            return; // Exit early if time is up
+        }
+        
+    
+        // **Eliminate paths exceeding current best distance**
         if (distance >= best) {
             return;
         }
-
-        // Base case: all nodes have been visited
+    
+        // **Base case: all nodes have been visited**
         if (nbNotVisited == 0) {
             // Add distance to return to the starting point
             distance += g.getCost(visited[nbVisited - 1], 0);
@@ -104,42 +125,48 @@ public class BranchAndBound {
             }
             return;
         }
-
-        // Create a temporary array for sorting the remaining nodes
+    
+        // **Create a temporary array for sorting the remaining nodes**
         Integer[] sortedNotVisited = new Integer[nbNotVisited];
         for (int i = 0; i < nbNotVisited; i++) {
             sortedNotVisited[i] = notVisited[i];
         }
-
+    
         int lastVisited = visited[nbVisited - 1];
-
-        // Sort the remaining nodes based on cost from last visited node
+    
+        // **Sort the remaining nodes based on cost from last visited node**
         Arrays.sort(sortedNotVisited, Comparator.comparingDouble(a -> g.getCost(lastVisited, a)));
-
-        // Iterate over sorted nodes
+    
+        // **Iterate over sorted nodes**
         for (int idx = 0; idx < nbNotVisited; idx++) {
+            // **Check the flag inside the loop as well**
+            if (timeExceeded) {
+                return; // Terminate recursion if time is up
+            }
+    
             int nextNode = sortedNotVisited[idx];
             double newDistance = distance + g.getCost(lastVisited, nextNode);
-
-            // Eliminate paths exceeding current best distance
+    
+            // **Eliminate paths exceeding current best distance**
             if (newDistance >= best) {
                 continue;
             }
-
-            // intersection check
+    
+            // **Intersection check**
             boolean hasIntersection = containIntersection(nbVisited, lastVisited, nextNode, visited);
             if (!hasIntersection) {
-                // Find the index of nextNode in notVisited
+                // **Find the index of nextNode in notVisited**
                 int indexInNotVisited = findIndex(notVisited, nextNode, nbNotVisited);
                 if (indexInNotVisited == -1) {
                     continue;
                 }
-
+    
                 updateTables(visited, nbVisited, notVisited, nbNotVisited, nextNode, indexInNotVisited);
-
-                // Recursive call with updated counts
+    
+                // **Recursive call with updated counts**
                 permut(visited, nbVisited + 1, notVisited, nbNotVisited - 1, newDistance);
-
+    
+                // **Restore tables after recursion**
                 restoreTables(notVisited, nbNotVisited, nextNode, indexInNotVisited);
             }
         }
@@ -237,17 +264,15 @@ public class BranchAndBound {
      *
      * @return the cost matrix
      */
-    public ArrayList<ArrayList<Double>> getCostsMatrix() {
-        return getCostsMatrix();
-    }
+    // Uncomment and implement if needed
+    // private ArrayList<ArrayList<Double>> costsMatrix = new ArrayList<>();
 
-    /**
-     * Sets the cost matrix for the algorithm.
-     *
-     * @param costsMatrix the cost matrix to set
-     */
+    // public ArrayList<ArrayList<Double>> getCostsMatrix() {
+    //     return costsMatrix;
+    // }
+
     // public void setCostsMatrix(ArrayList<ArrayList<Double>> costsMatrix) {
-    // this.costsMatrix = costsMatrix;
+    //     this.costsMatrix = costsMatrix;
     // }
 
     /**
@@ -269,9 +294,9 @@ public class BranchAndBound {
     }
 
     /**
-     * Sets the number of recursive calls made during the execution.
+     * Sets the complete graph for the algorithm.
      *
-     * @param completeGraph the number of calls to set
+     * @param completeGraph the complete graph to set
      */
     public void setCompleteGraph(CompleteGraph completeGraph) {
         this.g = completeGraph;

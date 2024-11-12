@@ -8,10 +8,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import com.pld.agile.model.Solver;
+import com.pld.agile.model.entity.Courier;
 import com.pld.agile.model.entity.Round;
 import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.strategy.BnBStrategy;
-import com.pld.agile.model.entity.Courier;
 
 @SpringBootApplication
 public class Application {
@@ -33,7 +33,7 @@ public class Application {
 		}
 
 		plan.preprocessData();
-		List<Integer> vertices = Arrays.asList(0, 256, 233, 127);
+		List<Integer> vertices = Arrays.asList(0, 256, 233, 127,56,89,45,17,18,5,46,30,25,89,100,7,78,66,24,89);
 		/*
 		 * If using a list of ids use instead this :
 		 * List<Integer> vertices =plan.formatInput(List<String> idIntersections)
@@ -61,6 +61,8 @@ public class Application {
 		ArrayList<ArrayList<String>> groups = round.computeRoundOptimized();
 		System.out.println(groups);
 		String intersection ="2292223595";
+		// mode 1 to add
+		// mode -1 to delete
 		round.updateLocalPoint(1, intersection, 1);
 
 		System.exit(0);
