@@ -46,6 +46,7 @@
     color: #111827;
     margin-top: 0;
     padding-top: 0;
+    display: flex;
 }
 
 /* Liste des sections */
@@ -115,20 +116,19 @@
     font-family: 'Montserrat', sans-serif;
     font-weight: 400;
     color: white;
-    background-color: #b8b8b8; {/*#737373*/}
-    border: 2px solid transparent;
-    border-radius: 8px;
+    background-color: #b8b8b8;
+    border: none;
+    border-radius: 6px;
     cursor: pointer;
-    transition: all 0.3s ease-in-out;
-    margin-right: 2%;
-    margin-left: 2%;
+    transition: all 0.2s ease-in-out;
     white-space: nowrap;
+
 }
 
 .deletebutton:hover {
     background-color: #b8b8b8;
     transform: scale(1.05);
-    border-radius: 8px;
+    border-radius: 6px;
 }
 
 
@@ -136,5 +136,20 @@
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.toggle-button {
+    padding: 2px 6px;
+    font-size: 1rem;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 400;
+    color: white;
+    background-color: #b8b8b8;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    white-space: nowrap;
+    margin-left: 5%;
 }
 

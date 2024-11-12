@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import PropTypes from "prop-types";
+import "./Popup.css"
 
 // Define the icons outside the component
 const blackIcon = L.divIcon({
@@ -24,7 +25,7 @@ const MapMarker = React.memo(({ intersection, onAddDeliveryPoint  }) => {
   const [isHighlighted, setIsHighlighted] = useState(false);
 
   const handleClick = () => {
-    onAddDeliveryPoint(intersection); // Appelle la fonction passée en prop
+    onAddDeliveryPoint(intersection); // Call the function passed en prop
   };
 
   return (
@@ -43,13 +44,7 @@ const MapMarker = React.memo(({ intersection, onAddDeliveryPoint  }) => {
       >
         <Popup>
           <div>
-            Intersection ID: {intersection.id}
-            <br/>
-            Latitude: {intersection.latitude}
-            <br/>
-            Longitude: {intersection.longitude}
-            <br/>
-            <button onClick={() => onAddDeliveryPoint(intersection.id)}>
+            <button onClick={() => onAddDeliveryPoint(intersection.id)} className="popup-button">
               Add to delivery points
             </button>
           </div>

@@ -8,9 +8,9 @@ import "leaflet/dist/leaflet.css";
 import "./MapComponent.css";
 import TextSidebar from "./TextSidebar";
 import ComputeTour from "./ComputeTour";
-import boxImage from "../Assets/box.png";
 import ValidateButton from './ValidateButton';  // Make sure the path is correct
-
+import logoImage from "../Assets/logo.png";
+import boxImage from "../Assets/box2.png"
 
 const MapComponent = () => {
   const [mapData, setMapData] = useState({ intersections: [], sections: [] });
@@ -413,6 +413,7 @@ const MapComponent = () => {
   return (
     <div className="container">
       <header className="header">
+        <img src={boxImage} className="logo-image"/>
         <h1 className="title">Pick'One</h1>
         <div className="button-container">
           <FileUploadButton onFileChange={handleFileChange} />
@@ -424,8 +425,8 @@ const MapComponent = () => {
       </header>
 
       {!mapLoaded && (
-        <div className="welcome-container">
-          <img src={boxImage} alt="Welcome" className="welcome-image" />
+          <div className="welcome-container">
+          <img src={logoImage} alt="Welcome" className="welcome-image" />
         </div>
       )}
 

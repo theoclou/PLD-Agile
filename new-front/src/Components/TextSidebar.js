@@ -1,9 +1,19 @@
-import React from "react";
+import React, {useState} from "react";
 import PropTypes from "prop-types";
 import "./TextSidebar.css"
 
 const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, highlightedDeliveryId, onMouseEnterDelivery,onMouseLeaveDelivery }) => {
-  // Définition des couleurs par coursier
+  const [expandedDeliveries, setExpandedDeliveries] = useState({}); // State to manage the display of delivery points data
+
+  // Function to switch the delivery point details display
+  const toggleDeliveryInfo = (courierId) => {
+    setExpandedDeliveries((prevState) => ({
+      ...prevState,
+      [courierId]: !prevState[courierId], // reverse the state
+    }));
+  };
+
+  // Definition of the courier's colors
   const courierColors = {
     0: "#FF0000",  // Rouge
     1: "#0000FF",  // Bleu
@@ -70,7 +80,7 @@ const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, h
     );
   }
 
-  // Groupe les livraisons par coursier
+  // Group the delivery routs by couriers
   const groupedDeliveries = deliveryData.reduce((acc, delivery) => {
     const courierId = delivery.courier ? delivery.courier.id : 'unassigned';
     if (!acc[courierId]) {
@@ -88,7 +98,7 @@ const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, h
           <h2 className="section-title">Warehouse</h2>
           <div className="section-container">
             <div className="section-info">
-              <h3 className="section-title">Warehouse #{warehouse.id}</h3>
+              <h3 className="section-title">Warehouse</h3>
             </div>
             <div className="section-info">
               <span className="section-title">Sections around: </span>
@@ -124,7 +134,7 @@ const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, h
         </div>
       )}
 
-      {/* Points non assignés */}
+      {/* Non Assigned points */}
       {groupedDeliveries.unassigned && groupedDeliveries.unassigned.length > 0 && (
         <div>
           <h2 className="section-title">Unassigned Delivery Points</h2>
@@ -151,16 +161,17 @@ const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, h
                   className={`delivery-item ${highlightedDeliveryId === delivery.deliveryAdress.id ? "highlighted" : ""}`}
                   style={{
                     backgroundColor: highlightedDeliveryId === delivery.deliveryAdress.id ? 'rgb(255, 233, 233)' : 'transparent',
-                    borderLeft: '4px solid #737373'
+                    borderLeft: '4px solid #737373',
+                    paddingLeft: '12px'
                   }}
                 >
                   <h3 className="section-title">
-                    Delivery Point #{delivery.deliveryAdress.id}
+                    Delivery Point
                   </h3>
 
                   <div className="warehouse-section">
                     <div>
-                      <span className="section-info">Courier ID: </span>
+                      <span className="section-info">Courier ID : </span>
                       <span className="section-info">Unassigned</span>
                     </div>
 
@@ -199,15 +210,26 @@ const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, h
         </div>
       )}
 
-      {/* Points assignés, groupés par coursier */}
+      {/* Assigned points, grouped by couriers */}
       {Object.entries(groupedDeliveries)
         .filter(([courierId]) => courierId !== 'unassigned')
         .map(([courierId, deliveries]) => (
           <div key={courierId}>
             <h2 className="section-title" style={{ color: courierColors[courierId] }}>
               Courier {courierId} Delivery Points
+              {/* Button to display/hide information */}
+              <button
+                  onClick={() => toggleDeliveryInfo(courierId)}
+                  className="toggle-button"
+              >
+                {expandedDeliveries[courierId] ? '⏶' : '⏷'}
+              </button>
             </h2>
-            {deliveries.map((delivery) => {
+
+
+
+            {/* Display the information if extandedDeliveries[courierId] is true */}
+            {expandedDeliveries[courierId] && deliveries.map((delivery) => {
               const relatedSections = sections.filter(
                 (section) =>
                   section.origin.id === delivery.deliveryAdress.id.toString() ||
@@ -230,11 +252,12 @@ const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, h
                     className={`delivery-item ${highlightedDeliveryId === delivery.deliveryAdress.id ? "highlighted" : ""}`}
                     style={{
                       backgroundColor: highlightedDeliveryId === delivery.deliveryAdress.id ? 'rgb(255, 233, 233)' : 'transparent',
-                      borderLeft: `4px solid ${courierColors[courierId]}`
+                      borderLeft: `4px solid ${courierColors[courierId]}`,
+                      paddingLeft: '12px'
                     }}
                   >
                     <h3 className="section-title">
-                      Delivery Point #{delivery.deliveryAdress.id}
+                      Delivery Point
                     </h3>
 
                     <div className="warehouse-section">
