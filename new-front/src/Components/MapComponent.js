@@ -8,7 +8,8 @@ import "leaflet/dist/leaflet.css";
 import "./MapComponent.css";
 import TextSidebar from "./TextSidebar";
 import ComputeTour from "./ComputeTour";
-import boxImage from "../Assets/box.png";  // Make sure the path is correct
+import boxImage from "../Assets/box.png";
+import HelperButton from "./HelperButton";
 
 const MapComponent = () => {
   const [mapData, setMapData] = useState({ intersections: [], sections: [] });
@@ -28,11 +29,24 @@ const MapComponent = () => {
   const [highlightedDeliveryId, setHighlightedDeliveryId] = useState(null);
   const [routesWithCouriers, setRoutesWithCouriers] = useState([]);
   const [returnTimes, setReturnTimes] = useState([]);
+  const [helpPopupVisible, setHelpPopupVisible] = useState(false);
+  const [helpPopupMessage, setHelpPopupMessage] = useState("");
   const handleMouseEnterDelivery = (deliveryId) => {
     setHighlightedDeliveryId(deliveryId);
   };
   const handleMouseLeaveDelivery = () => {
     setHighlightedDeliveryId(null);
+  };
+  const handleHelpClick = () => {
+    setHelpPopupMessage("Here are some tips to use the application.\n" +
+        "Click on the 'Load Map' button to load a map.\n" +
+        "Click on the 'Load Deliveries' button to load a delivery request.\n" +
+        "Use the '+' and '-' buttons to add or remove delivery drivers.\n" +
+        "To add a delivery point, zoom in on the map and click on the desired intersection, then click 'Add to delivery points'.\n" +
+        "To remove a delivery point, click the cross in the popup window.\n" +
+        "Click on the 'Compute Tour' button to calculate the delivery routes.\n"
+    );
+    setHelpPopupVisible(true);
   };
 
   // Add keyboard event listener for undo/redo
@@ -101,6 +115,7 @@ const MapComponent = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [deliveryLoaded]);
 
+
   const handleFetchData = useCallback(async () => {
     try {
       const response = await fetch("http://localhost:8080/map");
@@ -155,7 +170,7 @@ const MapComponent = () => {
         if (!response.ok) {
           setMapLoaded(false);
           setLoading(false);
-          throw new Error("Failed to upload file, try again");
+          throw new Error("Failed to upload file, try again. Make sure to upload a map file.");
         }
         await handleFetchData();
       } catch (error) {
@@ -191,7 +206,7 @@ const MapComponent = () => {
           body: formData,
         });
 
-        if (!response.ok) throw new Error("Failed to upload file, try again");
+        if (!response.ok) throw new Error("Failed to upload file, try again. Make sure to load a deliveries request file.");
 
         const result = await response.json();
         if (result && result.deliveries) {
@@ -251,7 +266,46 @@ const MapComponent = () => {
     }
   };
 
+
+  // Handle setting the warehouse
+  const handleSetWarehouse = async (intersectionId) => {
+    setDeliveryData({ deliveries: [], warehouse: null });
+    setDeliveryLoaded(false);
+    setRoutesWithCouriers([]);
+    try {
+      const response = await fetch(
+          `http://localhost:8080/defineWarehouseById`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ intersectionId }),
+          }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.Warehouse) {
+          setDeliveryData((prev) => ({
+            ...prev,
+            warehouse: result.Warehouse,
+          }));
+          setDeliveryData({ deliveries: [], warehouse: result.Warehouse });
+          setDeliveryLoaded(true);
+        }
+      }
+    } catch (error) {
+      setPopupMessage(error.message);
+      setPopupVisible(true);
+      setDeliveryLoaded(false);
+      console.error("Error while defining the warehouse:", error);
+    }
+  };
+
   const handleAddDeliveryPoint = async (intersectionId) => {
+    setDeliveryLoaded(true);
+    if (!deliveryLoaded) return; // No deliveries, so no action
     try {
       const response = await fetch(
         `http://localhost:8080/addDeliveryPointById`,
@@ -275,7 +329,7 @@ const MapComponent = () => {
         setPopupVisible(false);
       }
     } catch (error) {
-      console.error("Erreur lors de l'ajout du point de livraison:", error);
+      console.error("Error while adding a delivery point:", error);
     }
   };
 
@@ -375,6 +429,7 @@ const MapComponent = () => {
           {mapLoaded && <LoadDeliveryButton onFileChange={handleLoadDelivery} />}
           <CourierCounter count={courierCount} setCount={setCourierCount} />
           {deliveryLoaded && <ComputeTour onClick={handleComputeTour} />}
+          <HelperButton onHelpClick={handleHelpClick} />
         </div>
       </header>
 
@@ -401,6 +456,8 @@ const MapComponent = () => {
               onMouseLeaveDelivery={handleMouseLeaveDelivery}
               routes={routesWithCouriers}
               returnTimes={returnTimes}
+              setWarehouse={handleSetWarehouse} // Pass handleSetWarehouse method
+              hasDeliveries={deliveryLoaded}
             />
           </div>
 
@@ -422,6 +479,10 @@ const MapComponent = () => {
 
       {popupVisible && (
         <ErrorPopup message={popupMessage} onClose={handleClosePopup} />
+      )}
+
+      {helpPopupVisible && (
+          <ErrorPopup message={helpPopupMessage} onClose={() => setHelpPopupVisible(false)} />
       )}
     </div>
   );
