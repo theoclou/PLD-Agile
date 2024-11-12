@@ -659,7 +659,7 @@ public class Round {
      *                                  or if attempting to delete a non-existent
      *                                  intersection.
      */
-    public List<DeliveryTour> ComputeNewRound(Integer courierIndex, Integer intersectionIndex, int mode) {
+    private List<DeliveryTour> ComputeNewRound(Integer courierIndex, Integer intersectionIndex, int mode) {
         // Validate courier index
         if (courierIndex < 0 || courierIndex >= courierList.size()) {
             throw new IllegalArgumentException("Invalid courier index.");
@@ -735,6 +735,13 @@ public class Round {
         // Replace the existing DeliveryTour
         tourAttribution.set(courierIndex, updatedTour);
         return tourAttribution;
+    }
+
+    public List<DeliveryTour> updateLocalPoint(Integer courierIndex, String intersectionId, int mode)
+    {
+        Integer index=plan.getIndexById(intersectionId);
+        List<DeliveryTour> result=ComputeNewRound(courierIndex,index,mode);
+        return result;
     }
 
 }

@@ -169,6 +169,8 @@ public class Solver {
     }
 
     public List<Integer> addDeliveryPoint(Integer intersection) {
+        System.out.println("original list :" +bestPath);
+
         vertices.add(intersection);
         g = createCompleteGraph();
         Double minimuDistance = Double.MAX_VALUE;
@@ -182,6 +184,8 @@ public class Solver {
             }
         }
         bestPath.add(index + 1, intersection);
+        System.out.println("updated list :" +bestPath);
+
         return bestPath;
     }
 

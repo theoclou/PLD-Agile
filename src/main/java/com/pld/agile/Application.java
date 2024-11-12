@@ -60,8 +60,8 @@ public class Application {
 		}
 		ArrayList<ArrayList<String>> groups = round.computeRoundOptimized();
 		System.out.println(groups);
-		
-		round.ComputeNewRound(1, 671, -1);
+		String intersection ="2292223595";
+		round.updateLocalPoint(1, intersection, 1);
 
 		System.exit(0);
 	}
