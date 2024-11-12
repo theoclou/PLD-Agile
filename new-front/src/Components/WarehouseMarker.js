@@ -32,7 +32,7 @@ const WarehouseMarker = React.memo(({ warehouse, returnTimes }) => {
             {returnTimes.map((time, index) => (
                 <div key={index} className="popup-item">
                   <div className="popup-dot"></div>
-                  <div className="popup-name">Courier {index + 1} : {time}</div>
+                  <div className="popup-name">Courier {index} : {time}</div>
                 </div>
             ))}
         </div>
