@@ -272,6 +272,8 @@ const MapComponent = () => {
     } catch (error) {
       console.error("Error during delete request:", error);
     }
+<<<<<<< HEAD
+=======
   };
 
 
@@ -463,6 +465,7 @@ const MapComponent = () => {
     }
   };
 
+>>>>>>> 31c80d2 (Avancement Add Delivery Point)
   return (
     <div className="container">
       <header className="header">
