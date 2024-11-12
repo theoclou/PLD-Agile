@@ -286,6 +286,7 @@ public class Controller {
             return ResponseEntity.badRequest().body(response);
         }
 
+
         // create and execute command
         DefineWarehousePointCommand command = new DefineWarehousePointCommand(round, intersectionId);
         commandManager.executeCommand(command);
@@ -322,24 +323,26 @@ public class Controller {
         }
 
         // execute Round method
+        List<DeliveryTour> tour = round.updateLocalPoint(Integer.parseInt(courierId), intersectionId, 1);
 
-
-        // create and execute command
-        AddDeliveryPointCommand command = new AddDeliveryPointCommand(round, intersectionId);
-        commandManager.executeCommand(command);
-
-        DeliveryRequest newDeliveryRequest = round.getDeliveryRequestById(intersectionId);
-        if (newDeliveryRequest != null) {
+        if(tour != null){
             response.put("status", "success");
             response.put("message", "Delivery point added successfully");
-            response.put("deliveryRequest", newDeliveryRequest);
-            response.put("currentDeliveryCount", round.getDeliveryRequestList().size());
+            response.put("deliveryTour", tour);
             return ResponseEntity.ok(response);
         } else {
             response.put("status", "error");
             response.put("message", "Failed to add delivery point");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
+
+
+
+        // create and execute command
+//        AddDeliveryPointCommand command = new AddDeliveryPointCommand(round, intersectionId);
+//        commandManager.executeCommand(command);
+
+
     }
 
 

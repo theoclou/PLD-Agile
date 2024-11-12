@@ -346,7 +346,7 @@ public class Solver {
         double currentCost = 0.0;
         double cumulativeTime = 0.0; // in hours
         int servedPoints = 0;
-        double speed = 1.0; // km/h
+        double speed = 15.0; // km/h
         double serviceTimePerPoint = 5.0 / 60.0; // in hours (5 minutes)
         double timeLimit = 8.0; // in hours
         LocalTime currentTime = LocalTime.of(8, 0);
