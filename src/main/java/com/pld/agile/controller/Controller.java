@@ -274,6 +274,34 @@ public class Controller {
         }
     }
 
+    @PostMapping("/defineWarehouseById")
+    public ResponseEntity<Map<String, Object>> defineWarehouse(@RequestBody Map<String, String> request) {
+        Map<String, Object> response = new HashMap<>();
+
+        String intersectionId = request.get("intersectionId");
+        if (intersectionId == null) {
+            response.put("status", "error");
+            response.put("message", "Intersection ID is required");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // create and execute command
+        DefineWarehousePointCommand command = new DefineWarehousePointCommand(round, intersectionId);
+        commandManager.executeCommand(command);
+
+        Intersection newIntersection = round.defineWarehousePoint(intersectionId);
+        if (newIntersection != null) {
+            response.put("status", "success");
+            response.put("message", "Warehouse point added successfully");
+            response.put("Warehouse", newIntersection);
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("status", "error");
+            response.put("message", "Failed to define the warehouse");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
     /**
      * Undo function
      */
