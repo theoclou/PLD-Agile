@@ -229,50 +229,6 @@ public class Solver {
         pointsToBeServed();
     }
 
-    private void pointsToBeServed() {
-        List<Integer> bestPath = getBestPath();
-        Map<Integer, LocalTime> pointsWithTime = new HashMap<>();
-        double currentCost = 0.0;
-        double cumulativeTime = 0.0; // in hours
-        int servedPoints = 0;
-        double speed = 1.0; // km/h
-        double serviceTimePerPoint = 5.0 / 60.0; // in hours (5 minutes)
-        double timeLimit = 8.0; // in hours
-        LocalTime currentTime = LocalTime.of(8, 0);
-        int pathSize = bestPath.size();
-        for (int i = 0; i < pathSize - 1; i++) {
-            int currentPosition = bestPath.get(i);
-            int nextPosition = bestPath.get(i + 1);
-            double distanceMeters = g.getCost(i, (i + 1) % vertices.size()); // in meters
-
-            double distanceKm = distanceMeters / 1000.0; // convert to kilometers
-            double timeToNextPoint = distanceKm / speed; // time in hours
-            cumulativeTime += timeToNextPoint;
-
-            // Add service time at each delivery point (except for the starting point)
-            if (i > 0) {
-                cumulativeTime += serviceTimePerPoint;
-            }
-
-            // Check if the cumulative time exceeds the 8-hour limit
-            if (cumulativeTime > timeLimit) {
-                break;
-            }
-
-            currentCost += distanceMeters;
-            servedPoints = i + 1; // since i starts from 0
-            pointsWithTime.put(currentPosition, currentTime);
-            // Update current time
-            currentTime = LocalTime.of(8, 0).plusSeconds((long) (cumulativeTime * 3600));
-
-        }
-        pointsWithTime.put(bestPath.getLast(), currentTime);
-
-        resultPoint.put("served", servedPoints);
-        resultPoint.put("cost", currentCost);
-        resultPoint.put("pointsWithTime", pointsWithTime);
-    }
-
     /**
      * Determines how many points can be served and the cost within a given time
      * limit (8 hours), given that the courier is traveling at 15 km/h and spends
@@ -370,5 +326,48 @@ public class Solver {
     // resultPoint.put("cost", currentCost);
     // resultPoint.put("pointsWithTime", pointsWithTime);
     // }
+    private void pointsToBeServed() {
+        List<Integer> bestPath = getBestPath();
+        Map<Integer, LocalTime> pointsWithTime = new HashMap<>();
+        double currentCost = 0.0;
+        double cumulativeTime = 0.0; // in hours
+        int servedPoints = 0;
+        double speed = 1.0; // km/h
+        double serviceTimePerPoint = 5.0 / 60.0; // in hours (5 minutes)
+        double timeLimit = 8.0; // in hours
+        LocalTime currentTime = LocalTime.of(8, 0);
+        int pathSize = bestPath.size();
+        for (int i = 0; i < pathSize - 1; i++) {
+            int currentPosition = bestPath.get(i);
+            int nextPosition = bestPath.get(i + 1);
+            double distanceMeters = g.getCost(i, (i + 1) % vertices.size()); // in meters
+
+            double distanceKm = distanceMeters / 1000.0; // convert to kilometers
+            double timeToNextPoint = distanceKm / speed; // time in hours
+            cumulativeTime += timeToNextPoint;
+
+            // Add service time at each delivery point (except for the starting point)
+            if (i > 0) {
+                cumulativeTime += serviceTimePerPoint;
+            }
+
+            // Check if the cumulative time exceeds the 8-hour limit
+            if (cumulativeTime > timeLimit) {
+                break;
+            }
+
+            currentCost += distanceMeters;
+            servedPoints = i + 1; // since i starts from 0
+            pointsWithTime.put(currentPosition, currentTime);
+            // Update current time
+            currentTime = LocalTime.of(8, 0).plusSeconds((long) (cumulativeTime * 3600));
+
+        }
+        pointsWithTime.put(bestPath.getLast(), currentTime);
+
+        resultPoint.put("served", servedPoints);
+        resultPoint.put("cost", currentCost);
+        resultPoint.put("pointsWithTime", pointsWithTime);
+    }
 
 }

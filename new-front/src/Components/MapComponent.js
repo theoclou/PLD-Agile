@@ -143,6 +143,53 @@ const MapComponent = () => {
     } catch (error) {
       console.error("Error deleting delivery request:", error);
     }
+<<<<<<< HEAD
+=======
+  };
+
+
+  const handleIntersectionClick = async (intersectionId) => {
+    console.log("ID of the Intersection clicked :", intersectionId);
+    if (addingDeliveryPoint) {
+      console.log("Intersection to add to delivery points :", intersectionId);
+
+      try {
+        const response = await fetch(`http://localhost:8080/addDeliveryPointById`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({intersectionId}),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log("Successfully adding delivery:", intersectionId, "Response:", result);
+          console.log("Result : ", result);
+
+          // Update of deliveryData with the new delivery point
+          setDeliveryData((prevData) => ({
+            deliveries: [...prevData.deliveries, result], // Add the new point
+          }));
+
+        } else {
+          const errorResult = await response.json(); // Get error message
+          console.error("Failed to add delivery point:", errorResult.message);
+        }
+      } catch (error) {
+        console.error("Error adding delivery request:", error);
+      }
+
+      // Turn off the delivery point adding mode
+      setAddingDeliveryPoint(false);
+      console.log("End of the adding mode");
+    }
+  };
+
+  const handleAddDeliveryPoint = () => {
+    console.log("Add Delivery Point button clicked");
+    setAddingDeliveryPoint(true); // change the state of AddingDeliveryPoint to launch the Add Delivery Point mode
+>>>>>>> f7546c32047e09c2b49262354c608ec105112041
   };
 
 

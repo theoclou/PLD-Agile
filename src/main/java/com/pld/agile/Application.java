@@ -41,17 +41,10 @@ public class Application {
 		solver.solve();
 		solver.computePointsToBeServed();
 		List<Integer> bestPath = solver.getBestPossiblePath();
-		 bestPath = solver.getBestPossiblePath();
-
 		System.out.println(bestPath);
 		plan.computeTour(bestPath);
 
-
 		// // Création Round
-		// Round round = new Round();
-		// List<Courier> couriers;
-		// couriers = new ArrayList<>();
-		// round.init(2, plan);
 		// String requestPath = "src/data/demandeGrand9.xml";
 		// try {
 		// 	round.loadRequests(requestPath);
