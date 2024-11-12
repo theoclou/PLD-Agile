@@ -3,6 +3,8 @@ import { Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import PropTypes from "prop-types";
 import "./Popup.css"
+import CourierCounter from "./CourierCounter";
+import CourierSelector from "./CourierSelector";
 
 // Define the icons outside the component
 const blackIcon = L.divIcon({
@@ -21,19 +23,17 @@ const highlightedIcon = L.divIcon({
   popupAnchor: [0, -12],
 });
 
-const MapMarker = React.memo(({ intersection, onAddDeliveryPoint  }) => {
+const MapMarker = React.memo(({ intersection, onAddDeliveryPoint, tourComputed, numberOfCouriers  }) => {
   const [isHighlighted, setIsHighlighted] = useState(false);
+  const [count, setCount] = useState(0);
 
-  const handleClick = () => {
-    onAddDeliveryPoint(intersection); // Call the function passed en prop
-  };
+
 
   return (
       <Marker
           position={[intersection.latitude, intersection.longitude]}
           icon={isHighlighted ? highlightedIcon : blackIcon}
           eventHandlers={{
-            click: handleClick,
             mouseover: () => {
               setIsHighlighted(true);
             },
@@ -43,10 +43,18 @@ const MapMarker = React.memo(({ intersection, onAddDeliveryPoint  }) => {
           }}
       >
         <Popup>
-          <div>
+          <div style={{display:"flex", flexDirection: "column", alignItems: "center"}}>
             <button onClick={() => onAddDeliveryPoint(intersection.id)} className="popup-button">
               Add to delivery points
             </button>
+            {tourComputed && (
+              <>
+                <div className="popup-text" style={{marginTop:"0.5rem",marginBottom:"0.3rem"}}>
+                  Select the ID of the courier you want to attribute this delivery point to:
+                </div>
+                <CourierSelector count={count} setCount={setCount} min={0} max={numberOfCouriers - 1} />
+              </>
+            )}
           </div>
         </Popup>
       </Marker>

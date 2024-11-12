@@ -1,5 +1,5 @@
 .popup-title {
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
   font-weight: 600;
   font-size: 14px;
   color: #111827;
@@ -8,7 +8,7 @@
 }
 
 .popup-text {
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
   font-weight: 400;
   font-size: 11px;
   color: #111827;
@@ -30,13 +30,13 @@
 .popup-dot {
   width: 8px;
   height: 8px;
-  background-color:grey;
+  background-color: grey;
   border-radius: 50%;
 }
 
 .popup-name {
   color: #4b5563;
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
   font-weight: 400;
   font-size: 10px;
   white-space: nowrap;
@@ -45,7 +45,7 @@
 .popup-button {
   padding: 0.6rem 1.2rem;
   font-size: 11px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
   font-weight: 500;
   color: white;
   background-color: #737373;

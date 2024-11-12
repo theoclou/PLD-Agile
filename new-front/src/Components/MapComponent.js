@@ -20,6 +20,7 @@ const MapComponent = () => {
   const [loading, setLoading] = useState(false);
   const [bounds, setBounds] = useState(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [tourComputed, setTourComputed] = useState(false);
   const [zoom, setZoom] = useState(8);
   const mapRef = useRef();
   const [popupVisible, setPopupVisible] = useState(false);
@@ -176,6 +177,7 @@ const MapComponent = () => {
     setDeliveryData({ deliveries: [], warehouse: null });
     setDeliveryLoaded(false);
     setRoutesWithCouriers([]);
+    setTourComputed(false);
 
     if (selectedFile) {
       try {
@@ -252,7 +254,7 @@ const MapComponent = () => {
     }
   };
 
-  const handleAddDeliveryPoint = async (intersectionId) => {
+  const handleAddDeliveryPoint = async (intersectionId, courierID) => { //TODO : add courierID to the request
     try {
       const response = await fetch(
         `http://localhost:8080/addDeliveryPointById`,
@@ -331,7 +333,6 @@ const MapComponent = () => {
         setDeliveryData((prevData) => {
           const updatedDeliveries = [...prevData.deliveries];
 
-          console.log("tour", data.tours);
           data.tours.forEach((tour) => {
             tour.deliveryRequests.forEach((tourDelivery) => {
               const deliveryIndex = updatedDeliveries.findIndex(
@@ -357,6 +358,7 @@ const MapComponent = () => {
             deliveries: updatedDeliveries,
           };
         });
+        setTourComputed(true);
       } else {
         throw new Error("Failed to compute tour");
       }
@@ -403,6 +405,8 @@ const MapComponent = () => {
               onMouseLeaveDelivery={handleMouseLeaveDelivery}
               routes={routesWithCouriers}
               returnTimes={returnTimes}
+              tourComputed={tourComputed}
+              numberOfCouriers={courierCount}
             />
           </div>
 

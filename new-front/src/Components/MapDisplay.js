@@ -71,6 +71,8 @@ const MapDisplay = ({
   onMouseLeaveDelivery,
   routes = [],
   returnTimes,
+  tourComputed,
+  numberOfCouriers,
 }) => {
   const routesRef = useRef(routes);
   const [forceUpdate, setForceUpdate] = useState(0);
@@ -236,6 +238,8 @@ const MapDisplay = ({
           key={intersection.id}
           intersection={intersection}
           onAddDeliveryPoint={addingDeliveryPoint}
+          tourComputed={tourComputed}
+          numberOfCouriers={numberOfCouriers}
         />
       ))}
 
