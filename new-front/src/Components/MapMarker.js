@@ -21,7 +21,7 @@ const highlightedIcon = L.divIcon({
   popupAnchor: [0, -12],
 });
 
-const MapMarker = React.memo(({ intersection, onAddDeliveryPoint  }) => {
+const MapMarker = React.memo(({ intersection, onAddDeliveryPoint, setWarehouse, hasDeliveries }) => {
   const [isHighlighted, setIsHighlighted] = useState(false);
 
   const handleClick = () => {
@@ -33,7 +33,6 @@ const MapMarker = React.memo(({ intersection, onAddDeliveryPoint  }) => {
           position={[intersection.latitude, intersection.longitude]}
           icon={isHighlighted ? highlightedIcon : blackIcon}
           eventHandlers={{
-            click: handleClick,
             mouseover: () => {
               setIsHighlighted(true);
             },
@@ -44,9 +43,24 @@ const MapMarker = React.memo(({ intersection, onAddDeliveryPoint  }) => {
       >
         <Popup>
           <div>
-            <button onClick={() => onAddDeliveryPoint(intersection.id)} className="popup-button">
-              Add to delivery points
-            </button>
+            Intersection ID: {intersection.id}
+            <br/>
+            Latitude: {intersection.latitude}
+            <br/>
+            Longitude: {intersection.longitude}
+            <br/>
+
+            {hasDeliveries && (<button onClick={() => onAddDeliveryPoint(intersection.id)}>
+                                    Add to delivery points
+                                </button>
+            )}
+
+
+            {!hasDeliveries && (
+                <button onClick={() => setWarehouse(intersection.id)}>
+                  Define as warehouse
+                </button>
+            )}
           </div>
         </Popup>
       </Marker>

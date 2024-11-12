@@ -11,7 +11,7 @@ import MapMarker from "./MapMarker";
 import DeliveryPointMarker from "./DeliveryPointMarker";
 import WarehouseMarker from "./WarehouseMarker";
 
-const MIN_ZOOM_FOR_INTERSECTIONS = 18;
+const MIN_ZOOM_FOR_INTERSECTIONS = 17;
 
 // Définition des couleurs pour les coursiers avec une meilleure visibilité
 const COURIER_COLORS = {
@@ -71,6 +71,8 @@ const MapDisplay = ({
   onMouseLeaveDelivery,
   routes = [],
   returnTimes,
+                      setWarehouse,
+                      hasDeliveries,
 }) => {
   const routesRef = useRef(routes);
   const [forceUpdate, setForceUpdate] = useState(0);
@@ -236,6 +238,8 @@ const MapDisplay = ({
           key={intersection.id}
           intersection={intersection}
           onAddDeliveryPoint={addingDeliveryPoint}
+          setWarehouse={setWarehouse}
+          hasDeliveries={hasDeliveries}
         />
       ))}
 
