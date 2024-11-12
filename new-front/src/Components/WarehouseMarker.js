@@ -3,7 +3,7 @@ import { Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import PropTypes from "prop-types";
 import warehouseMarker from "../Assets/warehouseMarker.png";
-import "./WarehouseMarker.css";
+import "./Popup.css";
 
 const icon = L.icon({
   iconUrl: warehouseMarker,
@@ -17,25 +17,25 @@ const WarehouseMarker = React.memo(({ warehouse, returnTimes }) => {
   return (
     <Marker
       position={[warehouse.latitude, warehouse.longitude]}
-      icon={icon} // Utiliser l'icône prédéfinie
+      icon={icon} // Use the predefined icon
     >
       <Popup>
-        Warehouse: {warehouse.id}
-        <br />
-        Latitude: {warehouse.latitude}
-        <br />
-        Longitude: {warehouse.longitude}
-        <br />
-        Return Times :
-        <>
-          <ul className="no-vertical-margin">
+        <h1 className="popup-title"
+        style= {{
+          fontSize: '14px'
+        }}
+        >
+          Warehouse
+        </h1>
+        <div className="popup-text">Return Times :</div>
+        <div className="popup-list">
             {returnTimes.map((time, index) => (
-              <li key={index}>
-                Courier {index + 1}: {time}
-              </li>
+                <div key={index} className="popup-item">
+                  <div className="popup-dot"></div>
+                  <div className="popup-name">Courier {index + 1} : {time}</div>
+                </div>
             ))}
-          </ul>
-        </>
+        </div>
       </Popup>
     </Marker>
   );

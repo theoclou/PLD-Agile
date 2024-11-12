@@ -4,7 +4,7 @@ import L from "leaflet";
 import PropTypes from "prop-types";
 import deliveryMarker from "../Assets/deliveryMarker.png";
 
-// Composant DeliveryPointMarker optimisé
+// Optimized DeliveryPointMarker component
 const DeliveryPointMarker = React.memo(
   ({ delivery, highlighted, onMouseEnter, onMouseLeave }) => {
     const markerRef = useRef();
@@ -19,11 +19,11 @@ const DeliveryPointMarker = React.memo(
     useEffect(() => {
       const marker = markerRef.current;
       if (marker) {
-        // Ajouter les écouteurs d'événements directement sur l'instance du marker
+        // Add event listeners directly on the marker instance
         marker.on("mouseover", () => onMouseEnter(delivery.deliveryAdress.id));
         marker.on("mouseout", onMouseLeave);
 
-        // Nettoyer les écouteurs d'événements quand le composant est démonté
+        // Clean the event listeners when the component is destroyed
         return () => {
           marker.off("mouseover");
           marker.off("mouseout");
@@ -33,7 +33,7 @@ const DeliveryPointMarker = React.memo(
 
     return (
       <Marker
-        ref={markerRef} // Utiliser ref directement ici
+        ref={markerRef}
         position={[
           delivery.deliveryAdress.latitude,
           delivery.deliveryAdress.longitude,
@@ -41,18 +41,14 @@ const DeliveryPointMarker = React.memo(
         icon={icon}
       >
         <Popup>
-          Intersection ID: {delivery.deliveryAdress.id}
-          <br />
-          Latitude: {delivery.deliveryAdress.latitude}
-          <br />
-          Longitude: {delivery.deliveryAdress.longitude}
-          <br />
-          Courier:{" "}
-          {delivery.courier === null ? "Unassigned" : delivery.courier.id}
+          <div className="popup-text">
+            Courier :{" "}
+            {delivery.courier === null ? "Unassigned" : delivery.courier.id}
           <br />
           {delivery.arrivalTime === null
             ? ""
-            : "Arrival time: " + delivery.arrivalTime}
+            : "Arrival time : " + delivery.arrivalTime}
+          </div>
         </Popup>
       </Marker>
     );

@@ -70,7 +70,7 @@ const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, h
     );
   }
 
-  // Groupe les livraisons par coursier
+  // Group the delivery routs by couriers
   const groupedDeliveries = deliveryData.reduce((acc, delivery) => {
     const courierId = delivery.courier ? delivery.courier.id : 'unassigned';
     if (!acc[courierId]) {
@@ -124,7 +124,7 @@ const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, h
         </div>
       )}
 
-      {/* Points non assignés */}
+      {/* Non Assigned points */}
       {groupedDeliveries.unassigned && groupedDeliveries.unassigned.length > 0 && (
         <div>
           <h2 className="section-title">Unassigned Delivery Points</h2>
@@ -151,16 +151,17 @@ const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, h
                   className={`delivery-item ${highlightedDeliveryId === delivery.deliveryAdress.id ? "highlighted" : ""}`}
                   style={{
                     backgroundColor: highlightedDeliveryId === delivery.deliveryAdress.id ? 'rgb(255, 233, 233)' : 'transparent',
-                    borderLeft: '4px solid #737373'
+                    borderLeft: '4px solid #737373',
+                    paddingLeft: '12px'
                   }}
                 >
                   <h3 className="section-title">
-                    Delivery Point #{delivery.deliveryAdress.id}
+                    Delivery Point
                   </h3>
 
                   <div className="warehouse-section">
                     <div>
-                      <span className="section-info">Courier ID: </span>
+                      <span className="section-info">Courier ID : </span>
                       <span className="section-info">Unassigned</span>
                     </div>
 
@@ -199,7 +200,7 @@ const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, h
         </div>
       )}
 
-      {/* Points assignés, groupés par coursier */}
+      {/* Assigned points, grouped by couriers */}
       {Object.entries(groupedDeliveries)
         .filter(([courierId]) => courierId !== 'unassigned')
         .map(([courierId, deliveries]) => (
@@ -230,11 +231,12 @@ const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, h
                     className={`delivery-item ${highlightedDeliveryId === delivery.deliveryAdress.id ? "highlighted" : ""}`}
                     style={{
                       backgroundColor: highlightedDeliveryId === delivery.deliveryAdress.id ? 'rgb(255, 233, 233)' : 'transparent',
-                      borderLeft: `4px solid ${courierColors[courierId]}`
+                      borderLeft: `4px solid ${courierColors[courierId]}`,
+                      paddingLeft: '12px'
                     }}
                   >
                     <h3 className="section-title">
-                      Delivery Point #{delivery.deliveryAdress.id}
+                      Delivery Point
                     </h3>
 
                     <div className="warehouse-section">
