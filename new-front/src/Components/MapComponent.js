@@ -8,6 +8,7 @@ import "leaflet/dist/leaflet.css";
 import "./MapComponent.css";
 import TextSidebar from "./TextSidebar";
 import ComputeTour from "./ComputeTour";
+import ValidateButton from './ValidateButton';  // Make sure the path is correct
 import logoImage from "../Assets/logo.png";
 import boxImage from "../Assets/box2.png"
 
@@ -24,11 +25,13 @@ const MapComponent = () => {
   const mapRef = useRef();
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
+  const [popupText, setPopupText] = useState("");
   const [courierCount, setCourierCount] = useState(2);
   const [deliveryLoaded, setDeliveryLoaded] = useState(false);
   const [highlightedDeliveryId, setHighlightedDeliveryId] = useState(null);
   const [routesWithCouriers, setRoutesWithCouriers] = useState([]);
   const [returnTimes, setReturnTimes] = useState([]);
+  const [computedTour, setComputedTour] = useState(false);
   const handleMouseEnterDelivery = (deliveryId) => {
     setHighlightedDeliveryId(deliveryId);
   };
@@ -128,6 +131,7 @@ const MapComponent = () => {
         throw new Error("Invalid data format from server");
       }
     } catch (error) {
+      setPopupText("Error");
       setPopupMessage(error.message);
       setPopupVisible(true);
     } finally {
@@ -144,6 +148,7 @@ const MapComponent = () => {
       setDeliveryData({ deliveries: [], warehouse: null });
       setDeliveryLoaded(false);
       setRoutesWithCouriers([]);
+      setComputedTour(false); // Ajouté ic
 
       const formData = new FormData();
       formData.append("file", selectedFile);
@@ -160,6 +165,7 @@ const MapComponent = () => {
         }
         await handleFetchData();
       } catch (error) {
+        setPopupText("Error");
         setPopupMessage(error.message);
         setPopupVisible(true);
       }
@@ -176,6 +182,7 @@ const MapComponent = () => {
     setDeliveryData({ deliveries: [], warehouse: null });
     setDeliveryLoaded(false);
     setRoutesWithCouriers([]);
+    setComputedTour(false); // Déjà ajouté
 
     if (selectedFile) {
       try {
@@ -202,6 +209,7 @@ const MapComponent = () => {
           throw new Error("Invalid data format from server");
         }
       } catch (error) {
+        setPopupText("Error");
         setPopupMessage(error.message);
         setPopupVisible(true);
         setDeliveryLoaded(false);
@@ -352,6 +360,8 @@ const MapComponent = () => {
             });
           });
 
+          setComputedTour(true); // Ajout de cette ligne
+
           return {
             ...prevData,
             deliveries: updatedDeliveries,
@@ -362,7 +372,40 @@ const MapComponent = () => {
       }
     } catch (error) {
       console.error("Error during tour computation:", error);
+      setPopupText("Error");
       setPopupMessage("Error computing tour: " + error.message);
+      setPopupVisible(true);
+      setComputedTour(false); // Ajout de cette ligne
+    }
+  };
+
+  const handleValidateTour = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/validateTours", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const result = await response.json(); // D'abord récupérer le résultat
+
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to validate tours");
+      }
+
+      if (result.status === "success") {
+        console.log("Tours validated successfully:", result.toursByCourier);
+        setPopupText("Alert Success");
+        setPopupMessage("Tours have been validated successfully!");
+        setPopupVisible(true);
+      } else {
+        throw new Error(result.message || "Unknown error occurred");
+      }
+    } catch (error) {
+      console.error("Error validating tours:", error);
+      setPopupText("Error");
+      setPopupMessage(error.message || "Error validating tours");
       setPopupVisible(true);
     }
   };
@@ -373,10 +416,11 @@ const MapComponent = () => {
         <img src={boxImage} className="logo-image"/>
         <h1 className="title">Pick'One</h1>
         <div className="button-container">
-          <FileUploadButton onFileChange={handleFileChange}/>
-          {mapLoaded && <LoadDeliveryButton onFileChange={handleLoadDelivery}/>}
-          <CourierCounter count={courierCount} setCount={setCourierCount}/>
-          {deliveryLoaded && <ComputeTour onClick={handleComputeTour}/>}
+          <FileUploadButton onFileChange={handleFileChange} />
+          {mapLoaded && <LoadDeliveryButton onFileChange={handleLoadDelivery} />}
+          <CourierCounter count={courierCount} setCount={setCourierCount} />
+          {deliveryLoaded && <ComputeTour onClick={handleComputeTour} />}
+          {computedTour && <ValidateButton onClick={handleValidateTour} />}
         </div>
       </header>
 
@@ -423,7 +467,7 @@ const MapComponent = () => {
       )}
 
       {popupVisible && (
-        <ErrorPopup message={popupMessage} onClose={handleClosePopup} />
+        <ErrorPopup message={popupMessage} onClose={handleClosePopup} text={popupText}/>
       )}
     </div>
   );
