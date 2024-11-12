@@ -88,7 +88,7 @@ const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, h
           <h2 className="section-title">Warehouse</h2>
           <div className="section-container">
             <div className="section-info">
-              <h3 className="section-title">Warehouse #{warehouse.id}</h3>
+              <h3 className="section-title">Warehouse</h3>
             </div>
             <div className="section-info">
               <span className="section-title">Sections around: </span>

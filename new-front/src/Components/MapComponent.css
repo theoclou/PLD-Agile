@@ -8,7 +8,7 @@
 
 .header {
   width: 100%;
-  background-color: #fff3e6;
+  background-color: #ffffff; {/*#fff3e6*/}
   border-bottom: 1px solid #ffe0b3;
   padding: 1.5rem 4rem;
   height: 4rem;
@@ -26,17 +26,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 4rem; /* Hauteur du header */
-  height: calc(100vh - 4rem); /* 100vh moins la hauteur du header */
+  margin-top: 8%;
+  height: 80%;
   width: 100%;
-  overflow: hidden; /* Empêche le scroll dans la zone de l'image */
+  overflow: hidden; /* Block the scroll in the image zone */
 }
 
 .welcome-image {
-  width: 100vw;
-  height: calc(100vh - 4rem); /* Taille calculée pour couvrir l'écran */
+  width: 35%;
+  height: 35%;
   object-fit: cover;
   object-position: center;
+  overflow: hidden;
+}
+
+.logo-image {
+  width: 40px;
+  height: 40px;
+  margin-right: 1rem;
+  object-fit: cover;
 }
 
 .title {
