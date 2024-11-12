@@ -1,8 +1,7 @@
 package com.pld.agile.model.entity;
 
 import java.time.LocalTime;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -111,6 +110,23 @@ public class DeliveryTour {
      */
     public void setDeliveryRequests(List<DeliveryRequest> deliveryRequests) {
         this.deliveryRequests = deliveryRequests;
+    }
+
+    /**
+     * Returns the list of delivery requests sorted by arrival time
+     *
+     * @return sorted list of delivery requests
+     */
+    public List<DeliveryRequest> getSortedDeliveryRequests() {
+        List<DeliveryRequest> sortedRequests = new ArrayList<>(deliveryRequests);
+        sortedRequests.sort((d1, d2) -> {
+            LocalTime time1 = arrivalTimes.get(d1.getDeliveryAdress());
+            LocalTime time2 = arrivalTimes.get(d2.getDeliveryAdress());
+            if (time1 == null) return -1;
+            if (time2 == null) return 1;
+            return time1.compareTo(time2);
+        });
+        return sortedRequests;
     }
 
     /**

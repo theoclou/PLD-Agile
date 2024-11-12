@@ -650,6 +650,7 @@ public class Round {
         deliveryRequestList.add(deliveryRequest);
         return deliveryRequest;
     }
+
     /**
      *generate a save of the current tour in a file text
      */
@@ -667,7 +668,7 @@ public class Round {
 
             List<Intersection> route = tour.getRoute();
             Map<Intersection, LocalTime> arrivalTimes = tour.getArrivalTimes();
-            List<DeliveryRequest> deliveryRequests = tour.getDeliveryRequests();
+            List<DeliveryRequest> sortedDeliveryRequests = tour.getSortedDeliveryRequests();
             int sectionCounter = 1;
 
             String currentStreetName = null;
@@ -696,26 +697,27 @@ public class Round {
                         accumulatedDistance += currentSection.getLength();
                     } else {
                         if (currentStreetName != null) {
-                            fileContent.append(String.format("%d. %s (%.2f m)\n", sectionCounter++, currentStreetName, accumulatedDistance));
+                            fileContent.append(String.format("%d. %s (%.2f m)\n",
+                                    sectionCounter++, currentStreetName, accumulatedDistance));
                         }
                         currentStreetName = streetName;
                         accumulatedDistance = currentSection.getLength();
                     }
                 }
 
-                // Check if delivery in the next intersection
-                boolean isDeliveryPoint = deliveryRequests.stream()
+                boolean isDeliveryPoint = sortedDeliveryRequests.stream()
                         .anyMatch(dr -> dr.getDeliveryAdress().getId().equals(nextIntersection.getId()));
 
                 if (isDeliveryPoint) {
                     if (currentStreetName != null) {
-                        fileContent.append(String.format("%d. %s (%.2f m)\n", sectionCounter++, currentStreetName, accumulatedDistance));
+                        fileContent.append(String.format("%d. %s (%.2f m)\n",
+                                sectionCounter++, currentStreetName, accumulatedDistance));
                     }
 
                     LocalTime arrivalTime = arrivalTimes.get(nextIntersection);
                     if (arrivalTime != null) {
                         fileContent.append("\n   >>> Delivery Point for ");
-                        fileContent.append(String.format("%s <<<\n",currentStreetName));
+                        fileContent.append(String.format("%s <<<\n", currentStreetName));
                         fileContent.append(String.format("   Arrival: %s\n", arrivalTime));
                         LocalTime departureTime = arrivalTime.plusMinutes(5);
                         fileContent.append(String.format("   Departure: %s\n", departureTime));
@@ -727,13 +729,21 @@ public class Round {
                 }
             }
 
-            // If necessary, write last street
             if (currentStreetName != null && accumulatedDistance > 0) {
-                fileContent.append(String.format("%d. %s (%.2f m)\n", sectionCounter, currentStreetName, accumulatedDistance));
+                fileContent.append(String.format("%d. %s (%.2f m)\n",
+                        sectionCounter, currentStreetName, accumulatedDistance));
             }
 
-            fileContent.append("\nReturn to warehouse at: ").append(arrivalTimes.get(route.get(route.size() - 2))).append("\n\n");
+            fileContent.append("\nReturn to warehouse at: ")
+                    .append(arrivalTimes.get(route.get(route.size() - 2)))
+                    .append("\n\n");
+
+            /*System.out.println("sorted tour :");
+            System.out.println(sortedDeliveryRequests);
+            System.out.println("arrival times :");
+            System.out.println(arrivalTimes)*/
         }
+
 
         String fileName = "";
         try {
