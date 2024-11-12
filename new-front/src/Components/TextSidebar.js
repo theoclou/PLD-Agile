@@ -1,9 +1,19 @@
-import React from "react";
+import React, {useState} from "react";
 import PropTypes from "prop-types";
 import "./TextSidebar.css"
 
 const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, highlightedDeliveryId, onMouseEnterDelivery,onMouseLeaveDelivery }) => {
-  // Définition des couleurs par coursier
+  const [expandedDeliveries, setExpandedDeliveries] = useState({}); // State to manage the display of delivery points data
+
+  // Function to switch the delivery point details display
+  const toggleDeliveryInfo = (courierId) => {
+    setExpandedDeliveries((prevState) => ({
+      ...prevState,
+      [courierId]: !prevState[courierId], // reverse the state
+    }));
+  };
+
+  // Definition of the courier's colors
   const courierColors = {
     0: "#FF0000",  // Rouge
     1: "#0000FF",  // Bleu
@@ -207,8 +217,19 @@ const TextSidebar = React.memo(({ deliveryData, warehouse, sections, onDelete, h
           <div key={courierId}>
             <h2 className="section-title" style={{ color: courierColors[courierId] }}>
               Courier {courierId} Delivery Points
+              {/* Button to display/hide information */}
+              <button
+                  onClick={() => toggleDeliveryInfo(courierId)}
+                  className="toggle-button"
+              >
+                {expandedDeliveries[courierId] ? '⏶' : '⏷'}
+              </button>
             </h2>
-            {deliveries.map((delivery) => {
+
+
+
+            {/* Display the information if extandedDeliveries[courierId] is true */}
+            {expandedDeliveries[courierId] && deliveries.map((delivery) => {
               const relatedSections = sections.filter(
                 (section) =>
                   section.origin.id === delivery.deliveryAdress.id.toString() ||
