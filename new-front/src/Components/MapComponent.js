@@ -10,7 +10,7 @@ import TextSidebar from "./TextSidebar";
 import ComputeTour from "./ComputeTour";
 import ValidateButton from './ValidateButton';  // Make sure the path is correct
 import logoImage from "../Assets/logo.png";
-import boxImage from "../Assets/box2.png"
+import boxImage from "../Assets/box2.png";
 import HelperButton from "./HelperButton";
 
 const MapComponent = () => {
@@ -273,8 +273,6 @@ const MapComponent = () => {
     } catch (error) {
       console.error("Error during delete request:", error);
     }
-<<<<<<< HEAD
-=======
   };
 
 
@@ -317,26 +315,94 @@ const MapComponent = () => {
   const handleAddDeliveryPoint = async (intersectionId, courierID) => { //TODO : add courierID to the request
     if (!deliveryLoaded) return; //TODO check ça
     try {
-      const response = await fetch(
-        `http://localhost:8080/addDeliveryPointById`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ intersectionId }),
-        }
-      );
+      if (!tourComputed) {
+        const response = await fetch(
+          `http://localhost:8080/addDeliveryPointById`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ intersectionId }),
+          }
+        );
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.deliveryRequest) {
-          setDeliveryData((prevData) => ({
-            ...prevData,
-            deliveries: [...prevData.deliveries, result.deliveryRequest],
-          }));
+        if (response.ok) {
+          const result = await response.json();
+          if (result.deliveryRequest) {
+            setDeliveryData((prevData) => ({
+              ...prevData,
+              deliveries: [...prevData.deliveries, result.deliveryRequest],
+            }));
+          }
+          setPopupVisible(false);
+        } else {
+          throw new Error("Failed to add delivery point");
         }
-        setPopupVisible(false);
+      } else {
+        const response = await fetch(
+          `http://localhost:8080/addDeliveryPointByIdAfterCompute`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ intersectionId, courierID }),
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+
+          // Transformer les tours en routes avec information du courier
+          const routesWithCourierInfo = data.tours.map((tour) => ({
+            path: tour.route,
+            courierId: tour.courier.id,
+          }));
+          setRoutesWithCouriers(routesWithCourierInfo);
+
+          // Mise à jour des temps de retour
+          setReturnTimes(() => {
+            const newReturnTimes = [];
+            data.tours.forEach((tour) => {
+              newReturnTimes.push(tour.endTime);
+            });
+            return newReturnTimes;
+          });
+
+          // Mise à jour des données de livraison avec les informations des tournées
+          setDeliveryData((prevData) => {
+            const updatedDeliveries = [...prevData.deliveries];
+
+            data.tours.forEach((tour) => {
+              tour.deliveryRequests.forEach((tourDelivery) => {
+                const deliveryIndex = updatedDeliveries.findIndex(
+                  (delivery) =>
+                    delivery.deliveryAdress.id ===
+                    tourDelivery.deliveryAdress.id
+                );
+
+                if (deliveryIndex !== -1) {
+                  updatedDeliveries[deliveryIndex] = {
+                    ...updatedDeliveries[deliveryIndex],
+                    courier: tourDelivery.courier,
+                    arrivalTime:
+                      tour.arrivalTimes[
+                        `Intersection{id='${tourDelivery.deliveryAdress.id}', latitude=${tourDelivery.deliveryAdress.latitude}, longitude=${tourDelivery.deliveryAdress.longitude}}`
+                      ],
+                  };
+                }
+              });
+            });
+
+            return {
+              ...prevData,
+              deliveries: updatedDeliveries,
+            };
+          });
+        } else {
+          throw new Error("Failed to add delivery point");
+        }
       }
     } catch (error) {
       console.error("Error while adding a delivery point:", error);
@@ -469,7 +535,7 @@ const MapComponent = () => {
   return (
     <div className="container">
       <header className="header">
-        <img src={boxImage} className="logo-image"/>
+        <img src={boxImage} className="logo-image" />
         <h1 className="title">Pick'One</h1>
         <div className="button-container">
           <FileUploadButton onFileChange={handleFileChange} />
@@ -482,7 +548,7 @@ const MapComponent = () => {
       </header>
 
       {!mapLoaded && (
-          <div className="welcome-container">
+        <div className="welcome-container">
           <img src={logoImage} alt="Welcome" className="welcome-image" />
         </div>
       )}

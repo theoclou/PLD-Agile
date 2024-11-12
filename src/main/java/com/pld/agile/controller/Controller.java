@@ -3,6 +3,7 @@ package com.pld.agile.controller;
 import com.pld.agile.model.entity.*;
 import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.entity.Round;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -301,6 +302,47 @@ public class Controller {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
+
+    @PostMapping("/addDeliveryPointByIdAfterCompute") //TODO adapter avec Command Pattern ?
+    public ResponseEntity<Map<String,Object>> addDeliveryPointAfterCompute(@RequestBody Map<String, String> request){
+        Map<String, Object> response = new HashMap<>();
+
+        String intersectionId = request.get("intersectionId");
+        if (intersectionId == null) {
+            response.put("status", "error");
+            response.put("message", "Intersection ID is required");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        String courierId = request.get("courierId");
+        if (courierId == null) {
+            response.put("status", "error");
+            response.put("message", "Courier ID is required");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // execute Round method
+
+
+        // create and execute command
+        AddDeliveryPointCommand command = new AddDeliveryPointCommand(round, intersectionId);
+        commandManager.executeCommand(command);
+
+        DeliveryRequest newDeliveryRequest = round.getDeliveryRequestById(intersectionId);
+        if (newDeliveryRequest != null) {
+            response.put("status", "success");
+            response.put("message", "Delivery point added successfully");
+            response.put("deliveryRequest", newDeliveryRequest);
+            response.put("currentDeliveryCount", round.getDeliveryRequestList().size());
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("status", "error");
+            response.put("message", "Failed to add delivery point");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
+
 
     /**
      * Undo function
