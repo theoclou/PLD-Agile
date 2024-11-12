@@ -60,6 +60,9 @@ public class Application {
 		}
 		ArrayList<ArrayList<String>> groups = round.computeRoundOptimized();
 		System.out.println(groups);
+		
+		round.ComputeNewRound(1, 671, -1);
+
 		System.exit(0);
 	}
 }

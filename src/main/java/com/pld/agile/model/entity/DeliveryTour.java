@@ -149,4 +149,11 @@ public class DeliveryTour {
         this.arrivalTimes = arrivalTimes;
     }
 
+    @Override
+    public String toString() {
+        return "{" +
+            ", route='" + getRoute() + "'" +
+            "}";
+    }
+
 }

@@ -168,7 +168,7 @@ public class Solver {
         return solvingStrategy.getBestCost();
     }
 
-    public List<Integer> addDeliveryPoint(Integer intersection, List<Integer> bestPath) {
+    public List<Integer> addDeliveryPoint(Integer intersection) {
         vertices.add(intersection);
         g = createCompleteGraph();
         Double minimuDistance = Double.MAX_VALUE;
@@ -185,12 +185,15 @@ public class Solver {
         return bestPath;
     }
 
-    public List<Integer> deleteDeliveryPoint(Integer intersection, List<Integer> bestPath) {
+    public List<Integer> deleteDeliveryPoint(Integer intersection) {
+        System.out.println("original list :" +bestPath);
+
         if (!bestPath.contains(intersection)) { // Check if intersection is in bestPath
             throw new IllegalArgumentException("Error: Intersection not in bestPath");
         } else {
             bestPath.remove(intersection); // Remove intersection if it exists in bestPath
         }
+        System.out.println("updated list :" +bestPath);
         return bestPath; // Return the modified bestPath
     }
 
