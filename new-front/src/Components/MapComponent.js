@@ -531,7 +531,6 @@ const MapComponent = () => {
     }
   };
 
->>>>>>> 31c80d2 (Avancement Add Delivery Point)
   return (
     <div className="container">
       <header className="header">
