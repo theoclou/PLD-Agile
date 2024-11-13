@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import PropTypes from "prop-types";
-import "./Popup.css"
+import "./Popup.css";
 import CourierSelector from "./CourierSelector";
 
 // Define the icons outside the component

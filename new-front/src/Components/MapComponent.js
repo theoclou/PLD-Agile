@@ -237,64 +237,69 @@ const MapComponent = () => {
       console.error("No delivery ID provided for deletion");
       return;
     }
-    
+
     console.log("Attempting to delete delivery with ID:", deliveryId);
     try {
       if (!tourComputed) {
-      const response = await fetch(
-        `http://localhost:8080/deleteDeliveryRequest`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: deliveryId,
-        }
-      );
+        const response = await fetch(
+            `http://localhost:8080/deleteDeliveryRequest`,
+            {
+              method: "DELETE",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: deliveryId,
+            }
+        );
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Delete response:", result);
+        if (response.ok) {
+          const result = await response.json();
+          console.log("Delete response:", result);
 
-        if (result.message === "Delivery request deleted successfully.") {
-          setDeliveryData((prevData) => ({
-            ...prevData,
-            deliveries: prevData.deliveries.filter(
-              (delivery) => delivery.deliveryAdress.id !== deliveryId
-            ),
-          }));
+          if (result.message === "Delivery request deleted successfully.") {
+            setDeliveryData((prevData) => ({
+              ...prevData,
+              deliveries: prevData.deliveries.filter(
+                  (delivery) => delivery.deliveryAdress.id !== deliveryId
+              ),
+            }));
+          } else {
+            console.error("Unexpected server response:", result);
+          }
         } else {
-          console.error("Unexpected server response:", result);
+          console.error("Server returned error status:", response.status);
+          const errorText = await response.text();
+          console.error("Error response:", errorText);
         }
       } else {
-        console.error("Server returned error status:", response.status);
-        const errorText = await response.text();
-        console.error("Error response:", errorText);
-      }
-    }
-    else {
-      const response = await fetch(
-        `http://localhost:8080/deleteDeliveryRequestWithCourier`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ deliveryId, courierId }),
-        }
-      );
+        const response = await fetch(
+            `http://localhost:8080/deleteDeliveryRequestWithCourier`,
+            {
+              method: "DELETE",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ deliveryId, courierId }),
+            }
+        );
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Delete response:", result);
-
-
-
-
+        if (response.ok) {
+          const data = await response.json();
+          if (data.status === "success") {
+            // Mise à jour des tournées avec la nouvelle données
+            updateTour(data);
+          } else {
+            setPopupText("Error");
+            setPopupMessage(data.message || "Failed to delete delivery point");
+            setPopupVisible(true);
+          }
         }
       }
     } catch (error) {
       console.error("Error during delete request:", error);
+      setPopupText("Error");
+      setPopupMessage("Error deleting delivery point: " + error.message);
+      setPopupVisible(true);
     }
   };
 
@@ -335,72 +340,80 @@ const MapComponent = () => {
     }
   };
 
-  const updateTour = (data) => { // TODO correct this funtion to remove deliveryPoint from warehouse
-              // Transformer les tours en routes avec information du courier
-          const routesWithCourierInfo = data.tours.map((tour) => ({
-            path: tour.route,
-            courierId: tour.courier.id,
-          }));
-          setRoutesWithCouriers(routesWithCourierInfo);
+  const updateTour = (data) => {
+    // Transform tours into routes with courier information
+    const routesWithCourierInfo = data.tours.map((tour) => ({
+      path: tour.route,
+      courierId: tour.courier.id,
+    }));
+    setRoutesWithCouriers(routesWithCourierInfo);
 
-          // Mise à jour des temps de retour
-          setReturnTimes(() => {
-            const newReturnTimes = [];
-            data.tours.forEach((tour) => {
-              newReturnTimes.push(tour.endTime);
+    // Update return times
+    setReturnTimes(() => {
+      const newReturnTimes = [];
+      data.tours.forEach((tour) => {
+        newReturnTimes.push(tour.endTime);
+      });
+      return newReturnTimes;
+    });
+
+    // Update delivery data with tour information
+    setDeliveryData((prevData) => {
+      const updatedDeliveries = [];
+      const warehouseId = prevData.warehouse?.id;
+
+      // Process each tour
+      data.tours.forEach((tour) => {
+        tour.deliveryRequests.forEach((tourDelivery) => {
+          // Skip if this is the warehouse location
+          if (tourDelivery.deliveryAdress.id === warehouseId) {
+            return;
+          }
+
+          const arrivalTimeKey = `Intersection{id='${tourDelivery.deliveryAdress.id}', latitude=${tourDelivery.deliveryAdress.latitude}, longitude=${tourDelivery.deliveryAdress.longitude}}`;
+
+          const existingDeliveryIndex = updatedDeliveries.findIndex(
+              (delivery) => delivery.deliveryAdress.id === tourDelivery.deliveryAdress.id
+          );
+
+          if (existingDeliveryIndex === -1) {
+            // Add new delivery (excluding warehouse)
+            updatedDeliveries.push({
+              ...tourDelivery,
+              arrivalTime: tour.arrivalTimes[arrivalTimeKey],
             });
-            return newReturnTimes;
-          });
-
-          // Mise à jour des données de livraison avec les informations des tournées
-          setDeliveryData((prevData) => {
-            const updatedDeliveries = [...prevData.deliveries];
-            
-            // Parcours des tournées
-            data.tours.forEach((tour) => {
-              tour.deliveryRequests.forEach((tourDelivery) => {
-                const deliveryIndex = updatedDeliveries.findIndex(
-                  (delivery) => delivery.deliveryAdress.id === tourDelivery.deliveryAdress.id
-                );
-                
-                const arrivalTimeKey = `Intersection{id='${tourDelivery.deliveryAdress.id}', latitude=${tourDelivery.deliveryAdress.latitude}, longitude=${tourDelivery.deliveryAdress.longitude}}`;
-                
-                // Mise à jour d'une livraison existante
-                if (deliveryIndex !== -1) {
-                  updatedDeliveries[deliveryIndex] = {
-                    ...updatedDeliveries[deliveryIndex],
-                    courier: tourDelivery.courier,
-                    arrivalTime: tour.arrivalTimes[arrivalTimeKey],
-                  };
-                } 
-                // Ajout d'une nouvelle livraison
-                else {
-                  updatedDeliveries.push({
-                    ...tourDelivery,
-                    arrivalTime: tour.arrivalTimes[arrivalTimeKey],
-                  });
-                }
-              });
-            });
-
-            // Ajout des nouvelles demandes de livraison qui ne sont pas dans les tournées
-            if (data.deliveryRequests) {
-              data.deliveryRequests.forEach((newDelivery) => {
-                const exists = updatedDeliveries.some(
-                  (delivery) => delivery.deliveryAdress.id === newDelivery.deliveryAdress.id
-                );
-                
-                if (!exists && newDelivery.deliveryAdress.id !== deliveryData.warehouse.id) {
-                  updatedDeliveries.push(newDelivery);
-                }
-              });
-            }
-
-            return {
-              ...prevData,
-              deliveries: updatedDeliveries,
+          } else {
+            // Update existing delivery
+            updatedDeliveries[existingDeliveryIndex] = {
+              ...updatedDeliveries[existingDeliveryIndex],
+              courier: tourDelivery.courier,
+              arrivalTime: tour.arrivalTimes[arrivalTimeKey],
             };
-          });
+          }
+        });
+      });
+
+      // Add any remaining delivery requests that aren't in tours
+      if (data.deliveryRequests) {
+        data.deliveryRequests.forEach((newDelivery) => {
+          if (
+              newDelivery.deliveryAdress.id !== warehouseId &&
+              !updatedDeliveries.some(
+                  (delivery) => delivery.deliveryAdress.id === newDelivery.deliveryAdress.id
+              )
+          ) {
+            updatedDeliveries.push(newDelivery);
+          }
+        });
+      }
+
+      return {
+        ...prevData,
+        deliveries: updatedDeliveries,
+      };
+    });
+
+    setComputedTour(true);
   };
 
   const handleAddDeliveryPoint = async (intersectionId, courierID = -1) => { //TODO : add courierID to the request

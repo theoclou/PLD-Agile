@@ -241,6 +241,50 @@ public class Controller {
     }
 
     /**
+     * Deletes a delivery request from the system.
+     *
+     * @param request Request containing "deliveryId" to be deleted and "courierId" to update the tour
+     * @return String confirmation message with the deleted request ID
+     */
+    @DeleteMapping("/deleteDeliveryRequestWithCourier")
+    public ResponseEntity<Map<String, Object>> deleteDeliveryRequestWithCourier(@RequestBody Map<String, String> request) {
+        Map<String, Object> response = new HashMap<>();
+
+        String deliveryId = request.get("deliveryId");
+        String courierIdStr = request.get("courierId");
+
+        if (deliveryId == null || courierIdStr == null) {
+            response.put("status", "error");
+            response.put("message", "Delivery ID and Courier ID are required");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        try {
+            int courierId = Integer.parseInt(courierIdStr);
+            List<DeliveryTour> updatedTours = round.updateLocalPoint(courierId, deliveryId, -1);
+
+            if (updatedTours != null) {
+                response.put("status", "success");
+                response.put("message", "Delivery point deleted successfully");
+                response.put("tours", updatedTours);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("status", "error");
+                response.put("message", "Failed to delete delivery point");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+        } catch (NumberFormatException e) {
+            response.put("status", "error");
+            response.put("message", "Invalid courier ID format");
+            return ResponseEntity.badRequest().body(response);
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "Error deleting delivery point: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    /**
      * Add a delivery request from the system.
      *
      * @param request (json which contains the id of the selected intersection)
