@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import com.pld.agile.model.graph.CompleteGraph;
@@ -23,7 +22,8 @@ public class BranchAndBound {
     private double best = Double.MAX_VALUE;
     private int[] bestPath; // To store the best path found
     private CompleteGraph g;
-
+    private long timeLimit=10000;
+    private long startTime;
     /**
      * Constructor for the BranchAndBound class.
      */
@@ -56,7 +56,8 @@ public class BranchAndBound {
         }
 
         bestPath = new int[n + 1]; // +1 for the return to starting point
-
+        System.out.println("timer started ");
+        startTime=System.currentTimeMillis();
         // Start the recursive permutation
         permut(visited, 1, notVisited, n - 1, 0.0);
 
@@ -86,7 +87,12 @@ public class BranchAndBound {
      */
     private void permut(int[] visited, int nbVisited, int[] notVisited, int nbNotVisited, double distance) {
         nbCalls++;
-
+        long currentTime=System.currentTimeMillis();
+        if (currentTime-startTime>timeLimit)
+        {
+            System.out.println("time out");
+            return;
+        }
         // eliminate paths exceeding current best distance
         if (distance >= best) {
             return;

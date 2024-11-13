@@ -196,7 +196,10 @@ public class Solver {
 
     public List<Integer> deleteDeliveryPoint(Integer intersection) {
         System.out.println("original list :" +bestPath);
-
+        vertices.remove(intersection);
+        System.out.println( "nb vertices avant :" +g.getNbVertices());
+        g = createCompleteGraph();
+        System.out.println( "nb vertices après :" +g.getNbVertices());
         if (!bestPath.contains(intersection)) { // Check if intersection is in bestPath
             throw new IllegalArgumentException("Error: Intersection not in bestPath");
         } else {
