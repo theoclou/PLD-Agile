@@ -34,7 +34,13 @@ const TextSidebar = React.memo(
       9: "#b95e1f",
     };
 
+    const formatTime = (time) => {
+      if (!time) return "Not scheduled";
+      return `${String(time.hours).padStart(2, "0")}:${String(time.minutes).padStart(2, "0")}:${String(time.seconds).padStart(2, "0")}`;
+    };
+
     const groupAndSortDeliveries = (deliveryData) => {
+      // D'abord grouper par courier
       const grouped = deliveryData.reduce((acc, delivery) => {
         const courierId = delivery.courier ? delivery.courier.id : "unassigned";
         if (!acc[courierId]) {
@@ -44,15 +50,18 @@ const TextSidebar = React.memo(
         return acc;
       }, {});
 
+      // Fonction pour convertir l'heure en minutes pour la comparaison
+      const timeToMinutes = (time) => {
+        if (!time) return Infinity;
+        return time.hours * 3600 + time.minutes * 60 + time.seconds;
+      };
+
+      // Trier chaque groupe par heure d'arrivée
       Object.keys(grouped).forEach((courierId) => {
         if (courierId !== "unassigned" && Array.isArray(grouped[courierId])) {
           grouped[courierId].sort((a, b) => {
-            const timeA = a.arrivalTime
-              ? a.arrivalTime.hours * 60 + a.arrivalTime.minutes
-              : Infinity;
-            const timeB = b.arrivalTime
-              ? b.arrivalTime.hours * 60 + b.arrivalTime.minutes
-              : Infinity;
+            const timeA = timeToMinutes(a.arrivalTime);
+            const timeB = timeToMinutes(b.arrivalTime);
             return timeA - timeB;
           });
         }
@@ -146,19 +155,33 @@ const TextSidebar = React.memo(
               paddingLeft: "12px",
             }}
           >
-            <h3 className="section-title">Delivery Point</h3>
-            <div className="warehouse-section">
-              <div>
-                <span className="section-info">Courier ID: </span>
-                <span
-                  className="section-info"
-                  style={{
-                    color: courierId ? courierColors[courierId] : "inherit",
-                  }}
-                >
-                  {courierId ? courierId : "Unassigned"}
+            <div className="delivery-header">
+              <h3 className="section-title">
+                Delivery Point #{delivery.deliveryAdress.id}
+              </h3>
+              <div className="arrival-time">
+                <span className="arrival-label">Arrival : </span>
+                <span className="arrival-value">
+                  {formatTime(delivery.arrivalTime)}
                 </span>
               </div>
+            </div>
+
+            <div className="warehouse-section">
+              <div className="delivery-info">
+                <div>
+                  <span className="section-info">Courier ID: </span>
+                  <span
+                    className="section-info"
+                    style={{
+                      color: courierId ? courierColors[courierId] : "inherit",
+                    }}
+                  >
+                    {courierId ? courierId : "Unassigned"}
+                  </span>
+                </div>
+              </div>
+
               <div>
                 <span className="section-title">Sections around: </span>
                 <div className="section-list">
@@ -177,6 +200,7 @@ const TextSidebar = React.memo(
                 </div>
               </div>
             </div>
+
             <div className="button-container">
               <button
                 onClick={() => onDelete(delivery.deliveryAdress.id, courierId)}

@@ -359,28 +359,38 @@ const MapComponent = () => {
     setReturnTimes(newReturnTimes);
 
     // Update delivery data with tour information
-    setDeliveryData((prevData) => {
-      const warehouseId = prevData.warehouse?.id;
-      const updatedDeliveries = [];
+    const updatedDeliveries = [];
+    data.tours.forEach((tour) => {
+      tour.deliveryRequests.forEach((delivery) => {
+        // Skip warehouse
+        if (delivery.deliveryAdress.id === deliveryData.warehouse?.id) return;
 
-      data.tours.forEach((tour) => {
-        tour.deliveryRequests.forEach((tourDelivery) => {
-          if (tourDelivery.deliveryAdress.id === warehouseId) return;
+        // Format the key as it appears in the arrivalTimes map
+        const arrivalTimeKey = `Intersection{id='${delivery.deliveryAdress.id}', latitude=${delivery.deliveryAdress.latitude}, longitude=${delivery.deliveryAdress.longitude}}`;
 
-          const arrivalTimeKey = `Intersection{id='${tourDelivery.deliveryAdress.id}', latitude=${tourDelivery.deliveryAdress.latitude}, longitude=${tourDelivery.deliveryAdress.longitude}}`;
+        const arrivalTimeStr = tour.arrivalTimes[arrivalTimeKey];
+        let arrivalTime = null;
 
-          updatedDeliveries.push({
-            ...tourDelivery,
-            arrivalTime: tour.arrivalTimes[arrivalTimeKey],
-          });
+        if (arrivalTimeStr) {
+          // Parse the time string (format "HH:mm:ss")
+          const [hours, minutes, seconds] = arrivalTimeStr
+            .split(":")
+            .map(Number);
+          arrivalTime = { hours, minutes, seconds };
+        }
+
+        updatedDeliveries.push({
+          ...delivery,
+          courier: tour.courier,
+          arrivalTime,
         });
       });
-
-      return {
-        ...prevData,
-        deliveries: updatedDeliveries,
-      };
     });
+
+    setDeliveryData((prevData) => ({
+      ...prevData,
+      deliveries: updatedDeliveries,
+    }));
 
     setTourComputed(true);
   };
@@ -518,6 +528,10 @@ const MapComponent = () => {
     }
   };
 
+  useEffect(() => {
+    console.log("Delivery data:", deliveryData);
+    console.log("Return Times" + returnTimes);
+  }, [deliveryData, returnTimes]);
   return (
     <div className="container">
       <header className="header">
