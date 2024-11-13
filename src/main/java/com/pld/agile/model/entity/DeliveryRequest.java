@@ -57,4 +57,11 @@ public class DeliveryRequest {
         this.courier = courier;
     }
 
+    @Override
+    public String toString() {
+        return "DeliveryRequest{" +
+                "deliveryAdress=" + deliveryAdress +
+                ", courier=" + courier +
+                '}';
+    }
 }

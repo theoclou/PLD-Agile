@@ -71,6 +71,8 @@ const MapDisplay = ({
   onMouseLeaveDelivery,
   routes = [],
   returnTimes,
+  tourComputed,
+  numberOfCouriers,
                       setWarehouse,
                       hasDeliveries,
 }) => {
@@ -238,6 +240,8 @@ const MapDisplay = ({
           key={intersection.id}
           intersection={intersection}
           onAddDeliveryPoint={addingDeliveryPoint}
+          tourComputed={tourComputed}
+          numberOfCouriers={numberOfCouriers}
           setWarehouse={setWarehouse}
           hasDeliveries={hasDeliveries}
         />

@@ -3,6 +3,7 @@ package com.pld.agile.controller;
 import com.pld.agile.model.entity.*;
 import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.entity.Round;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -132,7 +133,6 @@ public class Controller {
         try {
             //Create response object
             Map<String, Object> response = new HashMap<>();
-            System.out.println("File received: " + file.getOriginalFilename());
             round.loadRequests(file);
             List<DeliveryRequest> deliveryRequestList = round.getDeliveryRequestList();
             System.out.println("Delivery request list size: " + deliveryRequestList.size());
@@ -194,17 +194,26 @@ public class Controller {
      * @return String indicating the status of tour computation
      */
     @PostMapping("/compute")
-    public Map<String, List<DeliveryTour>> computeTours() {
-        map.softResetMap();
-        map.preprocessData();
+    public ResponseEntity<Map<String, Object>> computeTours() {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            map.softResetMap();
+            map.preprocessData();
 
-        round.softReset();
-        round.init(numberOfCouriers, map);
-        round.computeRoundOptimized();
-        List<DeliveryTour> tourAttribution = round.getTourAttribution();
-        Map<String, List<DeliveryTour>> tourMap = new HashMap<>();
-        tourMap.put("tours", tourAttribution);
-        return tourMap;
+            round.softReset();
+            round.init(numberOfCouriers, map);
+            round.computeRoundOptimized();
+            List<DeliveryTour> tourAttribution = round.getTourAttribution();
+
+            response.put("status", "success");
+            response.put("message", "Tours computed successfully");
+            response.put("tours", tourAttribution);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "Failed to compute tours: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 
     /**
@@ -237,6 +246,57 @@ public class Controller {
 
         response.put("message", "Delivery request deleted successfully.");
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Deletes a delivery request from the system.
+     *
+     * @param request Request containing "deliveryId" to be deleted and "courierId" to update the tour
+     * @return String confirmation message with the deleted request ID
+     */
+    @DeleteMapping("/deleteDeliveryRequestWithCourier")
+    public ResponseEntity<Map<String, Object>> deleteDeliveryRequestWithCourier(@RequestBody Map<String, String> request) {
+        Map<String, Object> response = new HashMap<>();
+
+        System.out.println("Received request: " + request);
+        String deliveryId = request.get("deliveryId");
+        String courierIdStr = request.get("courierId");
+
+        if (deliveryId == null || courierIdStr == null) {
+            response.put("status", "error");
+            response.put("message", "Delivery ID and Courier ID are required");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        try {
+            int courierId = Integer.parseInt(courierIdStr);
+
+            //Delete the delivery request from the list
+            DeleteDeliveryCommand command = new DeleteDeliveryCommand(round, deliveryId);
+            commandManager.executeCommand(command);
+
+            //Update the tour
+            List<DeliveryTour> updatedTours = round.updateLocalPoint(courierId, deliveryId, -1);
+
+            if (updatedTours != null) {
+                response.put("status", "success");
+                response.put("message", "Delivery point deleted successfully");
+                response.put("tours", updatedTours);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("status", "error");
+                response.put("message", "Failed to delete delivery point");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+        } catch (NumberFormatException e) {
+            response.put("status", "error");
+            response.put("message", "Invalid courier ID format");
+            return ResponseEntity.badRequest().body(response);
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "Error deleting delivery point: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 
     /**
@@ -285,6 +345,7 @@ public class Controller {
             return ResponseEntity.badRequest().body(response);
         }
 
+
         // create and execute command
         DefineWarehousePointCommand command = new DefineWarehousePointCommand(round, intersectionId);
         commandManager.executeCommand(command);
@@ -301,6 +362,59 @@ public class Controller {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
+
+    @PostMapping("/addDeliveryPointByIdAfterCompute") //TODO adapter avec Command Pattern ?
+    //TODO rajouter deliveryPoint dans la liste de Round
+    public ResponseEntity<Map<String,Object>> addDeliveryPointAfterCompute(@RequestBody Map<String, String> request){
+        Map<String, Object> response = new HashMap<>();
+        System.out.println("Request received : " + request);
+        String intersectionId = request.get("intersectionId");
+        if (intersectionId == null) {
+            response.put("status", "error");
+            response.put("message", "Intersection ID is required");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        String courierId = request.get("courierID");
+        if (courierId == null) {
+            response.put("status", "error");
+            response.put("message", "Courier ID is required");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        try {
+            // First update the list
+            AddDeliveryPointCommand command = new AddDeliveryPointCommand(round, intersectionId);
+            commandManager.executeCommand(command);
+
+            // Then the tour
+            List<DeliveryTour> updatedTours = round.updateLocalPoint(Integer.parseInt(courierId), intersectionId, 1);
+
+            if(updatedTours != null) {
+                response.put("status", "success");
+                response.put("message", "Delivery point added successfully");
+                response.put("tours", updatedTours);
+                return ResponseEntity.ok(response);
+            } else {
+            response.put("status", "error");
+            response.put("message", "Failed to add delivery point");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }} catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+
+
+
+        // create and execute command
+//        AddDeliveryPointCommand command = new AddDeliveryPointCommand(round, intersectionId);
+//        commandManager.executeCommand(command);
+
+
+    }
+
+
 
     /**
      * Undo function
