@@ -357,8 +357,8 @@ public class Solver {
         double currentCost = 0.0;
         LocalTime currentTime = LocalTime.of(8, 0); // Departure at 8 AM
         double speed = 15.0; // km/h
-        double serviceTimePerPoint = 5.0; // 5 minutes
-        double timeLimit = 8.0 * 60.0; // 8 hours in minutes
+        double serviceTimeInSeconds = 5.0 * 60.0; // 5 minutes converted to seconds
+        double timeLimitInSeconds = 8.0 * 60.0 * 60.0; // 8 hours converted to seconds
         int pathSize = this.bestPath.size();
 
         System.out.println("Computing times for path: " + this.bestPath);
@@ -366,7 +366,7 @@ public class Solver {
         // Add the departure time for the starting point
         pointsWithTime.put(this.bestPath.get(0), currentTime);
 
-        double totalTimeInMinutes = 0.0;
+        double totalTimeInSeconds = 0.0;
 
         for (int i = 0; i < pathSize - 1; i++) {
             int currentPosition = this.bestPath.get(i);
@@ -379,25 +379,26 @@ public class Solver {
             // Convert the distance to kilometers
             double distanceKm = distanceMeters / 1000.0;
 
-            // Calculate travel time in minutes
-            double travelTimeMinutes = (distanceKm / speed) * 60.0;
+            // Calculate travel time in seconds
+            // speed is in km/h, so multiply by 3600 to get seconds
+            double travelTimeSeconds = (distanceKm / speed) * 3600.0;
 
-            // Add service time (5 minutes) if it's not the last point
+            // Add service time (5 minutes = 300 seconds) if it's not the last point
             // and if it's not the starting point (i > 0)
             if (i > 0) {
-                totalTimeInMinutes += serviceTimePerPoint;
-                currentTime = currentTime.plusMinutes((long)serviceTimePerPoint);
+                totalTimeInSeconds += serviceTimeInSeconds;
+                currentTime = currentTime.plusSeconds((long)serviceTimeInSeconds);
             }
 
             // Add travel time
-            totalTimeInMinutes += travelTimeMinutes;
-            currentTime = currentTime.plusMinutes((long)travelTimeMinutes);
+            totalTimeInSeconds += travelTimeSeconds;
+            currentTime = currentTime.plusSeconds((long)travelTimeSeconds);
 
-            System.out.printf("\"From %d to %d: distance=%.2fm, time=%.2fmin, arrival=%s%n",
-                    currentPosition, nextPosition, distanceMeters, travelTimeMinutes, currentTime);
+            System.out.printf("From %d to %d: distance=%.2fm, time=%.2fs, arrival=%s%n",
+                    currentPosition, nextPosition, distanceMeters, travelTimeSeconds, currentTime);
 
             // Check if the time limit is exceeded
-            if (totalTimeInMinutes > timeLimit) {
+            if (totalTimeInSeconds > timeLimitInSeconds) {
                 System.out.println("Time limit exceeded after point " + currentPosition);
                 break;
             }

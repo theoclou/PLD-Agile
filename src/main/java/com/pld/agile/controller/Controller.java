@@ -260,6 +260,10 @@ public class Controller {
         }
 
         try {
+            //Delete the delivery request from the list
+            DeleteDeliveryCommand command = new DeleteDeliveryCommand(round, deliveryId);
+            commandManager.executeCommand(command);
+
             int courierId = Integer.parseInt(courierIdStr);
             List<DeliveryTour> updatedTours = round.updateLocalPoint(courierId, deliveryId, -1);
 
@@ -368,10 +372,16 @@ public class Controller {
         }
 
         // execute Round method
+
+        // Adding to the delivery list
+        AddDeliveryPointCommand command = new AddDeliveryPointCommand(round, intersectionId);
+        commandManager.executeCommand(command);
+
         List<DeliveryTour> tour = round.updateLocalPoint(Integer.parseInt(courierId), intersectionId, 1);
         System.out.println(" warehouse : " + round.getWarehouse());
         System.out.println("Tour updated : " + tour);
         System.out.println("Is tour null ? " + (tour == null));
+
 
         if(tour != null){
             response.put("status", "success");
