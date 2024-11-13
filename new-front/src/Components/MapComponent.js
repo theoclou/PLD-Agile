@@ -232,14 +232,15 @@ const MapComponent = () => {
     }
   };
 
-  const handleDelete = async (deliveryId) => {
+  const handleDelete = async (deliveryId, courierId = -1) => {
     if (!deliveryId) {
       console.error("No delivery ID provided for deletion");
       return;
     }
-
+    
     console.log("Attempting to delete delivery with ID:", deliveryId);
     try {
+      if (!tourComputed) {
       const response = await fetch(
         `http://localhost:8080/deleteDeliveryRequest`,
         {
@@ -269,6 +270,28 @@ const MapComponent = () => {
         console.error("Server returned error status:", response.status);
         const errorText = await response.text();
         console.error("Error response:", errorText);
+      }
+    }
+    else {
+      const response = await fetch(
+        `http://localhost:8080/deleteDeliveryRequestWithCourier`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ deliveryId, courierId }),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Delete response:", result);
+
+
+
+
+        }
       }
     } catch (error) {
       console.error("Error during delete request:", error);
@@ -312,52 +335,8 @@ const MapComponent = () => {
     }
   };
 
-  const handleAddDeliveryPoint = async (intersectionId, courierID = -1) => { //TODO : add courierID to the request
-    console.log("delivery loaded " + deliveryLoaded);
-    if (!deliveryLoaded) return; //TODO check ça
-    try {
-      console.log("Adding delivery point with ID:", intersectionId);
-      if (!tourComputed) {
-        const response = await fetch(
-          `http://localhost:8080/addDeliveryPointById`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ intersectionId }),
-          }
-        );
-
-        if (response.ok) {
-          const result = await response.json();
-          if (result.deliveryRequest) {
-            setDeliveryData((prevData) => ({
-              ...prevData,
-              deliveries: [...prevData.deliveries, result.deliveryRequest],
-            }));
-          }
-          setPopupVisible(false);
-        } else {
-          throw new Error("Failed to add delivery point");
-        }
-      } else {
-        console.log("Courier : " + courierID);
-        const response = await fetch(
-          `http://localhost:8080/addDeliveryPointByIdAfterCompute`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ intersectionId, courierID }),
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-
-          // Transformer les tours en routes avec information du courier
+  const updateTour = (data) => { // TODO correct this funtion to remove deliveryPoint from warehouse
+              // Transformer les tours en routes avec information du courier
           const routesWithCourierInfo = data.tours.map((tour) => ({
             path: tour.route,
             courierId: tour.courier.id,
@@ -411,7 +390,7 @@ const MapComponent = () => {
                   (delivery) => delivery.deliveryAdress.id === newDelivery.deliveryAdress.id
                 );
                 
-                if (!exists) {
+                if (!exists && newDelivery.deliveryAdress.id !== deliveryData.warehouse.id) {
                   updatedDeliveries.push(newDelivery);
                 }
               });
@@ -422,6 +401,55 @@ const MapComponent = () => {
               deliveries: updatedDeliveries,
             };
           });
+  };
+
+  const handleAddDeliveryPoint = async (intersectionId, courierID = -1) => { //TODO : add courierID to the request
+    console.log("delivery loaded " + deliveryLoaded);
+    if (!deliveryLoaded) return; //TODO check ça
+    try {
+      console.log("Adding delivery point with ID:", intersectionId);
+      if (!tourComputed) {
+        const response = await fetch(
+          `http://localhost:8080/addDeliveryPointById`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ intersectionId }),
+          }
+        );
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.deliveryRequest) {
+            setDeliveryData((prevData) => ({
+              ...prevData,
+              deliveries: [...prevData.deliveries, result.deliveryRequest],
+            }));
+          }
+          setPopupVisible(false);
+        } else {
+          throw new Error("Failed to add delivery point");
+        }
+      } else {
+        console.log("Courier : " + courierID);
+        const response = await fetch(
+          `http://localhost:8080/addDeliveryPointByIdAfterCompute`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ intersectionId, courierID }),
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+
+          updateTour(data);
+          setComputedTour(true);
         } else {
           throw new Error("Failed to add delivery point " + response.message);
         }
@@ -462,53 +490,7 @@ const MapComponent = () => {
       if (response.ok) {
         const data = await response.json();
 
-        // Transformer les tours en routes avec information du courier
-        const routesWithCourierInfo = data.tours.map((tour) => ({
-          path: tour.route,
-          courierId: tour.courier.id,
-        }));
-        setRoutesWithCouriers(routesWithCourierInfo);
-
-        // Mise à jour des temps de retour
-        setReturnTimes(() => {
-          const newReturnTimes = [];
-          data.tours.forEach((tour) => {
-            newReturnTimes.push(tour.endTime);
-          });
-          return newReturnTimes;
-        });
-
-        // Mise à jour des données de livraison avec les informations des tournées
-        setDeliveryData((prevData) => {
-          const updatedDeliveries = [...prevData.deliveries];
-
-          data.tours.forEach((tour) => {
-            tour.deliveryRequests.forEach((tourDelivery) => {
-              const deliveryIndex = updatedDeliveries.findIndex(
-                (delivery) =>
-                  delivery.deliveryAdress.id === tourDelivery.deliveryAdress.id
-              );
-
-              if (deliveryIndex !== -1) {
-                updatedDeliveries[deliveryIndex] = {
-                  ...updatedDeliveries[deliveryIndex],
-                  courier: tourDelivery.courier,
-                  arrivalTime:
-                    tour.arrivalTimes[
-                      `Intersection{id='${tourDelivery.deliveryAdress.id}', latitude=${tourDelivery.deliveryAdress.latitude}, longitude=${tourDelivery.deliveryAdress.longitude}}`
-                    ],
-                };
-              }
-            });
-          });
-
-          setComputedTour(true); // Ajout de cette ligne
-
-          return {
-            ...prevData,
-            deliveries: updatedDeliveries,
-          };
-        });
+        updateTour(data);
         setTourComputed(true);
       } else {
         throw new Error("Failed to compute tour");
