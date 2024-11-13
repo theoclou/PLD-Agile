@@ -171,25 +171,29 @@ public class Solver {
     }
 
     public List<Integer> addDeliveryPoint(Integer intersection) {
-        System.out.println("original list :" +bestPath);
-
+        System.out.println("original list: " + bestPath);
         vertices.add(intersection);
-        System.out.println( "nb vertices avant :" +g.getNbVertices());
         g = createCompleteGraph();
-        System.out.println( "nb vertices après :" +g.getNbVertices());
 
-        Double minimuDistance = Double.MAX_VALUE;
-        Integer index = 0;
+        Double minimumDetour = Double.MAX_VALUE;
+        Integer bestIndex = 0;
+
+        // On parcourt tous les segments du chemin actuel
         for (int i = 0; i < bestPath.size() - 1; i++) {
-            Double currentDistance = g.getCost(bestPath.get(i), intersection)
-                    + g.getCost(intersection, bestPath.get(i));
-            if (currentDistance < minimuDistance) {
-                minimuDistance = currentDistance;
-                index = i;
+            // Calcul du coût du détour pour insérer le nouveau point
+            Double detourCost = g.getCost(vertices.indexOf(bestPath.get(i)), vertices.indexOf(intersection)) +
+                    g.getCost(vertices.indexOf(intersection), vertices.indexOf(bestPath.get(i + 1))) -
+                    g.getCost(vertices.indexOf(bestPath.get(i)), vertices.indexOf(bestPath.get(i + 1)));
+
+            if (detourCost < minimumDetour) {
+                minimumDetour = detourCost;
+                bestIndex = i;
             }
         }
-        bestPath.add(index + 1, intersection);
-        System.out.println("updated list :" +bestPath);
+
+        // Insertion du nouveau point à la meilleure position
+        bestPath.add(bestIndex + 1, intersection);
+        System.out.println("updated list: " + bestPath);
 
         return bestPath;
     }
@@ -345,53 +349,68 @@ public class Solver {
     // resultPoint.put("pointsWithTime", pointsWithTime);
     // }
     private void pointsToBeServed() {
-        if (this.bestPath.size()==0)
-        {
+        if (this.bestPath.size() == 0) {
             this.bestPath = getBestPath();
         }
 
         Map<Integer, LocalTime> pointsWithTime = new HashMap<>();
         double currentCost = 0.0;
-        double cumulativeTime = 0.0; // in hours
-        int servedPoints = 0;
+        LocalTime currentTime = LocalTime.of(8, 0); // Départ à 8h
         double speed = 15.0; // km/h
-        double serviceTimePerPoint = 5.0 / 60.0; // in hours (5 minutes)
-        double timeLimit = 8.0; // in hours
-        LocalTime currentTime = LocalTime.of(8, 0);
+        double serviceTimePerPoint = 5.0; // 5 minutes
+        double timeLimit = 8.0 * 60.0; // 8 heures en minutes
         int pathSize = this.bestPath.size();
-        System.out.println("Path size :" + pathSize);
-        System.out.println(g.toString());
+
+        System.out.println("Computing times for path: " + this.bestPath);
+
+        // Ajouter le temps de départ pour le point de départ
+        pointsWithTime.put(this.bestPath.get(0), currentTime);
+
+        double totalTimeInMinutes = 0.0;
+
         for (int i = 0; i < pathSize - 1; i++) {
             int currentPosition = this.bestPath.get(i);
             int nextPosition = this.bestPath.get(i + 1);
-            double distanceMeters = g.getCost(i, (i + 1) % vertices.size()); // in meters
 
-            double distanceKm = distanceMeters / 1000.0; // convert to kilometers
-            double timeToNextPoint = distanceKm / speed; // time in hours
-            cumulativeTime += timeToNextPoint;
+            // Obtenir la vraie distance entre les points en utilisant leurs indices dans le graphe
+            double distanceMeters = g.getCost(vertices.indexOf(currentPosition),
+                    vertices.indexOf(nextPosition));
 
-            // Add service time at each delivery point (except for the starting point)
+            // Convertir la distance en kilomètres
+            double distanceKm = distanceMeters / 1000.0;
+
+            // Calculer le temps de trajet en minutes
+            double travelTimeMinutes = (distanceKm / speed) * 60.0;
+
+            // Ajouter le temps de service (5 minutes) si ce n'est pas le dernier point
+            // et si ce n'est pas le point de départ (i > 0)
             if (i > 0) {
-                cumulativeTime += serviceTimePerPoint;
+                totalTimeInMinutes += serviceTimePerPoint;
+                currentTime = currentTime.plusMinutes((long)serviceTimePerPoint);
             }
 
-            // Check if the cumulative time exceeds the 8-hour limit
-            if (cumulativeTime > timeLimit) {
+            // Ajouter le temps de trajet
+            totalTimeInMinutes += travelTimeMinutes;
+            currentTime = currentTime.plusMinutes((long)travelTimeMinutes);
+
+            System.out.printf("De %d à %d: distance=%.2fm, temps=%.2fmin, arrivée=%s%n",
+                    currentPosition, nextPosition, distanceMeters, travelTimeMinutes, currentTime);
+
+            // Vérifier si on dépasse la limite de temps
+            if (totalTimeInMinutes > timeLimit) {
+                System.out.println("Limite de temps dépassée après le point " + currentPosition);
                 break;
             }
 
             currentCost += distanceMeters;
-            servedPoints = i + 1; // since i starts from 0
-            pointsWithTime.put(currentPosition, currentTime);
-            // Update current time
-            currentTime = LocalTime.of(8, 0).plusSeconds((long) (cumulativeTime * 3600));
-
+            pointsWithTime.put(nextPosition, currentTime);
         }
-        pointsWithTime.put(this.bestPath.getLast(), currentTime);
 
-        resultPoint.put("served", servedPoints);
+        resultPoint.put("served", pathSize - 1);
         resultPoint.put("cost", currentCost);
         resultPoint.put("pointsWithTime", pointsWithTime);
+
+        System.out.println("Final arrival times: " + pointsWithTime);
     }
 
 }
