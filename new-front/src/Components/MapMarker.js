@@ -23,43 +23,76 @@ const highlightedIcon = L.divIcon({
   popupAnchor: [0, -12],
 });
 
-const MapMarker = React.memo(({ intersection, onAddDeliveryPoint, tourComputed, numberOfCouriers  }) => {
-  const [isHighlighted, setIsHighlighted] = useState(false);
-  const [count, setCount] = useState(0);
+const MapMarker = React.memo(
+  ({
+    intersection,
+    onAddDeliveryPoint,
+    tourComputed,
+    numberOfCouriers,
+    setWarehouse,
+    hasDeliveries,
+  }) => {
+    const [isHighlighted, setIsHighlighted] = useState(false);
+    const [count, setCount] = useState(0);
 
-
-
-  return (
+    return (
       <Marker
-          position={[intersection.latitude, intersection.longitude]}
-          icon={isHighlighted ? highlightedIcon : blackIcon}
-          eventHandlers={{
-            mouseover: () => {
-              setIsHighlighted(true);
-            },
-            mouseout: () => {
-              setIsHighlighted(false);
-            },
-          }}
+        position={[intersection.latitude, intersection.longitude]}
+        icon={isHighlighted ? highlightedIcon : blackIcon}
+        eventHandlers={{
+          mouseover: () => {
+            setIsHighlighted(true);
+          },
+          mouseout: () => {
+            setIsHighlighted(false);
+          },
+        }}
       >
         <Popup>
-          <div style={{display:"flex", flexDirection: "column", alignItems: "center"}}>
-            <button onClick={() => onAddDeliveryPoint(intersection.id)} className="popup-button">
-              Add to delivery points
-            </button>
-            {tourComputed && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            {hasDeliveries ? (
               <>
-                <div className="popup-text" style={{marginTop:"0.5rem",marginBottom:"0.3rem"}}>
-                  Select the ID of the courier you want to attribute this delivery point to:
-                </div>
-                <CourierSelector count={count} setCount={setCount} min={0} max={numberOfCouriers - 1} />
+                <button
+                  onClick={() => onAddDeliveryPoint(intersection.id)}
+                  className="popup-button"
+                >
+                  Add to delivery points
+                </button>
+                {tourComputed && (
+                  <>
+                    <div
+                      className="popup-text"
+                      style={{ marginTop: "0.5rem", marginBottom: "0.3rem" }}
+                    >
+                      Select the ID of the courier you want to attribute this
+                      delivery point to:
+                    </div>
+                    <CourierSelector
+                      count={count}
+                      setCount={setCount}
+                      min={0}
+                      max={numberOfCouriers - 1}
+                    />
+                  </>
+                )}
               </>
+            ) : (
+              <button onClick={() => setWarehouse(intersection.id)}>
+                Define as warehouse
+              </button>
             )}
           </div>
         </Popup>
       </Marker>
-  );
-});
+    );
+  }
+);
 
 MapMarker.propTypes = {
   intersection: PropTypes.shape({

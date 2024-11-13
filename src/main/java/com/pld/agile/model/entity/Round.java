@@ -14,7 +14,12 @@ import javax.management.InstanceNotFoundException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -38,6 +43,7 @@ public class Round {
     private List<DeliveryTour> tourAttribution = new ArrayList<>();
     private Intersection warehouse;
     private KMeansClustering KNN = new KMeansClustering();
+    private List<Solver> solverList = new ArrayList<>();
 
     public Round() {
     }
@@ -134,7 +140,7 @@ public class Round {
 
             // TODO remplir ceci avec les résultats du GPS
             Integer warehouseIndex = plan.getIndexById(warehouse.getId());
-            List<Integer> bestRouteIndexes = solver.getBestPossiblePath(warehouseIndex); // jsp
+            List<Integer> bestRouteIndexes = solver.getBestPossiblePath(); // jsp
             List<Intersection> bestRoute = new ArrayList<>();
             for (Integer index : bestRouteIndexes) {
                 bestRoute.add(plan.getIntersectionById(plan.getIdByIndex(index)));
@@ -334,8 +340,6 @@ public class Round {
     // deliveryRequestList = tempDeliveryRequestList;
     // }
 
-
-    
     /**
      * Loads delivery requests from an XML file given either a file path or a
      * MultipartFile.
@@ -525,8 +529,6 @@ public class Round {
                 courierDeliveryIndices.add(plan.getIndexById(intersectionId));
             }
 
-
-
             // Solve the courier tour : To keep after change of code (creation of delivery
             // tour)
             System.out.println(
@@ -534,7 +536,7 @@ public class Round {
             Solver solver = new Solver(plan, courierDeliveryIndices, new BnBStrategy()).init();
             solver.solve();
             solver.computePointsToBeServed();
-
+            solverList.add(solver);
             double bestCost = solver.getBestPossibleCost();
             double bestTime = bestCost / (COURIER_SPEED * 1000) * 3600; // In seconds
 
@@ -547,10 +549,20 @@ public class Round {
             }
 
             Integer warehouseIndex = plan.getIndexById(warehouse.getId());
-            List<Integer> bestRouteIndexes = solver.getBestPossiblePath(warehouseIndex); // jsp
-            // Turning the path between delivery points into a global path with all intersections
+            List<Integer> bestRouteIndexes = solver.getBestPossiblePath(); // jsp
+            // Turning the path between delivery points into a global path with all
+            // intersections
             List<Intersection> bestRoute = plan.computeTour(bestRouteIndexes);
 
+            //
+            // List<Intersection> bestRoute = new ArrayList<>(); // Might need to turn that
+            // into a String and only keep the
+            // // ID
+            // bestRoute.add(warehouse);
+            // for (Integer i : bestRouteIndexes) {
+            // bestRoute.add(plan.getIntersectionById(plan.getIdByIndex(i)));
+            // }
+            // bestRoute.add(warehouse);
 
             Map<Integer, LocalTime> arrivalTimesByIndex = solver.getPointsWithTime();
             Map<Intersection, LocalTime> arrivalTimes = new HashMap<>(); // Might need to turn that into a String and
@@ -559,8 +571,11 @@ public class Round {
             for (Map.Entry<Integer, LocalTime> entry : arrivalTimesByIndex.entrySet()) {
                 arrivalTimes.put(plan.getIntersectionById(plan.getIdByIndex(entry.getKey())), entry.getValue());
             }
-            LocalTime endTime = arrivalTimesByIndex.get(warehouseIndex);
-            DeliveryTour courierDeliveryTour = new DeliveryTour(courier, endTime, courierDeliveryRequests, new ArrayList<>(bestRoute),
+            LocalTime endTime = arrivalTimesByIndex.get(warehouseIndex); // TODO doesnt seem to work well, maybe
+                                                                         // warehouseIndex is not the right index or
+                                                                         // solver does not treat him first
+
+            DeliveryTour courierDeliveryTour = new DeliveryTour(courier, endTime, courierDeliveryRequests, bestRoute,
                     arrivalTimes);
             tourAttribution.add(courierDeliveryTour);
 
@@ -644,5 +659,230 @@ public class Round {
         DeliveryRequest deliveryRequest = new DeliveryRequest(intersection);
         deliveryRequestList.add(deliveryRequest);
         return deliveryRequest;
+    }
+
+    /**
+     * Updates the delivery tour for a specified courier by adding or deleting an
+     * intersection point.
+     *
+     * @param courierIndex      The index of the courier in the courierList.
+     * @param intersectionIndex The index of the intersection to add or delete.
+     * @param mode              The operation mode: -1 to delete the intersection, 1
+     *                          to add.
+     * @throws IllegalArgumentException if the courier index is invalid, the
+     *                                  intersection index is invalid,
+     *                                  or if attempting to delete a non-existent
+     *                                  intersection.
+     */
+    private List<DeliveryTour> ComputeNewRound(Integer courierIndex, Integer intersectionIndex, int mode) {
+        // Validate courier index
+        if (courierIndex < 0 || courierIndex >= courierList.size()) {
+            throw new IllegalArgumentException("Invalid courier index.");
+        }
+
+        // Retrieve the Solver for the specified courier
+        Solver courierSolver = solverList.get(courierIndex);
+        if (courierSolver == null) {
+            throw new IllegalStateException("Solver not initialized for the specified courier.");
+        }
+
+        // Perform add or delete operation
+        if (mode == -1) { // Delete operation
+            try {
+                System.out.println(" choose from here :" + courierSolver.getBestPath());
+                courierSolver.deleteDeliveryPoint(intersectionIndex);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Failed to delete intersection: " + e.getMessage());
+            }
+        } else if (mode == 1) { // Add operation
+            try {
+                courierSolver.addDeliveryPoint(intersectionIndex);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Failed to add intersection: " + e.getMessage());
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid mode. Use -1 to delete or 1 to add.");
+        }
+
+        // Recompute points to be served
+        courierSolver.computePointsToBeServed();
+
+        // Retrieve updated best path and other details
+        double bestCost = courierSolver.getBestPossibleCost();
+        double bestTime = bestCost / (COURIER_SPEED * 1000) * 3600; // Convert to seconds
+
+        List<Integer> bestRouteIndexes = courierSolver.getBestPossiblePath();
+        List<Intersection> bestRoute = plan.computeTour(bestRouteIndexes);
+
+        // Retrieve arrival times and map them to Intersection objects
+        Map<Integer, LocalTime> arrivalTimesByIndex = courierSolver.getPointsWithTime();
+        Map<Intersection, LocalTime> arrivalTimes = new HashMap<>();
+        for (Map.Entry<Integer, LocalTime> entry : arrivalTimesByIndex.entrySet()) {
+            Intersection intersectionObj = plan.getIntersectionById(plan.getIdByIndex(entry.getKey()));
+            if (intersectionObj != null) {
+                arrivalTimes.put(intersectionObj, entry.getValue());
+            }
+        }
+
+        // Determine end time based on warehouse index
+        Integer warehouseIndex = plan.getIndexById(warehouse.getId());
+        LocalTime endTime = arrivalTimesByIndex.getOrDefault(warehouseIndex, LocalTime.of(8, 0));
+
+        // Update DeliveryRequest list based on the updated bestRouteIndexes
+        List<DeliveryRequest> updatedDeliveryRequests = new ArrayList<>();
+        for (Integer idx : bestRouteIndexes) {
+            Intersection intersection = plan.getIntersectionById(plan.getIdByIndex(idx));
+            if (intersection != null) {
+                DeliveryRequest dr = new DeliveryRequest(intersection);
+                dr.setCourier(courierList.get(courierIndex));
+                updatedDeliveryRequests.add(dr);
+            }
+        }
+
+        // Create the updated DeliveryTour object
+        DeliveryTour updatedTour = new DeliveryTour(
+                courierList.get(courierIndex),
+                endTime,
+                updatedDeliveryRequests,
+                bestRoute,
+                arrivalTimes);
+
+        // Replace the existing DeliveryTour
+        tourAttribution.set(courierIndex, updatedTour);
+        return tourAttribution;
+    }
+
+    public List<DeliveryTour> updateLocalPoint(Integer courierIndex, String intersectionId, int mode)
+    {
+        Integer index=plan.getIndexById(intersectionId);
+        List<DeliveryTour> result=ComputeNewRound(courierIndex,index,mode);
+        return result;
+    }
+
+
+    /**
+     *generate a save of the current tour in a file text
+     */
+    public String generateTourReport() {
+        StringBuilder fileContent = new StringBuilder();
+        fileContent.append("DELIVERY TOURS REPORT\n");
+        fileContent.append("===================\n\n");
+
+        List<DeliveryTour> tours = getTourAttribution();
+
+        for (DeliveryTour tour : tours) {
+            fileContent.append("Courier #").append(tour.getCourier().getId()).append("\n");
+            fileContent.append("-------------\n");
+            fileContent.append("Starting from warehouse at: 08:00\n\n");
+
+            List<Intersection> route = tour.getRoute();
+            Map<Intersection, LocalTime> arrivalTimes = tour.getArrivalTimes();
+            List<DeliveryRequest> sortedDeliveryRequests = tour.getSortedDeliveryRequests();
+            int sectionCounter = 1;
+
+            String currentStreetName = null;
+            double accumulatedDistance = 0;
+
+            // We don't take the warehouse
+            for (int i = 0; i < route.size() - 3; i++) {
+                Intersection currentIntersection = route.get(i);
+                Intersection nextIntersection = route.get(i + 1);
+
+                Section currentSection = plan.getSections().stream()
+                        .filter(s -> (s.getOrigin().equals(currentIntersection.getId()) &&
+                                s.getDestination().equals(nextIntersection.getId())) ||
+                                (s.getDestination().equals(currentIntersection.getId()) &&
+                                        s.getOrigin().equals(nextIntersection.getId())))
+                        .findFirst()
+                        .orElse(null);
+
+                if (currentSection != null) {
+                    String streetName = currentSection.getName().trim();
+                    if (streetName.isEmpty()) {
+                        streetName = "Undefined street";
+                    }
+
+                    if (streetName.equals(currentStreetName)) {
+                        accumulatedDistance += currentSection.getLength();
+                    } else {
+                        if (currentStreetName != null) {
+                            fileContent.append(String.format("%d. %s (%.2f m)\n",
+                                    sectionCounter++, currentStreetName, accumulatedDistance));
+                        }
+                        currentStreetName = streetName;
+                        accumulatedDistance = currentSection.getLength();
+                    }
+                }
+
+                boolean isDeliveryPoint = sortedDeliveryRequests.stream()
+                        .anyMatch(dr -> dr.getDeliveryAdress().getId().equals(nextIntersection.getId()));
+
+                if (isDeliveryPoint) {
+                    if (currentStreetName != null) {
+                        fileContent.append(String.format("%d. %s (%.2f m)\n",
+                                sectionCounter++, currentStreetName, accumulatedDistance));
+                    }
+
+                    LocalTime arrivalTime = arrivalTimes.get(nextIntersection);
+                    if (arrivalTime != null) {
+                        fileContent.append("\n   >>> Delivery Point for ");
+                        fileContent.append(String.format("%s <<<\n", currentStreetName));
+                        fileContent.append(String.format("   Arrival: %s\n", arrivalTime));
+                        LocalTime departureTime = arrivalTime.plusMinutes(5);
+                        fileContent.append(String.format("   Departure: %s\n", departureTime));
+                        fileContent.append("\n");
+                    }
+
+                    currentStreetName = null;
+                    accumulatedDistance = 0;
+                }
+            }
+
+            if (currentStreetName != null && accumulatedDistance > 0) {
+                fileContent.append(String.format("%d. %s (%.2f m)\n",
+                        sectionCounter, currentStreetName, accumulatedDistance));
+            }
+
+            fileContent.append("\nReturn to warehouse at: ")
+                    .append(arrivalTimes.get(route.get(route.size() - 2)))
+                    .append("\n\n");
+
+            /*System.out.println("sorted tour :");
+            System.out.println(sortedDeliveryRequests);
+            System.out.println("arrival times :");
+            System.out.println(arrivalTimes)*/
+        }
+
+
+        String fileName = "";
+        try {
+            fileName = "./src/tours/delivery_tours_" +
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) +
+                    ".txt";
+            Path filePath = Paths.get(fileName);
+            Files.write(filePath, fileContent.toString().getBytes());
+        } catch (IOException e) {
+            System.err.println("Error writing report file: " + e.getMessage());
+        }
+
+        return fileName;
+    }
+
+    public Intersection defineWarehousePoint(String intersectionId) {
+        intersectionId = intersectionId.trim();
+        Intersection intersection = plan.getIntersectionById(intersectionId);
+
+        if (intersection == null) {
+            System.out.println("Intersection not found in intersectionMap for ID: " + intersectionId);
+            return null;
+        }
+
+        warehouse = intersection;
+        return warehouse;
+    }
+
+    public void deleteWarehouse() {
+        System.out.println("Trying to delete the warehouse");
+        warehouse = null;
     }
 }

@@ -24,7 +24,7 @@ public class Solver {
     private SolvingStrategy solvingStrategy;
     private CompleteGraph g;
     private Map<String, Object> resultPoint;
-
+    private List <Integer> bestPath=new ArrayList<>();
     /**
      * Constructs a {@code Solver} with the given plan, vertices, and solving
      * strategy.
@@ -146,7 +146,7 @@ public class Solver {
         for (int i = 0; i < path.size(); i++) {
             result.add(vertices.get(path.get(i)));
         }
-
+        this.bestPath=result;
         return result;
     }
 
@@ -168,15 +168,55 @@ public class Solver {
         return solvingStrategy.getBestCost();
     }
 
+    public List<Integer> addDeliveryPoint(Integer intersection) {
+        System.out.println("original list :" +bestPath);
+
+        vertices.add(intersection);
+        g = createCompleteGraph();
+        Double minimuDistance = Double.MAX_VALUE;
+        Integer index = 0;
+        for (int i = 0; i < bestPath.size() - 1; i++) {
+            Double currentDistance = g.getCost(bestPath.get(i), intersection)
+                    + g.getCost(intersection, bestPath.get(i));
+            if (currentDistance < minimuDistance) {
+                minimuDistance = currentDistance;
+                index = i;
+            }
+        }
+        bestPath.add(index + 1, intersection);
+        System.out.println("updated list :" +bestPath);
+
+        return bestPath;
+    }
+
+    public List<Integer> deleteDeliveryPoint(Integer intersection) {
+        System.out.println("original list :" +bestPath);
+
+        if (!bestPath.contains(intersection)) { // Check if intersection is in bestPath
+            throw new IllegalArgumentException("Error: Intersection not in bestPath");
+        } else {
+            bestPath.remove(intersection); // Remove intersection if it exists in bestPath
+        }
+        System.out.println("updated list :" +bestPath);
+        return bestPath; // Return the modified bestPath
+    }
+
     /**
      * Returns the best possible path that can be served within the time limit.
      *
      * @return the best possible path as a list of vertices
      */
-    public List<Integer> getBestPossiblePath(Integer warehouse) {
-        List<Integer> bestPath = getBestPath();
+    public List<Integer> getBestPossiblePath() {
+        if (this.bestPath.size()==0)
+        {
+            this.bestPath = getBestPath();
+        }
         int servedPoints = (int) resultPoint.get("served");
+        System.out.println("We will serve :" + servedPoints + " points");
         List<Integer> bestPathSubList = bestPath.subList(0, servedPoints + 1);
+        if (servedPoints > 0 && bestPathSubList.getFirst() != bestPathSubList.getLast()) {
+            bestPathSubList.add(bestPathSubList.getFirst());
+        }
         return bestPathSubList;
     }
 
@@ -204,8 +244,104 @@ public class Solver {
      * limit (8 hours), given that the courier is traveling at 15 km/h and spends
      * an additional 5 minutes at each delivery point.
      */
+    // private void pointsToBeServed() {
+    // List<Integer> bestPath = getBestPath();
+    // Map<Integer, LocalTime> pointsWithTime = new HashMap<>();
+    // double currentCost = 0.0;
+    // double cumulativeTime = 0.0; // in hours
+    // int servedPoints = 0;
+    // double speed = 0.001; // km/h
+    // double serviceTimePerPoint = 5.0 / 60.0; // in hours (5 minutes)
+    // double timeLimit = 8.0; // in hours
+    // LocalTime currentTime = LocalTime.of(8, 0);
+    // int pathSize = bestPath.size();
+    // int initialPosition = bestPath.get(0);
+
+    // for (int i = 0; i < pathSize - 1; i++) {
+    // int currentPosition = bestPath.get(i);
+    // int nextPosition = bestPath.get(i + 1);
+
+    // // Compute distance and time to the next point
+    // double distanceToNextMeters = g.getCost(currentPosition, nextPosition); // in
+    // meters
+    // double distanceKmToNext = distanceToNextMeters / 1000.0; // convert to
+    // kilometers
+    // double timeToNextPoint = distanceKmToNext / speed; // time in hours
+
+    // // Service time at the next point
+    // double serviceTimeAtNextPoint = serviceTimePerPoint;
+
+    // // Compute time to return home from the next point
+    // double distanceToHomeFromNextMeters = g.getCost(nextPosition,
+    // initialPosition);
+    // double timeToReturnHomeFromNext = (distanceToHomeFromNextMeters / 1000.0) /
+    // speed; // time in hours
+
+    // // Compute total time if proceeding to the next point and then returning home
+    // double totalTimeIfProceedAndReturn = cumulativeTime + timeToNextPoint +
+    // serviceTimeAtNextPoint + timeToReturnHomeFromNext;
+
+    // // Check if total time exceeds the time limit
+    // if (totalTimeIfProceedAndReturn > timeLimit) {
+    // // Return home from the current position
+    // double distanceToHomeFromCurrentMeters = g.getCost(currentPosition,
+    // initialPosition);
+    // double timeToReturnHomeFromCurrent = (distanceToHomeFromCurrentMeters /
+    // 1000.0) / speed;
+
+    // cumulativeTime += timeToReturnHomeFromCurrent;
+    // // Update current time
+    // currentTime = LocalTime.of(8, 0).plusSeconds((long) (cumulativeTime * 3600));
+
+    // // Add cost to return home
+    // currentCost += distanceToHomeFromCurrentMeters;
+
+    // // Break the loop
+    // break;
+    // } else {
+    // // Proceed to the next point
+    // cumulativeTime += timeToNextPoint + serviceTimeAtNextPoint;
+
+    // // Update current time
+    // currentTime = LocalTime.of(8, 0).plusSeconds((long) (cumulativeTime * 3600));
+
+    // currentCost += distanceToNextMeters;
+
+    // servedPoints = i + 1;
+
+    // pointsWithTime.put(currentPosition, currentTime);
+    // }
+    // }
+
+    // // After the loop, return home from the last visited position if within time
+    // limit
+    // if (cumulativeTime <= timeLimit) {
+    // int lastPosition = servedPoints > 0 ? bestPath.get(servedPoints) :
+    // initialPosition;
+
+    // double distanceToHomeFromLastMeters = g.getCost(lastPosition,
+    // initialPosition);
+    // double timeToReturnHomeFromLast = (distanceToHomeFromLastMeters / 1000.0) /
+    // speed;
+
+    // cumulativeTime += timeToReturnHomeFromLast;
+    // currentTime = LocalTime.of(8, 0).plusSeconds((long) (cumulativeTime * 3600));
+
+    // currentCost += distanceToHomeFromLastMeters;
+
+    // pointsWithTime.put(initialPosition, currentTime);
+    // }
+
+    // resultPoint.put("served", servedPoints);
+    // resultPoint.put("cost", currentCost);
+    // resultPoint.put("pointsWithTime", pointsWithTime);
+    // }
     private void pointsToBeServed() {
-        List<Integer> bestPath = getBestPath();
+        if (this.bestPath.size()==0)
+        {
+            this.bestPath = getBestPath();
+        }
+
         Map<Integer, LocalTime> pointsWithTime = new HashMap<>();
         double currentCost = 0.0;
         double cumulativeTime = 0.0; // in hours
@@ -214,11 +350,11 @@ public class Solver {
         double serviceTimePerPoint = 5.0 / 60.0; // in hours (5 minutes)
         double timeLimit = 8.0; // in hours
         LocalTime currentTime = LocalTime.of(8, 0);
-        int pathSize = bestPath.size();
+        int pathSize = this.bestPath.size();
         for (int i = 0; i < pathSize - 1; i++) {
-            int currentPosition = bestPath.get(i);
-            int nextPosition = bestPath.get(i + 1);
-            double distanceMeters = g.getCost(i, (i + 1)%vertices.size()); // in meters
+            int currentPosition = this.bestPath.get(i);
+            int nextPosition = this.bestPath.get(i + 1);
+            double distanceMeters = g.getCost(i, (i + 1) % vertices.size()); // in meters
 
             double distanceKm = distanceMeters / 1000.0; // convert to kilometers
             double timeToNextPoint = distanceKm / speed; // time in hours
@@ -241,7 +377,7 @@ public class Solver {
             currentTime = LocalTime.of(8, 0).plusSeconds((long) (cumulativeTime * 3600));
 
         }
-        pointsWithTime.put(bestPath.getLast(), currentTime);
+        pointsWithTime.put(this.bestPath.getLast(), currentTime);
 
         resultPoint.put("served", servedPoints);
         resultPoint.put("cost", currentCost);

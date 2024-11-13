@@ -8,10 +8,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import com.pld.agile.model.Solver;
-import com.pld.agile.model.entity.Courier;
 import com.pld.agile.model.entity.Round;
 import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.strategy.BnBStrategy;
+import com.pld.agile.model.entity.Courier;
 
 @SpringBootApplication
 public class Application {
@@ -46,7 +46,6 @@ public class Application {
 //		List<Integer> bestPath = solver.getBestPossiblePath(1);
 //		System.out.println(bestPath);
 //		plan.computeTour(bestPath);
-//		System.out.println("finished");
 //
 //		// Création Round
 //		Round round = new Round();
@@ -61,6 +60,9 @@ public class Application {
 //		}
 //		ArrayList<ArrayList<String>> groups = round.computeRoundOptimized();
 //		System.out.println(groups);
+//		String intersection ="2292223595";
+//		round.updateLocalPoint(1, intersection, 1);
+//
 //		System.exit(0);
 }
 }

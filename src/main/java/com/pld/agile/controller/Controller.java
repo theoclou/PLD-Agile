@@ -3,18 +3,26 @@ package com.pld.agile.controller;
 import com.pld.agile.model.entity.*;
 import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.entity.Round;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.*;
+import java.time.LocalTime;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.Files;
 import java.io.IOException;
+import java.util.*;
+
+import org.springframework.web.bind.annotation.PostMapping;
+import com.pld.agile.model.entity.DeliveryTour;
+import com.pld.agile.model.entity.DeliveryRequest;
+import com.pld.agile.model.entity.Intersection;
+import com.pld.agile.model.entity.Section;
 
 /**
  * REST Controller for managing delivery planning and map operations.
@@ -28,7 +36,7 @@ import java.io.IOException;
 @RestController
 public class Controller {
     /**
-     *  Command for undo/redo tasks
+     * Command for undo/redo tasks
      */
     private CommandManager commandManager = new CommandManager();
     /**
@@ -267,6 +275,78 @@ public class Controller {
         }
     }
 
+    @PostMapping("/defineWarehouseById")
+    public ResponseEntity<Map<String, Object>> defineWarehouse(@RequestBody Map<String, String> request) {
+        Map<String, Object> response = new HashMap<>();
+
+        String intersectionId = request.get("intersectionId");
+        if (intersectionId == null) {
+            response.put("status", "error");
+            response.put("message", "Intersection ID is required");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+
+        // create and execute command
+        DefineWarehousePointCommand command = new DefineWarehousePointCommand(round, intersectionId);
+        commandManager.executeCommand(command);
+
+        Intersection newIntersection = round.defineWarehousePoint(intersectionId);
+        if (newIntersection != null) {
+            response.put("status", "success");
+            response.put("message", "Warehouse point added successfully");
+            response.put("Warehouse", newIntersection);
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("status", "error");
+            response.put("message", "Failed to define the warehouse");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
+    @PostMapping("/addDeliveryPointByIdAfterCompute") //TODO adapter avec Command Pattern ?
+    public ResponseEntity<Map<String,Object>> addDeliveryPointAfterCompute(@RequestBody Map<String, String> request){
+        Map<String, Object> response = new HashMap<>();
+
+        String intersectionId = request.get("intersectionId");
+        if (intersectionId == null) {
+            response.put("status", "error");
+            response.put("message", "Intersection ID is required");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        String courierId = request.get("courierId");
+        if (courierId == null) {
+            response.put("status", "error");
+            response.put("message", "Courier ID is required");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // execute Round method
+        List<DeliveryTour> tour = round.updateLocalPoint(Integer.parseInt(courierId), intersectionId, 1);
+
+        if(tour != null){
+            response.put("status", "success");
+            response.put("message", "Delivery point added successfully");
+            response.put("deliveryTour", tour);
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("status", "error");
+            response.put("message", "Failed to add delivery point");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+
+
+        // create and execute command
+//        AddDeliveryPointCommand command = new AddDeliveryPointCommand(round, intersectionId);
+//        commandManager.executeCommand(command);
+
+
+    }
+
+
+
     /**
      * Undo function
      */
@@ -325,7 +405,7 @@ public class Controller {
     }
 
     /**
-     * reinit
+     * reinit commands
      */
     @PostMapping("/resetCommands")
     public ResponseEntity<Void> resetCommands() {
@@ -334,13 +414,22 @@ public class Controller {
     }
 
     /**
-     * Validates a delivery request.
+     * Validates a delivery request
      *
-     * @param deliveryRequestId The ID of the delivery request to be validated
      * @return String confirmation message with the validated request ID
      */
-    @PostMapping("/validate")
-    public String validateDeliveryRequest(@RequestBody Integer deliveryRequestId) {
-        return String.format("Delivery request validated: %s", deliveryRequestId);
+    @PostMapping("/validateTours")
+    public ResponseEntity<Map<String, Object>> validateTours() {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String reportFileName = round.generateTourReport();
+            response.put("status", "success");
+            response.put("reportFile", reportFileName);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "Failed to validate tours: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 }
