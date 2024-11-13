@@ -1,10 +1,7 @@
 package com.pld.agile.model;
 
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.pld.agile.model.graph.CompleteGraph;
 import com.pld.agile.model.graph.Plan;
@@ -25,6 +22,8 @@ public class Solver {
     private CompleteGraph g;
     private Map<String, Object> resultPoint;
     private List <Integer> bestPath=new ArrayList<>();
+    private Map<Integer, Integer> originalToCurrentIndexMap = new HashMap<>();
+    private Map<Integer, Integer> currentToOriginalIndexMap = new HashMap<>();
     /**
      * Constructs a {@code Solver} with the given plan, vertices, and solving
      * strategy.
@@ -63,16 +62,15 @@ public class Solver {
             ArrayList<Double> row = new ArrayList<>();
             for (int j = 0; j < size; j++) {
                 if (i == j) {
-                    row.add(-1.0); // Distance to self is set to -1
+                    row.add(-1.0);
                 } else {
                     Double distance = plan.findShortestDistance(vertices.get(i), vertices.get(j));
-                    row.add(distance); // Add distance between vertices
+                    row.add(distance);
                 }
             }
             completeMatrix.add(row);
         }
         g = new CompleteGraph(completeMatrix.size(), completeMatrix);
-
         return g;
     }
 
@@ -143,13 +141,15 @@ public class Solver {
      * @return the best path as a list of vertices
      */
     public List<Integer> getBestPath() {
-        List<Integer> path = solvingStrategy.getBestPath();
-        List<Integer> result = new ArrayList<>();
-        for (int i = 0; i < path.size(); i++) {
-            result.add(vertices.get(path.get(i)));
+        if (bestPath == null || bestPath.isEmpty()) {
+            bestPath = solvingStrategy.getBestPath();
+            List<Integer> result = new ArrayList<>();
+            for (int i = 0; i < bestPath.size(); i++) {
+                result.add(vertices.get(bestPath.get(i)));
+            }
+            bestPath = result;
         }
-        this.bestPath=result;
-        return result;
+        return new ArrayList<>(bestPath); // Return a defensive copy
     }
 
     /**
@@ -170,47 +170,164 @@ public class Solver {
         return solvingStrategy.getBestCost();
     }
 
-    public List<Integer> addDeliveryPoint(Integer intersection) {
-        System.out.println("original list: " + bestPath);
-        vertices.add(intersection);
-        g = createCompleteGraph();
+    private void validatePath() {
+        System.out.println("Validating path: " + bestPath);
 
-        Double minimumDetour = Double.MAX_VALUE;
-        Integer bestIndex = 0;
+        // Verify path exists and is not empty
+        if (bestPath == null || bestPath.isEmpty()) {
+            throw new IllegalStateException("Invalid path state: path is empty");
+        }
 
-        // On parcourt tous les segments du chemin actuel
-        for (int i = 0; i < bestPath.size() - 1; i++) {
-            // Calcul du coût du détour pour insérer le nouveau point
-            Double detourCost = g.getCost(vertices.indexOf(bestPath.get(i)), vertices.indexOf(intersection)) +
-                    g.getCost(vertices.indexOf(intersection), vertices.indexOf(bestPath.get(i + 1))) -
-                    g.getCost(vertices.indexOf(bestPath.get(i)), vertices.indexOf(bestPath.get(i + 1)));
+        // Check for duplicates (excluding the warehouse which appears at start and end)
+        Set<Integer> uniqueVertices = new HashSet<>(bestPath.subList(0, bestPath.size() - 1));
+        if (uniqueVertices.size() != bestPath.size() - 1) {
+            throw new IllegalStateException("Invalid path state: contains duplicates");
+        }
 
-            if (detourCost < minimumDetour) {
-                minimumDetour = detourCost;
-                bestIndex = i;
+        // Verify all vertices exist in the vertex list
+        for (Integer vertex : bestPath) {
+            if (!vertices.contains(vertex)) {
+                throw new IllegalStateException(
+                        String.format("Invalid path state: vertex %d not found in vertices %s",
+                                vertex, vertices)
+                );
             }
         }
 
-        // Insertion du nouveau point à la meilleure position
-        bestPath.add(bestIndex + 1, intersection);
-        System.out.println("updated list: " + bestPath);
+        // Verify warehouse is at start and end
+        if (!bestPath.get(0).equals(bestPath.get(bestPath.size() - 1))) {
+            throw new IllegalStateException(
+                    String.format("Invalid path state: different start (%d) and end (%d) points",
+                            bestPath.get(0), bestPath.get(bestPath.size() - 1))
+            );
+        }
+
+        System.out.println("Path validation successful");
+    }
+
+    public List<Integer> addDeliveryPoint(Integer intersection) {
+        System.out.println("Current state before addition:");
+        System.out.println("Vertices: " + vertices);
+        System.out.println("Best path: " + bestPath);
+        System.out.println("Attempting to add intersection: " + intersection);
+
+        // Store the current state
+        List<Integer> oldVertices = new ArrayList<>(vertices);
+        List<Integer> oldPath = new ArrayList<>(bestPath);
+
+        // Add the new vertex
+        vertices.add(intersection);
+
+        // Create new complete graph with added vertex
+        g = createCompleteGraph();
+        System.out.println("New graph size: " + g.getNbVertices());
+
+        // Find the best insertion point
+        double minimumDetour = Double.MAX_VALUE;
+        int bestInsertionIndex = 0;
+
+        // Check all possible insertion points in the current path
+        for (int i = 0; i < bestPath.size() - 1; i++) {
+            int currentVertex = vertices.indexOf(bestPath.get(i));
+            int nextVertex = vertices.indexOf(bestPath.get(i + 1));
+            int newVertexIndex = vertices.size() - 1; // Index of newly added vertex
+
+            // Calculate detour cost
+            double detourCost = g.getCost(currentVertex, newVertexIndex) +
+                    g.getCost(newVertexIndex, nextVertex) -
+                    g.getCost(currentVertex, nextVertex);
+
+            if (detourCost < minimumDetour) {
+                minimumDetour = detourCost;
+                bestInsertionIndex = i + 1;
+            }
+        }
+
+        // Insert the new vertex at the best position
+        bestPath.add(bestInsertionIndex, intersection);
+
+        // Update index mappings
+        updateIndexMappings(oldVertices, vertices);
+
+        System.out.println("State after addition:");
+        System.out.println("Updated vertices: " + vertices);
+        System.out.println("Updated best path: " + bestPath);
+        System.out.println("Insertion position: " + bestInsertionIndex);
+        System.out.println("Detour cost: " + minimumDetour);
+
+        return new ArrayList<>(bestPath);
+    }
+
+
+    public List<Integer> deleteDeliveryPoint(Integer intersection) {
+        System.out.println("Current state before deletion:");
+        System.out.println("Vertices: " + vertices);
+        System.out.println("Best path: " + bestPath);
+        System.out.println("Attempting to delete intersection: " + intersection);
+
+        // Find the intersection in our current vertices
+        int vertexIndex = vertices.indexOf(intersection);
+        if (vertexIndex == -1) {
+            throw new IllegalArgumentException("Error: Intersection " + intersection + " not found in vertices");
+        }
+
+        // Store the current state of vertices and path
+        List<Integer> oldVertices = new ArrayList<>(vertices);
+        List<Integer> oldPath = new ArrayList<>(bestPath);
+
+        // Remove from vertices
+        vertices.remove(vertexIndex);
+
+        // Update the complete graph with new vertex set
+        g = createCompleteGraph();
+
+        // Find and remove the intersection from the path
+        int pathIndex = bestPath.indexOf(intersection);
+        if (pathIndex == -1) {
+            throw new IllegalArgumentException("Error: Intersection " + intersection + " not found in path");
+        }
+        bestPath.remove(pathIndex);
+
+        // Update index mappings
+        updateIndexMappings(oldVertices, vertices);
+
+        // Adjust the remaining path indices based on the new vertex positions
+        for (int i = 0; i < bestPath.size(); i++) {
+            Integer oldIndex = bestPath.get(i);
+            Integer newIndex = getNewIndex(oldIndex, oldVertices, vertices);
+            if (newIndex != null) {
+                bestPath.set(i, newIndex);
+            }
+        }
+
+        System.out.println("State after deletion:");
+        System.out.println("Updated vertices: " + vertices);
+        System.out.println("Updated best path: " + bestPath);
+        System.out.println("Graph size: " + g.getNbVertices());
 
         return bestPath;
     }
 
-    public List<Integer> deleteDeliveryPoint(Integer intersection) {
-        System.out.println("original list :" +bestPath);
-        vertices.remove(intersection);
-        System.out.println( "nb vertices avant :" +g.getNbVertices());
-        g = createCompleteGraph();
-        System.out.println( "nb vertices après :" +g.getNbVertices());
-        if (!bestPath.contains(intersection)) { // Check if intersection is in bestPath
-            throw new IllegalArgumentException("Error: Intersection not in bestPath");
-        } else {
-            bestPath.remove(intersection); // Remove intersection if it exists in bestPath
+    private void updateIndexMappings(List<Integer> oldVertices, List<Integer> newVertices) {
+        originalToCurrentIndexMap.clear();
+        currentToOriginalIndexMap.clear();
+
+        for (int i = 0; i < newVertices.size(); i++) {
+            Integer vertex = newVertices.get(i);
+            int oldIndex = oldVertices.indexOf(vertex);
+            if (oldIndex != -1) {
+                originalToCurrentIndexMap.put(oldIndex, i);
+                currentToOriginalIndexMap.put(i, oldIndex);
+            }
         }
-        System.out.println("updated list :" +bestPath);
-        return bestPath; // Return the modified bestPath
+    }
+
+
+    private Integer getNewIndex(Integer oldIndex, List<Integer> oldVertices, List<Integer> newVertices) {
+        if (oldIndex == null) return null;
+        Integer vertex = oldIndex < oldVertices.size() ? oldVertices.get(oldIndex) : null;
+        if (vertex == null) return null;
+        return newVertices.indexOf(vertex);
     }
 
     /**
@@ -248,117 +365,38 @@ public class Solver {
     }
 
     public void computePointsToBeServed() {
-        pointsToBeServed();
+        try {
+            System.out.println("Initial path in compute: " + this.bestPath);
+
+            // Initialize bestPath if empty
+            if (this.bestPath == null || this.bestPath.isEmpty()) {
+                this.bestPath = getBestPath();
+                System.out.println("Initialized path: " + this.bestPath);
+            }
+
+            // Now validate the path when we know it's not empty
+            validatePath();
+
+            // Continue with point calculation
+            pointsToBeServed();
+
+        } catch (Exception e) {
+            System.err.println("Error computing points to be served: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
-    /**
-     * Determines how many points can be served and the cost within a given time
-     * limit (8 hours), given that the courier is traveling at 15 km/h and spends
-     * an additional 5 minutes at each delivery point.
-     */
-    // private void pointsToBeServed() {
-    // List<Integer> bestPath = getBestPath();
-    // Map<Integer, LocalTime> pointsWithTime = new HashMap<>();
-    // double currentCost = 0.0;
-    // double cumulativeTime = 0.0; // in hours
-    // int servedPoints = 0;
-    // double speed = 0.001; // km/h
-    // double serviceTimePerPoint = 5.0 / 60.0; // in hours (5 minutes)
-    // double timeLimit = 8.0; // in hours
-    // LocalTime currentTime = LocalTime.of(8, 0);
-    // int pathSize = bestPath.size();
-    // int initialPosition = bestPath.get(0);
 
-    // for (int i = 0; i < pathSize - 1; i++) {
-    // int currentPosition = bestPath.get(i);
-    // int nextPosition = bestPath.get(i + 1);
-
-    // // Compute distance and time to the next point
-    // double distanceToNextMeters = g.getCost(currentPosition, nextPosition); // in
-    // meters
-    // double distanceKmToNext = distanceToNextMeters / 1000.0; // convert to
-    // kilometers
-    // double timeToNextPoint = distanceKmToNext / speed; // time in hours
-
-    // // Service time at the next point
-    // double serviceTimeAtNextPoint = serviceTimePerPoint;
-
-    // // Compute time to return home from the next point
-    // double distanceToHomeFromNextMeters = g.getCost(nextPosition,
-    // initialPosition);
-    // double timeToReturnHomeFromNext = (distanceToHomeFromNextMeters / 1000.0) /
-    // speed; // time in hours
-
-    // // Compute total time if proceeding to the next point and then returning home
-    // double totalTimeIfProceedAndReturn = cumulativeTime + timeToNextPoint +
-    // serviceTimeAtNextPoint + timeToReturnHomeFromNext;
-
-    // // Check if total time exceeds the time limit
-    // if (totalTimeIfProceedAndReturn > timeLimit) {
-    // // Return home from the current position
-    // double distanceToHomeFromCurrentMeters = g.getCost(currentPosition,
-    // initialPosition);
-    // double timeToReturnHomeFromCurrent = (distanceToHomeFromCurrentMeters /
-    // 1000.0) / speed;
-
-    // cumulativeTime += timeToReturnHomeFromCurrent;
-    // // Update current time
-    // currentTime = LocalTime.of(8, 0).plusSeconds((long) (cumulativeTime * 3600));
-
-    // // Add cost to return home
-    // currentCost += distanceToHomeFromCurrentMeters;
-
-    // // Break the loop
-    // break;
-    // } else {
-    // // Proceed to the next point
-    // cumulativeTime += timeToNextPoint + serviceTimeAtNextPoint;
-
-    // // Update current time
-    // currentTime = LocalTime.of(8, 0).plusSeconds((long) (cumulativeTime * 3600));
-
-    // currentCost += distanceToNextMeters;
-
-    // servedPoints = i + 1;
-
-    // pointsWithTime.put(currentPosition, currentTime);
-    // }
-    // }
-
-    // // After the loop, return home from the last visited position if within time
-    // limit
-    // if (cumulativeTime <= timeLimit) {
-    // int lastPosition = servedPoints > 0 ? bestPath.get(servedPoints) :
-    // initialPosition;
-
-    // double distanceToHomeFromLastMeters = g.getCost(lastPosition,
-    // initialPosition);
-    // double timeToReturnHomeFromLast = (distanceToHomeFromLastMeters / 1000.0) /
-    // speed;
-
-    // cumulativeTime += timeToReturnHomeFromLast;
-    // currentTime = LocalTime.of(8, 0).plusSeconds((long) (cumulativeTime * 3600));
-
-    // currentCost += distanceToHomeFromLastMeters;
-
-    // pointsWithTime.put(initialPosition, currentTime);
-    // }
-
-    // resultPoint.put("served", servedPoints);
-    // resultPoint.put("cost", currentCost);
-    // resultPoint.put("pointsWithTime", pointsWithTime);
-    // }
     private void pointsToBeServed() {
-        if (this.bestPath.size() == 0) {
-            this.bestPath = getBestPath();
-        }
+        System.out.println("Computing times for path: " + this.bestPath);
 
         Map<Integer, LocalTime> pointsWithTime = new HashMap<>();
         double currentCost = 0.0;
-        LocalTime currentTime = LocalTime.of(8, 0); // Departure at 8 AM
-        double speed = 15.0; // km/h
-        double serviceTimeInSeconds = 5.0 * 60.0; // 5 minutes converted to seconds
-        double timeLimitInSeconds = 8.0 * 60.0 * 60.0; // 8 hours converted to seconds
+        LocalTime currentTime = LocalTime.of(8, 0);
+        double speed = 15.0;
+        double serviceTimeInSeconds = 5.0 * 60.0;
+        double timeLimitInSeconds = 8.0 * 60.0 * 60.0;
         int pathSize = this.bestPath.size();
 
         System.out.println("Computing times for path: " + this.bestPath);
