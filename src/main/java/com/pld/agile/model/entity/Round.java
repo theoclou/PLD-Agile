@@ -575,7 +575,7 @@ public class Round {
                                                                          // warehouseIndex is not the right index or
                                                                          // solver does not treat him first
 
-            DeliveryTour courierDeliveryTour = new DeliveryTour(courier, endTime, courierDeliveryRequests, bestRoute,
+            DeliveryTour courierDeliveryTour = new DeliveryTour(courier, endTime, courierDeliveryRequests, new ArrayList<>(bestRoute),
                     arrivalTimes);
             tourAttribution.add(courierDeliveryTour);
 

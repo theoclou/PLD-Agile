@@ -3,7 +3,6 @@ import { Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import PropTypes from "prop-types";
 import "./Popup.css"
-import CourierCounter from "./CourierCounter";
 import CourierSelector from "./CourierSelector";
 
 // Define the icons outside the component
@@ -59,7 +58,7 @@ const MapMarker = React.memo(
             {hasDeliveries ? (
               <>
                 <button
-                  onClick={() => onAddDeliveryPoint(intersection.id)}
+                  onClick={() => onAddDeliveryPoint(intersection.id, count)}
                   className="popup-button"
                 >
                   Add to delivery points
@@ -101,6 +100,10 @@ MapMarker.propTypes = {
     longitude: PropTypes.number.isRequired,
   }).isRequired,
   onAddDeliveryPoint: PropTypes.func.isRequired,
+  tourComputed: PropTypes.bool.isRequired,
+  numberOfCouriers: PropTypes.number.isRequired,
+  setWarehouse: PropTypes.func.isRequired,
+  hasDeliveries: PropTypes.bool.isRequired,
 };
 
 MapMarker.displayName = "MapMarker";

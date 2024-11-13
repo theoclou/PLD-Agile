@@ -307,7 +307,7 @@ public class Controller {
     @PostMapping("/addDeliveryPointByIdAfterCompute") //TODO adapter avec Command Pattern ?
     public ResponseEntity<Map<String,Object>> addDeliveryPointAfterCompute(@RequestBody Map<String, String> request){
         Map<String, Object> response = new HashMap<>();
-
+        System.out.println("Request received : " + request);
         String intersectionId = request.get("intersectionId");
         if (intersectionId == null) {
             response.put("status", "error");
@@ -315,7 +315,7 @@ public class Controller {
             return ResponseEntity.badRequest().body(response);
         }
 
-        String courierId = request.get("courierId");
+        String courierId = request.get("courierID");
         if (courierId == null) {
             response.put("status", "error");
             response.put("message", "Courier ID is required");

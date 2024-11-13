@@ -312,9 +312,11 @@ const MapComponent = () => {
     }
   };
 
-  const handleAddDeliveryPoint = async (intersectionId, courierID) => { //TODO : add courierID to the request
+  const handleAddDeliveryPoint = async (intersectionId, courierID = -1) => { //TODO : add courierID to the request
+    console.log("delivery loaded " + deliveryLoaded);
     if (!deliveryLoaded) return; //TODO check ça
     try {
+      console.log("Adding delivery point with ID:", intersectionId);
       if (!tourComputed) {
         const response = await fetch(
           `http://localhost:8080/addDeliveryPointById`,
@@ -340,6 +342,7 @@ const MapComponent = () => {
           throw new Error("Failed to add delivery point");
         }
       } else {
+        console.log("Courier : " + courierID);
         const response = await fetch(
           `http://localhost:8080/addDeliveryPointByIdAfterCompute`,
           {
@@ -401,7 +404,7 @@ const MapComponent = () => {
             };
           });
         } else {
-          throw new Error("Failed to add delivery point");
+          throw new Error("Failed to add delivery point " + response.message);
         }
       }
     } catch (error) {
