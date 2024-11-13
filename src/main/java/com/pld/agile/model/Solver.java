@@ -355,15 +355,15 @@ public class Solver {
 
         Map<Integer, LocalTime> pointsWithTime = new HashMap<>();
         double currentCost = 0.0;
-        LocalTime currentTime = LocalTime.of(8, 0); // Départ à 8h
+        LocalTime currentTime = LocalTime.of(8, 0); // Departure at 8 AM
         double speed = 15.0; // km/h
         double serviceTimePerPoint = 5.0; // 5 minutes
-        double timeLimit = 8.0 * 60.0; // 8 heures en minutes
+        double timeLimit = 8.0 * 60.0; // 8 hours in minutes
         int pathSize = this.bestPath.size();
 
         System.out.println("Computing times for path: " + this.bestPath);
 
-        // Ajouter le temps de départ pour le point de départ
+        // Add the departure time for the starting point
         pointsWithTime.put(this.bestPath.get(0), currentTime);
 
         double totalTimeInMinutes = 0.0;
@@ -372,33 +372,33 @@ public class Solver {
             int currentPosition = this.bestPath.get(i);
             int nextPosition = this.bestPath.get(i + 1);
 
-            // Obtenir la vraie distance entre les points en utilisant leurs indices dans le graphe
+            // Get the actual distance between points using their indices in the graph
             double distanceMeters = g.getCost(vertices.indexOf(currentPosition),
                     vertices.indexOf(nextPosition));
 
-            // Convertir la distance en kilomètres
+            // Convert the distance to kilometers
             double distanceKm = distanceMeters / 1000.0;
 
-            // Calculer le temps de trajet en minutes
+            // Calculate travel time in minutes
             double travelTimeMinutes = (distanceKm / speed) * 60.0;
 
-            // Ajouter le temps de service (5 minutes) si ce n'est pas le dernier point
-            // et si ce n'est pas le point de départ (i > 0)
+            // Add service time (5 minutes) if it's not the last point
+            // and if it's not the starting point (i > 0)
             if (i > 0) {
                 totalTimeInMinutes += serviceTimePerPoint;
                 currentTime = currentTime.plusMinutes((long)serviceTimePerPoint);
             }
 
-            // Ajouter le temps de trajet
+            // Add travel time
             totalTimeInMinutes += travelTimeMinutes;
             currentTime = currentTime.plusMinutes((long)travelTimeMinutes);
 
-            System.out.printf("De %d à %d: distance=%.2fm, temps=%.2fmin, arrivée=%s%n",
+            System.out.printf("\"From %d to %d: distance=%.2fm, time=%.2fmin, arrival=%s%n",
                     currentPosition, nextPosition, distanceMeters, travelTimeMinutes, currentTime);
 
-            // Vérifier si on dépasse la limite de temps
+            // Check if the time limit is exceeded
             if (totalTimeInMinutes > timeLimit) {
-                System.out.println("Limite de temps dépassée après le point " + currentPosition);
+                System.out.println("Time limit exceeded after point " + currentPosition);
                 break;
             }
 
