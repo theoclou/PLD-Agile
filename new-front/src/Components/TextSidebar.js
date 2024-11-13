@@ -156,9 +156,7 @@ const TextSidebar = React.memo(
             }}
           >
             <div className="delivery-header">
-              <h3 className="section-title">
-                Delivery Point #{delivery.deliveryAdress.id}
-              </h3>
+              <h3 className="section-title">Delivery Point</h3>
               <div className="arrival-time">
                 <span className="arrival-label">Arrival : </span>
                 <span className="arrival-value">
@@ -169,7 +167,7 @@ const TextSidebar = React.memo(
 
             <div className="warehouse-section">
               <div className="delivery-info">
-                <div>
+                <div className="section-info">
                   <span className="section-info">Courier ID: </span>
                   <span
                     className="section-info"
