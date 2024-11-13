@@ -376,27 +376,46 @@ const MapComponent = () => {
           // Mise à jour des données de livraison avec les informations des tournées
           setDeliveryData((prevData) => {
             const updatedDeliveries = [...prevData.deliveries];
-
+            
+            // Parcours des tournées
             data.tours.forEach((tour) => {
               tour.deliveryRequests.forEach((tourDelivery) => {
                 const deliveryIndex = updatedDeliveries.findIndex(
-                  (delivery) =>
-                    delivery.deliveryAdress.id ===
-                    tourDelivery.deliveryAdress.id
+                  (delivery) => delivery.deliveryAdress.id === tourDelivery.deliveryAdress.id
                 );
-
+                
+                const arrivalTimeKey = `Intersection{id='${tourDelivery.deliveryAdress.id}', latitude=${tourDelivery.deliveryAdress.latitude}, longitude=${tourDelivery.deliveryAdress.longitude}}`;
+                
+                // Mise à jour d'une livraison existante
                 if (deliveryIndex !== -1) {
                   updatedDeliveries[deliveryIndex] = {
                     ...updatedDeliveries[deliveryIndex],
                     courier: tourDelivery.courier,
-                    arrivalTime:
-                      tour.arrivalTimes[
-                        `Intersection{id='${tourDelivery.deliveryAdress.id}', latitude=${tourDelivery.deliveryAdress.latitude}, longitude=${tourDelivery.deliveryAdress.longitude}}`
-                      ],
+                    arrivalTime: tour.arrivalTimes[arrivalTimeKey],
                   };
+                } 
+                // Ajout d'une nouvelle livraison
+                else {
+                  updatedDeliveries.push({
+                    ...tourDelivery,
+                    arrivalTime: tour.arrivalTimes[arrivalTimeKey],
+                  });
                 }
               });
             });
+
+            // Ajout des nouvelles demandes de livraison qui ne sont pas dans les tournées
+            if (data.deliveryRequests) {
+              data.deliveryRequests.forEach((newDelivery) => {
+                const exists = updatedDeliveries.some(
+                  (delivery) => delivery.deliveryAdress.id === newDelivery.deliveryAdress.id
+                );
+                
+                if (!exists) {
+                  updatedDeliveries.push(newDelivery);
+                }
+              });
+            }
 
             return {
               ...prevData,

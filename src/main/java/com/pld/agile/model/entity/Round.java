@@ -350,6 +350,8 @@ public class Round {
      *                   addresses are invalid
      */
     public void loadRequests(Object source) throws Exception {
+        deliveryRequestList.clear();
+        warehouse = null;
         File xmlFile = null;
         try {
             // Check if source is a file path or a MultipartFile
@@ -696,7 +698,10 @@ public class Round {
             }
         } else if (mode == 1) { // Add operation
             try {
+                System.out.println(" matrice avant " + courierSolver.getCompleteGraph().toString());
                 courierSolver.addDeliveryPoint(intersectionIndex);
+               // System.out.println(" matrice après " + courierSolver.getCompleteGraph().toString());
+
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException("Failed to add intersection: " + e.getMessage());
             }
@@ -744,7 +749,7 @@ public class Round {
                 courierList.get(courierIndex),
                 endTime,
                 updatedDeliveryRequests,
-                bestRoute,
+                new ArrayList<>(bestRoute),
                 arrivalTimes);
 
         // Replace the existing DeliveryTour

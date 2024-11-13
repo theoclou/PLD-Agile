@@ -167,9 +167,14 @@ public class DeliveryTour {
 
     @Override
     public String toString() {
-        return "{" +
-            ", route='" + getRoute() + "'" +
-            "}";
+        return "DeliveryTour{" +
+                "\ncourier=" + courier +
+                ", \nstartTime=" + startTime +
+                ", \nendTime=" + endTime +
+                ", \ndeliveryRequests=" + deliveryRequests +
+                ", \nroute=" + route +
+                ", \narrivalTimes=" + arrivalTimes +
+                '}';
     }
 
 }

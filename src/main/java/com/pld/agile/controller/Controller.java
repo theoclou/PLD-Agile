@@ -324,11 +324,13 @@ public class Controller {
 
         // execute Round method
         List<DeliveryTour> tour = round.updateLocalPoint(Integer.parseInt(courierId), intersectionId, 1);
+        System.out.println("Tour updated : " + tour);
+        System.out.println("Is tour null ? " + (tour == null));
 
         if(tour != null){
             response.put("status", "success");
             response.put("message", "Delivery point added successfully");
-            response.put("deliveryTour", tour);
+            response.put("tours", tour);
             return ResponseEntity.ok(response);
         } else {
             response.put("status", "error");

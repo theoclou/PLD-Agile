@@ -57,6 +57,7 @@ public class Solver {
      * a complete graph representation.
      */
     public CompleteGraph createCompleteGraph() {
+        completeMatrix.clear();
         int size = vertices.size();
         for (int i = 0; i < size; i++) {
             ArrayList<Double> row = new ArrayList<>();
@@ -71,6 +72,7 @@ public class Solver {
             completeMatrix.add(row);
         }
         g = new CompleteGraph(completeMatrix.size(), completeMatrix);
+
         return g;
     }
 
@@ -172,7 +174,10 @@ public class Solver {
         System.out.println("original list :" +bestPath);
 
         vertices.add(intersection);
+        System.out.println( "nb vertices avant :" +g.getNbVertices());
         g = createCompleteGraph();
+        System.out.println( "nb vertices après :" +g.getNbVertices());
+
         Double minimuDistance = Double.MAX_VALUE;
         Integer index = 0;
         for (int i = 0; i < bestPath.size() - 1; i++) {
@@ -351,6 +356,8 @@ public class Solver {
         double timeLimit = 8.0; // in hours
         LocalTime currentTime = LocalTime.of(8, 0);
         int pathSize = this.bestPath.size();
+        System.out.println("Path size :" + pathSize);
+        System.out.println(g.toString());
         for (int i = 0; i < pathSize - 1; i++) {
             int currentPosition = this.bestPath.get(i);
             int nextPosition = this.bestPath.get(i + 1);
