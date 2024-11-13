@@ -8,9 +8,9 @@ import "leaflet/dist/leaflet.css";
 import "./MapComponent.css";
 import TextSidebar from "./TextSidebar";
 import ComputeTour from "./ComputeTour";
-import ValidateButton from './ValidateButton';  // Make sure the path is correct
+import ValidateButton from "./ValidateButton"; // Make sure the path is correct
 import logoImage from "../Assets/logo.png";
-import boxImage from "../Assets/box2.png"
+import boxImage from "../Assets/box2.png";
 import HelperButton from "./HelperButton";
 
 const MapComponent = () => {
@@ -42,7 +42,8 @@ const MapComponent = () => {
     setHighlightedDeliveryId(null);
   };
   const handleHelpClick = () => {
-    setHelpPopupMessage("Here are some tips to use the application.\n" +
+    setHelpPopupMessage(
+      "Here are some tips to use the application.\n" +
         "Click on the 'Load Map' button to load a map.\n" +
         "Click on the 'Load Deliveries' button to load a delivery request.\n" +
         "Use the '+' and '-' buttons to add or remove delivery drivers.\n" +
@@ -175,7 +176,9 @@ const MapComponent = () => {
         if (!response.ok) {
           setMapLoaded(false);
           setLoading(false);
-          throw new Error("Failed to upload file, try again. Make sure to upload a map file.");
+          throw new Error(
+            "Failed to upload file, try again. Make sure to upload a map file."
+          );
         }
         await handleFetchData();
       } catch (error) {
@@ -213,7 +216,10 @@ const MapComponent = () => {
           body: formData,
         });
 
-        if (!response.ok) throw new Error("Failed to upload file, try again. Make sure to load a deliveries request file.");
+        if (!response.ok)
+          throw new Error(
+            "Failed to upload file, try again. Make sure to load a deliveries request file."
+          );
 
         const result = await response.json();
         if (result && result.deliveries) {
@@ -272,10 +278,7 @@ const MapComponent = () => {
     } catch (error) {
       console.error("Error during delete request:", error);
     }
-<<<<<<< HEAD
-=======
   };
-
 
   // Handle setting the warehouse
   const handleSetWarehouse = async (intersectionId) => {
@@ -284,14 +287,14 @@ const MapComponent = () => {
     setRoutesWithCouriers([]);
     try {
       const response = await fetch(
-          `http://localhost:8080/defineWarehouseById`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ intersectionId }),
-          }
+        `http://localhost:8080/defineWarehouseById`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ intersectionId }),
+        }
       );
 
       if (response.ok) {
@@ -465,15 +468,16 @@ const MapComponent = () => {
     }
   };
 
->>>>>>> 31c80d2 (Avancement Add Delivery Point)
   return (
     <div className="container">
       <header className="header">
-        <img src={boxImage} className="logo-image"/>
+        <img src={boxImage} className="logo-image" />
         <h1 className="title">Pick'One</h1>
         <div className="button-container">
           <FileUploadButton onFileChange={handleFileChange} />
-          {mapLoaded && <LoadDeliveryButton onFileChange={handleLoadDelivery} />}
+          {mapLoaded && (
+            <LoadDeliveryButton onFileChange={handleLoadDelivery} />
+          )}
           <CourierCounter count={courierCount} setCount={setCourierCount} />
           {deliveryLoaded && <ComputeTour onClick={handleComputeTour} />}
           <HelperButton onHelpClick={handleHelpClick} />
@@ -482,7 +486,7 @@ const MapComponent = () => {
       </header>
 
       {!mapLoaded && (
-          <div className="welcome-container">
+        <div className="welcome-container">
           <img src={logoImage} alt="Welcome" className="welcome-image" />
         </div>
       )}
@@ -526,11 +530,18 @@ const MapComponent = () => {
       )}
 
       {popupVisible && (
-        <ErrorPopup message={popupMessage} onClose={handleClosePopup} text={popupText}/>
+        <ErrorPopup
+          message={popupMessage}
+          onClose={handleClosePopup}
+          text={popupText}
+        />
       )}
 
       {helpPopupVisible && (
-          <ErrorPopup message={helpPopupMessage} onClose={() => setHelpPopupVisible(false)} />
+        <ErrorPopup
+          message={helpPopupMessage}
+          onClose={() => setHelpPopupVisible(false)}
+        />
       )}
     </div>
   );
