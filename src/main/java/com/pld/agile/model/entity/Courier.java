@@ -24,4 +24,11 @@ public class Courier {
     public String getId() {
         return this.id.toString();
     }
+
+    @Override
+    public String toString() {
+        return "Courier{" +
+                "id=" + id +
+                '}';
+    }
 }

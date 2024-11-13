@@ -325,6 +325,7 @@ public class Controller {
 
         // execute Round method
         List<DeliveryTour> tour = round.updateLocalPoint(Integer.parseInt(courierId), intersectionId, 1);
+        System.out.println(" warehouse : " + round.getWarehouse());
         System.out.println("Tour updated : " + tour);
         System.out.println("Is tour null ? " + (tour == null));
 
