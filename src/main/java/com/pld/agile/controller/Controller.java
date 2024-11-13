@@ -133,7 +133,6 @@ public class Controller {
         try {
             //Create response object
             Map<String, Object> response = new HashMap<>();
-            System.out.println("File received: " + file.getOriginalFilename());
             round.loadRequests(file);
             List<DeliveryRequest> deliveryRequestList = round.getDeliveryRequestList();
             System.out.println("Delivery request list size: " + deliveryRequestList.size());
@@ -195,17 +194,26 @@ public class Controller {
      * @return String indicating the status of tour computation
      */
     @PostMapping("/compute")
-    public Map<String, List<DeliveryTour>> computeTours() {
-        map.softResetMap();
-        map.preprocessData();
+    public ResponseEntity<Map<String, Object>> computeTours() {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            map.softResetMap();
+            map.preprocessData();
 
-        round.softReset();
-        round.init(numberOfCouriers, map);
-        round.computeRoundOptimized();
-        List<DeliveryTour> tourAttribution = round.getTourAttribution();
-        Map<String, List<DeliveryTour>> tourMap = new HashMap<>();
-        tourMap.put("tours", tourAttribution);
-        return tourMap;
+            round.softReset();
+            round.init(numberOfCouriers, map);
+            round.computeRoundOptimized();
+            List<DeliveryTour> tourAttribution = round.getTourAttribution();
+
+            response.put("status", "success");
+            response.put("message", "Tours computed successfully");
+            response.put("tours", tourAttribution);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "Failed to compute tours: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 
     /**
@@ -250,6 +258,7 @@ public class Controller {
     public ResponseEntity<Map<String, Object>> deleteDeliveryRequestWithCourier(@RequestBody Map<String, String> request) {
         Map<String, Object> response = new HashMap<>();
 
+        System.out.println("Received request: " + request);
         String deliveryId = request.get("deliveryId");
         String courierIdStr = request.get("courierId");
 
@@ -260,11 +269,13 @@ public class Controller {
         }
 
         try {
+            int courierId = Integer.parseInt(courierIdStr);
+
             //Delete the delivery request from the list
             DeleteDeliveryCommand command = new DeleteDeliveryCommand(round, deliveryId);
             commandManager.executeCommand(command);
 
-            int courierId = Integer.parseInt(courierIdStr);
+            //Update the tour
             List<DeliveryTour> updatedTours = round.updateLocalPoint(courierId, deliveryId, -1);
 
             if (updatedTours != null) {
@@ -371,27 +382,27 @@ public class Controller {
             return ResponseEntity.badRequest().body(response);
         }
 
-        // execute Round method
+        try {
+            // First update the list
+            AddDeliveryPointCommand command = new AddDeliveryPointCommand(round, intersectionId);
+            commandManager.executeCommand(command);
 
-        // Adding to the delivery list
-        AddDeliveryPointCommand command = new AddDeliveryPointCommand(round, intersectionId);
-        commandManager.executeCommand(command);
+            // Then the tour
+            List<DeliveryTour> updatedTours = round.updateLocalPoint(Integer.parseInt(courierId), intersectionId, 1);
 
-        List<DeliveryTour> tour = round.updateLocalPoint(Integer.parseInt(courierId), intersectionId, 1);
-        System.out.println(" warehouse : " + round.getWarehouse());
-        System.out.println("Tour updated : " + tour);
-        System.out.println("Is tour null ? " + (tour == null));
-
-
-        if(tour != null){
-            response.put("status", "success");
-            response.put("message", "Delivery point added successfully");
-            response.put("tours", tour);
-            return ResponseEntity.ok(response);
-        } else {
+            if(updatedTours != null) {
+                response.put("status", "success");
+                response.put("message", "Delivery point added successfully");
+                response.put("tours", updatedTours);
+                return ResponseEntity.ok(response);
+            } else {
             response.put("status", "error");
             response.put("message", "Failed to add delivery point");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }} catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
 
 
