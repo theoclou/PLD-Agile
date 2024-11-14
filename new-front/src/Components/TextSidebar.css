@@ -1,9 +1,9 @@
-
 .textual-sidebar {
   padding: 16px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
   max-height: 100vh;
+  scroll-behavior: smooth;
 }
 
 .section-container {
@@ -13,6 +13,7 @@
   margin-bottom: 16px;
   min-height: 50px;
   height: auto;
+  transition: background-color 0.3s ease;
 }
 
 .warehouse-title {
@@ -203,4 +204,8 @@
   display: flex;
   align-items: center;
   flex: 1;
+}
+
+.highlighted {
+  transition: background-color 0.3s ease;
 }

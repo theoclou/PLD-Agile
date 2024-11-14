@@ -71,11 +71,18 @@ const MapDisplay = ({
   returnTimes,
   tourComputed,
   numberOfCouriers,
-                      setWarehouse,
-                      hasDeliveries,
+  setWarehouse,
+  hasDeliveries,
 }) => {
   const routesRef = useRef(routes);
   const [forceUpdate, setForceUpdate] = useState(0);
+
+  const handleMarkerClick = useCallback(
+    (deliveryId, courierId) => {
+      onMouseEnterDelivery(deliveryId);
+    },
+    [onMouseEnterDelivery]
+  );
 
   useEffect(() => {
     if (JSON.stringify(routesRef.current) !== JSON.stringify(routes)) {
@@ -121,7 +128,10 @@ const MapDisplay = ({
           ) {
             sectionUsages.push({
               courierId: route.courierId,
-              direction: currentKey === sectionKey || reverseKey === reverseSectionKey ? "forward" : "reverse",
+              direction:
+                currentKey === sectionKey || reverseKey === reverseSectionKey
+                  ? "forward"
+                  : "reverse",
             });
           }
         }
@@ -129,7 +139,7 @@ const MapDisplay = ({
 
       return {
         found: sectionUsages.length > 0,
-        usages: sectionUsages
+        usages: sectionUsages,
       };
     },
     [routes]
@@ -206,13 +216,17 @@ const MapDisplay = ({
           const offset = (usageIndex - (usages.length - 1) / 2) * 0.00005; // Ajuster cette valeur pour le décalage
           const offsetLatLngs = latLngs.map(([lat, lng]) => [
             lat + offset * Math.sin(perpAngle),
-            lng + offset * Math.cos(perpAngle)
+            lng + offset * Math.cos(perpAngle),
           ]);
 
           return (
             <ArrowedPolyline
               key={`${index}-${usageIndex}-${forceUpdate}`}
-              positions={usage.direction === "reverse" ? [...offsetLatLngs].reverse() : offsetLatLngs}
+              positions={
+                usage.direction === "reverse"
+                  ? [...offsetLatLngs].reverse()
+                  : offsetLatLngs
+              }
               color={COURIER_COLORS[usage.courierId] || DEFAULT_SECTION_COLOR}
               weight={3}
               opacity={1}
@@ -253,6 +267,7 @@ const MapDisplay = ({
             highlighted={highlightedDeliveryId === delivery.deliveryAdress.id}
             onMouseEnter={onMouseEnterDelivery}
             onMouseLeave={onMouseLeaveDelivery}
+            onClick={handleMarkerClick}
           />
         ) : null
       )}
