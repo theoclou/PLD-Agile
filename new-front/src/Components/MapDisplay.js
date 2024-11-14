@@ -13,19 +13,17 @@ import WarehouseMarker from "./WarehouseMarker";
 
 const MIN_ZOOM_FOR_INTERSECTIONS = 17;
 
-// Définition des couleurs pour les coursiers avec une meilleure visibilité
 const COURIER_COLORS = {
-  0: "#FF0000", // Rouge pour le coursier 0
-  1: "#0000FF", // Bleu pour le coursier 1
-  2: "#00FF00", // Vert pour le coursier 2
-  3: "#FFA500", // Orange pour le coursier 3
-  4: "#800080", // Violet pour le coursier 4
-  5: "#FF1493", // Rose foncé pour le coursier 5
-  6: "#00FFFF", // Cyan pour le coursier 6
-  7: "#FFD700", // Or pour le coursier 7
+  0: "#FF0000",
+  1: "#0000FF",
+  2: "#00FF00",
+  3: "#FFA500",
+  4: "#800080",
+  5: "#FF1493",
+  6: "#00FFFF",
+  7: "#FFD700",
 };
 
-// Couleur par défaut pour les sections non assignées
 const DEFAULT_SECTION_COLOR = "darkgrey";
 
 const MapController = React.memo(({ bounds }) => {

@@ -695,6 +695,9 @@ public class Round {
         return fileName;
     }
 
+    /**
+     * define a warehouse on an intersection
+     */
     public Intersection defineWarehousePoint(String intersectionId) {
         intersectionId = intersectionId.trim();
         Intersection intersection = plan.getIntersectionById(intersectionId);
@@ -708,6 +711,9 @@ public class Round {
         return warehouse;
     }
 
+    /**
+     * delete the warehouse of an intersection
+     */
     public void deleteWarehouse() {
         System.out.println("Trying to delete the warehouse");
         warehouse = null;

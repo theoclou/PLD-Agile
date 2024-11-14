@@ -204,6 +204,7 @@ public class Controller {
             round.init(numberOfCouriers, map);
             round.computeRoundOptimized();
             List<DeliveryTour> tourAttribution = round.getTourAttribution();
+            commandManager = new CommandManager();
 
             response.put("status", "success");
             response.put("message", "Tours computed successfully");
@@ -422,21 +423,24 @@ public class Controller {
     @PostMapping("/undo")
     public ResponseEntity<Map<String, Object>> undo() {
         Map<String, Object> response = new HashMap<>();
-
         try {
             commandManager.undo();
             Command lastCommand = commandManager.getLastCommand();
             Round currentRound = lastCommand != null ? lastCommand.getRound() : round;
 
-            response.put("status", "success");
-            response.put("message", "Undo successful");
-            response.put("currentDeliveryCount", currentRound.getDeliveryRequestList().size());
-            response.put("deliveryRequests", currentRound.getDeliveryRequestList());
+            if (currentRound.getTourAttribution().isEmpty()) {
+                // Avant compute
+                response.put("deliveryRequests", currentRound.getDeliveryRequestList());
+            } else {
+                // Après compute
+                response.put("tours", currentRound.getTourAttribution());
+            }
 
+            response.put("status", "success");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("status", "error");
-            response.put("message", "Failed to undo: " + e.getMessage());
+            response.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
@@ -447,28 +451,24 @@ public class Controller {
     @PostMapping("/redo")
     public ResponseEntity<Map<String, Object>> redo() {
         Map<String, Object> response = new HashMap<>();
-
         try {
             commandManager.redo();
             Command lastCommand = commandManager.getLastCommand();
+            Round currentRound = lastCommand != null ? lastCommand.getRound() : round;
 
-            if (lastCommand != null) {
-                Round currentRound = lastCommand.getRound();
-                response.put("status", "success");
-                response.put("message", "Redo successful");
-                response.put("currentDeliveryCount", currentRound.getDeliveryRequestList().size());
+            if (currentRound.getTourAttribution().isEmpty()) {
+                // Avant compute
                 response.put("deliveryRequests", currentRound.getDeliveryRequestList());
             } else {
-                response.put("status", "success");
-                response.put("message", "Nothing to redo");
-                response.put("currentDeliveryCount", round.getDeliveryRequestList().size());
-                response.put("deliveryRequests", round.getDeliveryRequestList());
+                // Après compute
+                response.put("tours", currentRound.getTourAttribution());
             }
 
+            response.put("status", "success");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("status", "error");
-            response.put("message", "Failed to redo: " + e.getMessage());
+            response.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
@@ -478,7 +478,7 @@ public class Controller {
      */
     @PostMapping("/resetCommands")
     public ResponseEntity<Void> resetCommands() {
-        commandManager = new CommandManager(); // Réinitialise le gestionnaire de commandes
+        commandManager = new CommandManager();
         return ResponseEntity.ok().build();
     }
 

@@ -53,28 +53,28 @@
 .title {
   font-family: "Montserrat", sans-serif;
   font-weight: 500;
-  font-size: 3rem; /* Police plus grande */
+  font-size: 3rem;
   color: #333333;
   margin: 0;
-  margin-right: 4rem; /* Plus d'espace après le titre */
+  margin-right: 4rem;
 }
 
 .button-container {
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  margin-right: 4rem; /* Espace à droite des boutons */
+  margin-right: 4rem;
 }
 
 .map-sidebar-container {
   display: flex;
   width: 100%;
-  height: calc(100vh - 7rem); /* Ajusté pour le nouveau header */
+  height: calc(100vh - 7rem);
   margin-top: 7rem;
 }
 
 .map-container {
-  flex: 1.6; /* Ratio modifié pour donner plus de place à la sidebar */
+  flex: 1.6;
   height: 100%;
 }
 
@@ -84,7 +84,7 @@
 }
 
 .text-sidebar {
-  flex: 1; /* Ratio modifié pour augmenter la largeur */
+  flex: 1;
   height: 100%;
   overflow-y: auto;
   background-color: white;

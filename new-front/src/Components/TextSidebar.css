@@ -1,6 +1,4 @@
-/* TextSidebar.css */
 
-/* Styles de la barre latérale */
 .textual-sidebar {
   padding: 16px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -8,7 +6,6 @@
   max-height: 100vh;
 }
 
-/* Container du warehouse */
 .section-container {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -18,7 +15,6 @@
   height: auto;
 }
 
-/* Titre du warehouse */
 .warehouse-title {
   font-family: "Montserrat", sans-serif;
   font-weight: 600;
@@ -27,19 +23,16 @@
   padding-top: 0;
 }
 
-/* Section details du warehouse */
 .under-section-container {
   margin-top: 8px;
 }
 
-/* Détails du warehouse */
 .section-info {
   font-family: "Montserrat", sans-serif;
   font-weight: 400;
   font-size: 14px;
 }
 
-/* Sections autour du warehouse */
 .section-title {
   font-family: "Montserrat", sans-serif;
   font-weight: 600;
@@ -49,7 +42,6 @@
   display: flex;
 }
 
-/* Liste des sections */
 .section-list {
   margin-left: 8px;
   margin-top: 4px;
@@ -79,7 +71,6 @@
   color: #9ca3af;
 }
 
-/* Section des points de livraison */
 .delivery-point {
   padding: 16px;
   margin-bottom: 16px;
@@ -87,7 +78,6 @@
   border: 1px solid #e5e7eb;
 }
 
-/* Détails du point de livraison */
 .delivery-title {
   font-weight: 500;
   color: #111827;
@@ -150,7 +140,6 @@
   margin-left: 5%;
 }
 
-/* Style pour l'en-tête de la livraison avec le temps */
 .delivery-header {
   display: flex;
   justify-content: space-between;
@@ -159,7 +148,6 @@
   font-family: "Montserrat", sans-serif;
 }
 
-/* Conteneur du temps d'arrivée */
 .arrival-time {
   display: flex;
   align-items: center;
@@ -171,21 +159,18 @@
   font-family: "Montserrat", sans-serif;
 }
 
-/* Label du temps d'arrivée */
 .arrival-label {
   color: #4b5563;
   font-weight: 500;
   font-family: "Montserrat", sans-serif;
 }
 
-/* Valeur du temps d'arrivée */
 .arrival-value {
   color: #111827;
   font-weight: 600;
   font-family: "Montserrat", sans-serif;
 }
 
-/* Modifier la section-info existante pour inclure les nouvelles propriétés */
 .section-info {
   font-family: "Montserrat", sans-serif;
   font-weight: 400;
@@ -196,14 +181,12 @@
   margin-bottom: 4px;
 }
 
-/* Ajuster le conteneur de la section pour le nouvel agencement */
 .warehouse-section {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-/* Style pour la zone d'information de livraison */
 .delivery-info {
   display: flex;
   flex-direction: column;
@@ -211,7 +194,6 @@
   margin-bottom: 8px;
 }
 
-/* Ajuster la section-title pour l'alignement avec le temps */
 .section-title {
   font-family: "Montserrat", sans-serif;
   font-weight: 600;
