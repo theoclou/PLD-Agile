@@ -188,10 +188,18 @@ public class Round {
         deliveryRequestList.clear();
         warehouse = null;
         File xmlFile = null;
+        boolean isTemporaryFile = false; // Variable pour indiquer un fichier temporaire
+
         try {
             // Check if source is a file path or a MultipartFile
-            xmlFile = (source instanceof String) ? verifyFileExists((String) source)
-                    : createTemporaryFile((MultipartFile) source);
+            if (source instanceof String) {
+                xmlFile = verifyFileExists((String) source);
+            } else if (source instanceof MultipartFile) {
+                xmlFile = createTemporaryFile((MultipartFile) source);
+                isTemporaryFile = true; // Marque ce fichier comme temporaire
+            } else {
+                throw new IllegalArgumentException("Invalid source type.");
+            }
 
             Document document = parseXmlFile(xmlFile);
 
@@ -207,11 +215,12 @@ public class Round {
             e.printStackTrace();
             throw e;
         } finally {
-            if (xmlFile != null && xmlFile.exists()) {
+            if (isTemporaryFile && xmlFile != null && xmlFile.exists()) {
                 xmlFile.delete();
             }
         }
     }
+
 
     /**
      * Verifies if the file at the specified path exists.
