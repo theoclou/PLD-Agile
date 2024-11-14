@@ -41,6 +41,65 @@ const MapComponent = () => {
   const handleMouseLeaveDelivery = () => {
     setHighlightedDeliveryId(null);
   };
+
+  const updateTour = useCallback(
+    (data) => {
+      if (!data.tours || data.tours.length === 0) {
+        console.error("No tours data received");
+        return;
+      }
+
+      // Update routes with courier information
+      const routesWithCourierInfo = data.tours.map((tour) => ({
+        path: tour.route,
+        courierId: tour.courier.id,
+      }));
+      setRoutesWithCouriers(routesWithCourierInfo);
+
+      // Update return times
+      const newReturnTimes = data.tours.map((tour) => tour.endTime);
+      setReturnTimes(newReturnTimes);
+
+      // Update delivery data with tour information
+      const updatedDeliveries = [];
+      data.tours.forEach((tour) => {
+        tour.deliveryRequests.forEach((delivery) => {
+          // Skip warehouse
+          if (delivery.deliveryAdress.id === deliveryData.warehouse?.id) return;
+
+          // Format the key as it appears in the arrivalTimes map
+          const arrivalTimeKey = `Intersection{id='${delivery.deliveryAdress.id}', latitude=${delivery.deliveryAdress.latitude}, longitude=${delivery.deliveryAdress.longitude}}`;
+
+          const arrivalTimeStr = tour.arrivalTimes[arrivalTimeKey];
+          let arrivalTime = null;
+
+          if (arrivalTimeStr) {
+            // Parse the time string (format "HH:mm:ss")
+            const [hours, minutes, seconds] = arrivalTimeStr
+              .split(":")
+              .map(Number);
+            arrivalTime = { hours, minutes, seconds };
+          }
+
+          updatedDeliveries.push({
+            ...delivery,
+            courier: tour.courier,
+            arrivalTime,
+          });
+        });
+      });
+
+      setDeliveryData((prevData) => ({
+        ...prevData,
+        deliveries: updatedDeliveries,
+      }));
+
+      console.log("Updated delivery data:", updatedDeliveries);
+      setTourComputed(true);
+    },
+    [deliveryData.warehouse]
+  );
+
   const handleHelpClick = () => {
     setHelpPopupMessage(
       "Here are some tips to use the application.\n" +
@@ -62,17 +121,17 @@ const MapComponent = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          keepalive: true
+          keepalive: true,
         });
       } catch (error) {
         console.error("Error resetting commands:", error);
       }
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, []);
 
@@ -149,7 +208,7 @@ const MapComponent = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [deliveryLoaded]);
+  }, [deliveryLoaded, tourComputed, updateTour]);
 
   const handleFetchData = useCallback(async () => {
     try {
@@ -370,61 +429,6 @@ const MapComponent = () => {
       setDeliveryLoaded(false);
       console.error("Error while defining the warehouse:", error);
     }
-  };
-
-  const updateTour = (data) => {
-    if (!data.tours || data.tours.length === 0) {
-      console.error("No tours data received");
-      return;
-    }
-
-    // Update routes with courier information
-    const routesWithCourierInfo = data.tours.map((tour) => ({
-      path: tour.route,
-      courierId: tour.courier.id,
-    }));
-    setRoutesWithCouriers(routesWithCourierInfo);
-
-    // Update return times
-    const newReturnTimes = data.tours.map((tour) => tour.endTime);
-    setReturnTimes(newReturnTimes);
-
-    // Update delivery data with tour information
-    const updatedDeliveries = [];
-    data.tours.forEach((tour) => {
-      tour.deliveryRequests.forEach((delivery) => {
-        // Skip warehouse
-        if (delivery.deliveryAdress.id === deliveryData.warehouse?.id) return;
-
-        // Format the key as it appears in the arrivalTimes map
-        const arrivalTimeKey = `Intersection{id='${delivery.deliveryAdress.id}', latitude=${delivery.deliveryAdress.latitude}, longitude=${delivery.deliveryAdress.longitude}}`;
-
-        const arrivalTimeStr = tour.arrivalTimes[arrivalTimeKey];
-        let arrivalTime = null;
-
-        if (arrivalTimeStr) {
-          // Parse the time string (format "HH:mm:ss")
-          const [hours, minutes, seconds] = arrivalTimeStr
-            .split(":")
-            .map(Number);
-          arrivalTime = { hours, minutes, seconds };
-        }
-
-        updatedDeliveries.push({
-          ...delivery,
-          courier: tour.courier,
-          arrivalTime,
-        });
-      });
-    });
-
-    setDeliveryData((prevData) => ({
-      ...prevData,
-      deliveries: updatedDeliveries,
-    }));
-
-    console.log("Updated delivery data:", updatedDeliveries);
-    setTourComputed(true);
   };
 
   const handleAddDeliveryPoint = async (intersectionId, courierID = -1) => {

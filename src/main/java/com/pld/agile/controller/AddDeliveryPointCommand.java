@@ -25,6 +25,7 @@ public class AddDeliveryPointCommand implements Command {
     public void execute() {
         this.addedRequest = round.addDeliveryIntersection(intersectionId);
         if (courierId >= 0) this.updatedTours = round.updateLocalPoint(courierId, addedRequest.getDeliveryAdress().getId(), 1); // Update tours
+        round.setTourAttribution(this.updatedTours); // Update tourAttribution in Round
     }
 
     @Override
@@ -32,6 +33,7 @@ public class AddDeliveryPointCommand implements Command {
         if (addedRequest != null) {
             round.deleteDeliveryRequest(addedRequest.getDeliveryAdress().getId());
             if (courierId >= 0) round.updateLocalPoint(courierId, addedRequest.getDeliveryAdress().getId(), -1); // Undo tours
+            round.setTourAttribution(this.updatedTours); // Update tourAttribution in Round
         }
     }
 
