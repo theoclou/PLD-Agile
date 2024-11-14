@@ -51,7 +51,6 @@ BackEnd:
 
 FrontEnd:
 - **React**: For application design (html, css, js, ...).
-- **Tailwind**: For better code organisation in css
 
 ## Project Structure
 
