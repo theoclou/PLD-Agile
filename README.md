@@ -1,4 +1,4 @@
-# Bicycle Delivery Tour Optimization Application
+# Delivery Tour Optimization Application : Pick One
 
 This project is a Java application designed to efficiently manage delivery requests.
 It focuses on distributing delivery requests, where couriers start from a warehouse and complete multiple deliveries. The system uses the **Traveling Salesman Problem (TSP)** algorithms to compute the best possible routes for couriers, ensuring that the total time of the delivery tour is minimized.
