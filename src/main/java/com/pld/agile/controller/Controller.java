@@ -1,16 +1,14 @@
 package com.pld.agile.controller;
 
-import com.pld.agile.model.entity.*;
 import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.entity.Round;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.sql.SQLOutput;
-import java.time.LocalTime;
+
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.nio.file.Files;
@@ -18,12 +16,19 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.io.IOException;
 import java.util.*;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+
 
 import org.springframework.web.bind.annotation.PostMapping;
 import com.pld.agile.model.entity.DeliveryTour;
 import com.pld.agile.model.entity.DeliveryRequest;
 import com.pld.agile.model.entity.Intersection;
 import com.pld.agile.model.entity.Section;
+
+
 
 /**
  * REST Controller for managing delivery planning and map operations.
@@ -493,22 +498,24 @@ public class Controller {
     }
 
     /**
-     * Validates a delivery request
+     * Validates a delivery tour and generate a report.
      *
-     * @return String confirmation message with the validated request ID
+     * @return the file with headers to help the front to manipulate data
      */
-    @PostMapping("/validateTours")
-    public ResponseEntity<Map<String, Object>> validateTours() {
-        Map<String, Object> response = new HashMap<>();
+    @GetMapping("/downloadReport")
+    public ResponseEntity<byte[]> downloadReport() {
         try {
-            String reportFileName = round.generateTourReport();
-            response.put("status", "success");
-            response.put("reportFile", reportFileName);
-            return ResponseEntity.ok(response);
+            String content = round.generateTourReport();
+            byte[] reportBytes = content.getBytes(StandardCharsets.UTF_8);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.TEXT_PLAIN);
+            headers.setContentDispositionFormData("attachment",
+                    "delivery_tours_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".txt");
+
+            return new ResponseEntity<>(reportBytes, headers, HttpStatus.OK);
         } catch (Exception e) {
-            response.put("status", "error");
-            response.put("message", "Failed to validate tours: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

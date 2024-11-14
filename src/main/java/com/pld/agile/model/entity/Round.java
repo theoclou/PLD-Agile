@@ -623,7 +623,6 @@ public class Round {
             String currentStreetName = null;
             double accumulatedDistance = 0;
 
-            // We don't take the warehouse
             for (int i = 0; i < route.size() - 3; i++) {
                 Intersection currentIntersection = route.get(i);
                 Intersection nextIntersection = route.get(i + 1);
@@ -686,26 +685,9 @@ public class Round {
             fileContent.append("\nReturn to warehouse at: ")
                     .append(arrivalTimes.get(route.get(route.size() - 2)))
                     .append("\n\n");
-
-            /*System.out.println("sorted tour :");
-            System.out.println(sortedDeliveryRequests);
-            System.out.println("arrival times :");
-            System.out.println(arrivalTimes)*/
         }
 
-
-        String fileName = "";
-        try {
-            fileName = "./src/tours/delivery_tours_" +
-                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) +
-                    ".txt";
-            Path filePath = Paths.get(fileName);
-            Files.write(filePath, fileContent.toString().getBytes());
-        } catch (IOException e) {
-            System.err.println("Error writing report file: " + e.getMessage());
-        }
-
-        return fileName;
+        return fileContent.toString();
     }
 
     /**

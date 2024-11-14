@@ -535,31 +535,32 @@ const MapComponent = () => {
 
   const handleValidateTour = async () => {
     try {
-      const response = await fetch("http://localhost:8080/validateTours", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const response = await fetch("http://localhost:8080/downloadReport", {
+        method: "GET",
       });
 
-      const result = await response.json(); // D'abord récupérer le résultat
-
       if (!response.ok) {
-        throw new Error(result.message || "Failed to validate tours");
+        throw new Error("Failed to download report");
       }
 
-      if (result.status === "success") {
-        console.log("Tours validated successfully:", result.toursByCourier);
-        setPopupText("Alert Success");
-        setPopupMessage("Tours have been validated successfully!");
-        setPopupVisible(true);
-      } else {
-        throw new Error(result.message || "Unknown error occurred");
-      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `delivery_tours_${new Date().toISOString().slice(0, 19).replace(/:/g, "")}.txt`;
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      setPopupText("Success");
+      setPopupMessage("Tours have been validated and downloaded successfully!");
+      setPopupVisible(true);
     } catch (error) {
-      console.error("Error validating tours:", error);
+      console.error("Error downloading report:", error);
       setPopupText("Error");
-      setPopupMessage(error.message || "Error validating tours");
+      setPopupMessage(error.message || "Error downloading report");
       setPopupVisible(true);
     }
   };
