@@ -6,7 +6,7 @@ import deliveryMarker from "../Assets/deliveryMarker.png";
 
 // Optimized DeliveryPointMarker component
 const DeliveryPointMarker = React.memo(
-  ({ delivery, highlighted, onMouseEnter, onMouseLeave }) => {
+  ({ delivery, highlighted, onMouseEnter, onMouseLeave, onClick }) => {
     const markerRef = useRef();
 
     const icon = L.icon({
@@ -25,17 +25,19 @@ const DeliveryPointMarker = React.memo(
     useEffect(() => {
       const marker = markerRef.current;
       if (marker) {
-        // Add event listeners directly on the marker instance
         marker.on("mouseover", () => onMouseEnter(delivery.deliveryAdress.id));
         marker.on("mouseout", onMouseLeave);
+        marker.on("click", () =>
+          onClick(delivery.deliveryAdress.id, delivery.courier?.id)
+        );
 
-        // Clean the event listeners when the component is destroyed
         return () => {
           marker.off("mouseover");
           marker.off("mouseout");
+          marker.off("click");
         };
       }
-    }, [onMouseEnter, onMouseLeave, delivery.deliveryAdress.id]);
+    }, [onMouseEnter, onMouseLeave, onClick, delivery]);
 
     return (
       <Marker
@@ -45,6 +47,10 @@ const DeliveryPointMarker = React.memo(
           delivery.deliveryAdress.longitude,
         ]}
         icon={icon}
+        eventHandlers={{
+          click: () =>
+            onClick(delivery.deliveryAdress.id, delivery.courier?.id),
+        }}
       >
         <Popup>
           <div className="popup-text">
@@ -83,6 +89,7 @@ DeliveryPointMarker.propTypes = {
   highlighted: PropTypes.bool,
   onMouseEnter: PropTypes.func.isRequired,
   onMouseLeave: PropTypes.func.isRequired,
+  onClick: PropTypes.func.isRequired,
 };
 
 export default DeliveryPointMarker;

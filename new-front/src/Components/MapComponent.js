@@ -35,6 +35,8 @@ const MapComponent = () => {
   const [returnTimes, setReturnTimes] = useState([]);
   const [helpPopupVisible, setHelpPopupVisible] = useState(false);
   const [helpPopupMessage, setHelpPopupMessage] = useState("");
+  const [expandedCouriers, setExpandedCouriers] = useState({});
+
   const handleMouseEnterDelivery = (deliveryId) => {
     setHighlightedDeliveryId(deliveryId);
   };
@@ -626,6 +628,8 @@ const MapComponent = () => {
                 highlightedDeliveryId={highlightedDeliveryId}
                 onMouseEnterDelivery={handleMouseEnterDelivery}
                 onMouseLeaveDelivery={handleMouseLeaveDelivery}
+                expandedCouriers={expandedCouriers}
+                setExpandedCouriers={setExpandedCouriers}
               />
             </div>
           )}
