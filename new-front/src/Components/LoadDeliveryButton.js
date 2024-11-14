@@ -1,16 +1,39 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
 const LoadDeliveryButton = ({ onFileChange }) => {
+  const fileInputRef = useRef(null);
+
+  const handleButtonClick = () => {
+    // Reset the file input value before opening
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event) => {
+    onFileChange(event);
+    // Reset the file input after handling the change
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   return (
-    <div className="button">
+    <div>
       <input
+        ref={fileInputRef}
         type="file"
-        id="file-upload-2"
-        className="inputField"
+        onChange={handleFileChange}
+        accept=".xml"
         style={{ display: 'none' }}
-        onChange={onFileChange}
       />
-      <label htmlFor="file-upload-2" className="button">Load Deliveries</label>
+      <button
+        className="button"
+        onClick={handleButtonClick}
+      >
+        Load Deliveries
+      </button>
     </div>
   );
 };

@@ -131,6 +131,7 @@ public class Controller {
      */
     @PostMapping("/loadDelivery")
     public ResponseEntity<Map<String, Object>> loadDelivery(@RequestParam("file") MultipartFile file) {
+        commandManager.resetCommandStack();
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(Collections.singletonMap("message", "File upload failed: No file selected."));
         }
