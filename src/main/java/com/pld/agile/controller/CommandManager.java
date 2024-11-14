@@ -29,21 +29,6 @@ public class CommandManager {
         undoStack.clear();
 
 
-
-        // Update tourAttribution list
-
-        Round round = command.getRound();
-
-//        if (command instanceof AddDeliveryPointCommand) {
-//
-//            round.setTourAttribution(((AddDeliveryPointCommand) command).getUpdatedTours());
-//
-//        } else if (command instanceof DeleteDeliveryCommand) {
-//
-//            round.setTourAttribution(((DeleteDeliveryCommand) command).getUpdatedTours());
-//
-//        }
-
     }
 
 
@@ -58,21 +43,6 @@ public class CommandManager {
 
             undoStack.push(command);
 
-
-
-            // Update tourAttribution list
-
-//            Round round = command.getRound();
-//
-//            if (command instanceof AddDeliveryPointCommand) {
-//
-//                round.setTourAttribution(((AddDeliveryPointCommand) command).getUpdatedTours());
-//
-//            } else if (command instanceof DeleteDeliveryCommand) {
-//
-//                round.setTourAttribution(((DeleteDeliveryCommand) command).getUpdatedTours());
-//
-//            }
 
         }
 
@@ -104,21 +74,6 @@ public class CommandManager {
 
             commandStack.push(command);
 
-
-
-            // Update tourAttribution list
-
-//            Round round = command.getRound();
-//
-//            if (command instanceof AddDeliveryPointCommand) {
-//
-//                round.setTourAttribution(((AddDeliveryPointCommand) command).getUpdatedTours());
-//
-//            } else if (command instanceof DeleteDeliveryCommand) {
-//
-//                round.setTourAttribution(((DeleteDeliveryCommand) command).getUpdatedTours());
-//
-//            }
 
         }
 
