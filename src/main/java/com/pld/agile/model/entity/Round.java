@@ -44,6 +44,7 @@ public class Round {
     private Intersection warehouse;
     private KMeansClustering KNN = new KMeansClustering();
     private List<Solver> solverList = new ArrayList<>();
+    private List<Boolean> isOptimalList=new ArrayList<>();
 
     public Round() {
     }
@@ -138,7 +139,7 @@ public class Round {
             Solver solver = new Solver(plan, courierDeliveryIndices, new BnBStrategy()).init();
             solver.solve();
             solver.computePointsToBeServed();
-
+            isOptimalList.add(solver.getTimeExceeded());
             double bestCost = solver.getBestPossibleCost();
             double bestTime = bestCost / (COURIER_SPEED * 1000) * 3600; // In seconds
             LocalTime endTime = LocalTime.of(8, 0).plusSeconds((long) bestTime);
@@ -721,6 +722,11 @@ public class Round {
     public void deleteWarehouse() {
         System.out.println("Trying to delete the warehouse");
         warehouse = null;
+    }
+
+    public List<Boolean> getIsOptimalList()
+    {
+        return this.isOptimalList;
     }
 }
 

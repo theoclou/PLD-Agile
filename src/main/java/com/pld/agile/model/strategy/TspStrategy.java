@@ -75,4 +75,8 @@ public class TspStrategy implements SolvingStrategy {
     public double getBestCost() {
         return bestCost;
     }
+    public boolean getTimeExceeded()
+    {
+        return false;
+    }
 }
