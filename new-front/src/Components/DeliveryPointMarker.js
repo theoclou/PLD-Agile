@@ -16,6 +16,12 @@ const DeliveryPointMarker = React.memo(
       popupAnchor: [0, -10],
     });
 
+    const formatTime = (time) => {
+      if (!time) return "Not scheduled";
+      const { hours, minutes } = time;
+      return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+    };
+
     useEffect(() => {
       const marker = markerRef.current;
       if (marker) {
@@ -42,12 +48,15 @@ const DeliveryPointMarker = React.memo(
       >
         <Popup>
           <div className="popup-text">
-            Courier :{" "}
-            {delivery.courier === null ? "Unassigned" : delivery.courier.id}
-          <br />
-          {delivery.arrivalTime === null
-            ? ""
-            : "Arrival time : " + delivery.arrivalTime}
+            <p className="popup-paragraph">
+              Courier :{" "}
+              {delivery.courier === null ? "Unassigned" : delivery.courier.id}
+            </p>
+            {delivery.arrivalTime && (
+              <p className="popup-paragraph">
+                Arrival Time: {formatTime(delivery.arrivalTime)}
+              </p>
+            )}
           </div>
         </Popup>
       </Marker>
@@ -68,6 +77,7 @@ DeliveryPointMarker.propTypes = {
     arrivalTime: PropTypes.shape({
       hours: PropTypes.number.isRequired,
       minutes: PropTypes.number.isRequired,
+      seconds: PropTypes.number.isRequired,
     }),
   }).isRequired,
   highlighted: PropTypes.bool,
