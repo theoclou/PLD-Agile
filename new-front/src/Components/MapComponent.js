@@ -8,9 +8,9 @@ import "leaflet/dist/leaflet.css";
 import "./MapComponent.css";
 import TextSidebar from "./TextSidebar";
 import ComputeTour from "./ComputeTour";
-import ValidateButton from './ValidateButton';  // Make sure the path is correct
+import ValidateButton from "./ValidateButton"; // Make sure the path is correct
 import logoImage from "../Assets/logo.png";
-import boxImage from "../Assets/box2.png"
+import boxImage from "../Assets/box2.png";
 import HelperButton from "./HelperButton";
 
 const MapComponent = () => {
@@ -22,6 +22,7 @@ const MapComponent = () => {
   const [loading, setLoading] = useState(false);
   const [bounds, setBounds] = useState(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [tourComputed, setTourComputed] = useState(false);
   const [zoom, setZoom] = useState(8);
   const mapRef = useRef();
   const [popupVisible, setPopupVisible] = useState(false);
@@ -32,7 +33,6 @@ const MapComponent = () => {
   const [highlightedDeliveryId, setHighlightedDeliveryId] = useState(null);
   const [routesWithCouriers, setRoutesWithCouriers] = useState([]);
   const [returnTimes, setReturnTimes] = useState([]);
-  const [computedTour, setComputedTour] = useState(false);
   const [helpPopupVisible, setHelpPopupVisible] = useState(false);
   const [helpPopupMessage, setHelpPopupMessage] = useState("");
   const handleMouseEnterDelivery = (deliveryId) => {
@@ -42,7 +42,8 @@ const MapComponent = () => {
     setHighlightedDeliveryId(null);
   };
   const handleHelpClick = () => {
-    setHelpPopupMessage("Here are some tips to use the application.\n" +
+    setHelpPopupMessage(
+      "Here are some tips to use the application.\n" +
         "Click on the 'Load Map' button to load a map.\n" +
         "Click on the 'Load Deliveries' button to load a delivery request.\n" +
         "Use the '+' and '-' buttons to add or remove delivery drivers.\n" +
@@ -162,7 +163,7 @@ const MapComponent = () => {
       setDeliveryData({ deliveries: [], warehouse: null });
       setDeliveryLoaded(false);
       setRoutesWithCouriers([]);
-      setComputedTour(false); // Ajouté ic
+      setTourComputed(false); // Ajouté ic
 
       const formData = new FormData();
       formData.append("file", selectedFile);
@@ -175,7 +176,9 @@ const MapComponent = () => {
         if (!response.ok) {
           setMapLoaded(false);
           setLoading(false);
-          throw new Error("Failed to upload file, try again. Make sure to upload a map file.");
+          throw new Error(
+            "Failed to upload file, try again. Make sure to upload a map file."
+          );
         }
         await handleFetchData();
       } catch (error) {
@@ -196,7 +199,7 @@ const MapComponent = () => {
     setDeliveryData({ deliveries: [], warehouse: null });
     setDeliveryLoaded(false);
     setRoutesWithCouriers([]);
-    setComputedTour(false); // Déjà ajouté
+    setTourComputed(false);
 
     if (selectedFile) {
       try {
@@ -213,7 +216,10 @@ const MapComponent = () => {
           body: formData,
         });
 
-        if (!response.ok) throw new Error("Failed to upload file, try again. Make sure to load a deliveries request file.");
+        if (!response.ok)
+          throw new Error(
+            "Failed to upload file, try again. Make sure to load a deliveries request file."
+          );
 
         const result = await response.json();
         if (result && result.deliveries) {
@@ -231,7 +237,7 @@ const MapComponent = () => {
     }
   };
 
-  const handleDelete = async (deliveryId) => {
+  const handleDelete = async (deliveryId, courierId = -1) => {
     if (!deliveryId) {
       console.error("No delivery ID provided for deletion");
       return;
@@ -239,41 +245,65 @@ const MapComponent = () => {
 
     console.log("Attempting to delete delivery with ID:", deliveryId);
     try {
-      const response = await fetch(
-        `http://localhost:8080/deleteDeliveryRequest`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: deliveryId,
-        }
-      );
+      console.log("tour computed " + tourComputed);
+      if (!tourComputed) {
+        const response = await fetch(
+          `http://localhost:8080/deleteDeliveryRequest`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: deliveryId,
+          }
+        );
+        if (response.ok) {
+          const result = await response.json();
+          console.log("Delete response:", result);
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Delete response:", result);
-
-        if (result.message === "Delivery request deleted successfully.") {
-          setDeliveryData((prevData) => ({
-            ...prevData,
-            deliveries: prevData.deliveries.filter(
-              (delivery) => delivery.deliveryAdress.id !== deliveryId
-            ),
-          }));
-        } else {
-          console.error("Unexpected server response:", result);
+          if (result.message === "Delivery request deleted successfully.") {
+            setDeliveryData((prevData) => ({
+              ...prevData,
+              deliveries: prevData.deliveries.filter(
+                (delivery) => delivery.deliveryAdress.id !== deliveryId
+              ),
+            }));
+          }
         }
       } else {
-        console.error("Server returned error status:", response.status);
-        const errorText = await response.text();
-        console.error("Error response:", errorText);
+        const response = await fetch(
+          `http://localhost:8080/deleteDeliveryRequestWithCourier`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ deliveryId, courierId }),
+          }
+        );
+        console.log("response " + response);
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Delete response:", data);
+          if (data.status === "success") {
+            // Use the existing updateTour function to handle all state updates
+            updateTour(data);
+          } else {
+            throw new Error(data.message || "Failed to delete delivery point");
+          }
+        } else {
+          const data = await response.json();
+          throw new Error(data.message);
+        }
       }
     } catch (error) {
       console.error("Error during delete request:", error);
+      setPopupText("Error");
+      setPopupMessage("Error deleting delivery point: " + error.message);
+      setPopupVisible(true);
     }
   };
-
 
   // Handle setting the warehouse
   const handleSetWarehouse = async (intersectionId) => {
@@ -282,14 +312,14 @@ const MapComponent = () => {
     setRoutesWithCouriers([]);
     try {
       const response = await fetch(
-          `http://localhost:8080/defineWarehouseById`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ intersectionId }),
-          }
+        `http://localhost:8080/defineWarehouseById`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ intersectionId }),
+        }
       );
 
       if (response.ok) {
@@ -311,30 +341,111 @@ const MapComponent = () => {
     }
   };
 
-  const handleAddDeliveryPoint = async (intersectionId) => {
-    setDeliveryLoaded(true);
-    if (!deliveryLoaded) return; // No deliveries, so no action
-    try {
-      const response = await fetch(
-        `http://localhost:8080/addDeliveryPointById`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ intersectionId }),
-        }
-      );
+  const updateTour = (data) => {
+    if (!data.tours) {
+      console.error("No tours data received");
+      return;
+    }
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.deliveryRequest) {
-          setDeliveryData((prevData) => ({
-            ...prevData,
-            deliveries: [...prevData.deliveries, result.deliveryRequest],
-          }));
+    // Update routes with courier information
+    const routesWithCourierInfo = data.tours.map((tour) => ({
+      path: tour.route,
+      courierId: tour.courier.id,
+    }));
+    setRoutesWithCouriers(routesWithCourierInfo);
+
+    // Update return times
+    const newReturnTimes = data.tours.map((tour) => tour.endTime);
+    setReturnTimes(newReturnTimes);
+
+    // Update delivery data with tour information
+    const updatedDeliveries = [];
+    data.tours.forEach((tour) => {
+      tour.deliveryRequests.forEach((delivery) => {
+        // Skip warehouse
+        if (delivery.deliveryAdress.id === deliveryData.warehouse?.id) return;
+
+        // Format the key as it appears in the arrivalTimes map
+        const arrivalTimeKey = `Intersection{id='${delivery.deliveryAdress.id}', latitude=${delivery.deliveryAdress.latitude}, longitude=${delivery.deliveryAdress.longitude}}`;
+
+        const arrivalTimeStr = tour.arrivalTimes[arrivalTimeKey];
+        let arrivalTime = null;
+
+        if (arrivalTimeStr) {
+          // Parse the time string (format "HH:mm:ss")
+          const [hours, minutes, seconds] = arrivalTimeStr
+            .split(":")
+            .map(Number);
+          arrivalTime = { hours, minutes, seconds };
         }
-        setPopupVisible(false);
+
+        updatedDeliveries.push({
+          ...delivery,
+          courier: tour.courier,
+          arrivalTime,
+        });
+      });
+    });
+
+    setDeliveryData((prevData) => ({
+      ...prevData,
+      deliveries: updatedDeliveries,
+    }));
+
+    setTourComputed(true);
+  };
+
+  const handleAddDeliveryPoint = async (intersectionId, courierID = -1) => {
+    //TODO : add courierID to the request
+    console.log("delivery loaded " + deliveryLoaded);
+    if (!deliveryLoaded) return; //TODO check ça
+    try {
+      console.log("Adding delivery point with ID:", intersectionId);
+      if (!tourComputed) {
+        const response = await fetch(
+          `http://localhost:8080/addDeliveryPointById`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ intersectionId }),
+          }
+        );
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.deliveryRequest) {
+            setDeliveryData((prevData) => ({
+              ...prevData,
+              deliveries: [...prevData.deliveries, result.deliveryRequest],
+            }));
+          }
+          setPopupVisible(false);
+        } else {
+          throw new Error("Failed to add delivery point");
+        }
+      } else {
+        console.log("Courier : " + courierID);
+        const response = await fetch(
+          `http://localhost:8080/addDeliveryPointByIdAfterCompute`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ intersectionId, courierID }),
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Add delivery point response:", data);
+          updateTour(data);
+          setTourComputed(true);
+        } else {
+          throw new Error("Failed to add delivery point " + response.message);
+        }
       }
     } catch (error) {
       console.error("Error while adding a delivery point:", error);
@@ -372,54 +483,8 @@ const MapComponent = () => {
       if (response.ok) {
         const data = await response.json();
 
-        // Transformer les tours en routes avec information du courier
-        const routesWithCourierInfo = data.tours.map((tour) => ({
-          path: tour.route,
-          courierId: tour.courier.id,
-        }));
-        setRoutesWithCouriers(routesWithCourierInfo);
-
-        // Mise à jour des temps de retour
-        setReturnTimes(() => {
-          const newReturnTimes = [];
-          data.tours.forEach((tour) => {
-            newReturnTimes.push(tour.endTime);
-          });
-          return newReturnTimes;
-        });
-
-        // Mise à jour des données de livraison avec les informations des tournées
-        setDeliveryData((prevData) => {
-          const updatedDeliveries = [...prevData.deliveries];
-
-          console.log("tour", data.tours);
-          data.tours.forEach((tour) => {
-            tour.deliveryRequests.forEach((tourDelivery) => {
-              const deliveryIndex = updatedDeliveries.findIndex(
-                (delivery) =>
-                  delivery.deliveryAdress.id === tourDelivery.deliveryAdress.id
-              );
-
-              if (deliveryIndex !== -1) {
-                updatedDeliveries[deliveryIndex] = {
-                  ...updatedDeliveries[deliveryIndex],
-                  courier: tourDelivery.courier,
-                  arrivalTime:
-                    tour.arrivalTimes[
-                      `Intersection{id='${tourDelivery.deliveryAdress.id}', latitude=${tourDelivery.deliveryAdress.latitude}, longitude=${tourDelivery.deliveryAdress.longitude}}`
-                    ],
-                };
-              }
-            });
-          });
-
-          setComputedTour(true); // Ajout de cette ligne
-
-          return {
-            ...prevData,
-            deliveries: updatedDeliveries,
-          };
-        });
+        updateTour(data);
+        setTourComputed(true);
       } else {
         throw new Error("Failed to compute tour");
       }
@@ -428,7 +493,7 @@ const MapComponent = () => {
       setPopupText("Error");
       setPopupMessage("Error computing tour: " + error.message);
       setPopupVisible(true);
-      setComputedTour(false); // Ajout de cette ligne
+      setTourComputed(false); // Ajout de cette ligne
     }
   };
 
@@ -463,23 +528,29 @@ const MapComponent = () => {
     }
   };
 
+  useEffect(() => {
+    console.log("Delivery data:", deliveryData);
+    console.log("Return Times" + returnTimes);
+  }, [deliveryData, returnTimes]);
   return (
     <div className="container">
       <header className="header">
-        <img src={boxImage} className="logo-image"/>
+        <img src={boxImage} className="logo-image" />
         <h1 className="title">Pick'One</h1>
         <div className="button-container">
           <FileUploadButton onFileChange={handleFileChange} />
-          {mapLoaded && <LoadDeliveryButton onFileChange={handleLoadDelivery} />}
+          {mapLoaded && (
+            <LoadDeliveryButton onFileChange={handleLoadDelivery} />
+          )}
           <CourierCounter count={courierCount} setCount={setCourierCount} />
           {deliveryLoaded && <ComputeTour onClick={handleComputeTour} />}
           <HelperButton onHelpClick={handleHelpClick} />
-          {computedTour && <ValidateButton onClick={handleValidateTour} />}
+          {tourComputed && <ValidateButton onClick={handleValidateTour} />}
         </div>
       </header>
 
       {!mapLoaded && (
-          <div className="welcome-container">
+        <div className="welcome-container">
           <img src={logoImage} alt="Welcome" className="welcome-image" />
         </div>
       )}
@@ -501,6 +572,8 @@ const MapComponent = () => {
               onMouseLeaveDelivery={handleMouseLeaveDelivery}
               routes={routesWithCouriers}
               returnTimes={returnTimes}
+              tourComputed={tourComputed}
+              numberOfCouriers={courierCount}
               setWarehouse={handleSetWarehouse} // Pass handleSetWarehouse method
               hasDeliveries={deliveryLoaded}
             />
@@ -523,11 +596,18 @@ const MapComponent = () => {
       )}
 
       {popupVisible && (
-        <ErrorPopup message={popupMessage} onClose={handleClosePopup} text={popupText}/>
+        <ErrorPopup
+          message={popupMessage}
+          onClose={handleClosePopup}
+          text={popupText}
+        />
       )}
 
       {helpPopupVisible && (
-          <ErrorPopup message={helpPopupMessage} onClose={() => setHelpPopupVisible(false)} />
+        <ErrorPopup
+          message={helpPopupMessage}
+          onClose={() => setHelpPopupVisible(false)}
+        />
       )}
     </div>
   );

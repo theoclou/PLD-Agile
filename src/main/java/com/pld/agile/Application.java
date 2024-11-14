@@ -1,6 +1,5 @@
 package com.pld.agile;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -21,7 +20,7 @@ public class Application {
 
 		// Launch App
 		 SpringApplication.run(Application.class, args);
-
+//
 //		Plan plan = new Plan();
 //
 //		String filePath = "src/data/grandPlan.xml";
@@ -33,7 +32,7 @@ public class Application {
 //		}
 //
 //		plan.preprocessData();
-//		List<Integer> vertices = Arrays.asList(0, 256, 233, 127);
+//		List<Integer> vertices = Arrays.asList(0, 256, 233, 127,18,21,56,12,9,7,34,77,98,100,105,108,17,14,33);
 //		/*
 //		 * If using a list of ids use instead this :
 //		 * List<Integer> vertices =plan.formatInput(List<String> idIntersections)
@@ -46,7 +45,6 @@ public class Application {
 //		List<Integer> bestPath = solver.getBestPossiblePath();
 //		System.out.println(bestPath);
 //		plan.computeTour(bestPath);
-//		System.out.println("finished");
 //
 //		// Création Round
 //		Round round = new Round();
@@ -61,6 +59,9 @@ public class Application {
 //		}
 //		ArrayList<ArrayList<String>> groups = round.computeRoundOptimized();
 //		System.out.println(groups);
+//		String intersection ="2292223595";
+//		round.updateLocalPoint(1, intersection, 1);
+//
 //		System.exit(0);
-	}
+}
 }

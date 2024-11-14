@@ -8,14 +8,17 @@
 
 .header {
   width: 100%;
-  background-color: #ffffff; {/*#fff3e6*/}
+  background-color: #ffffff;
+   {
+    /*#fff3e6*/
+  }
   border-bottom: 1px solid #ffe0b3;
   padding: 1.5rem 4rem;
   height: 4rem;
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: fixed;
   top: 0;
   z-index: 1000;
@@ -48,31 +51,30 @@
 }
 
 .title {
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
   font-weight: 500;
-  font-size: 3rem;  /* Police plus grande */
+  font-size: 3rem; /* Police plus grande */
   color: #333333;
   margin: 0;
-  margin-right: 4rem;  /* Plus d'espace après le titre */
+  margin-right: 4rem; /* Plus d'espace après le titre */
 }
 
 .button-container {
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  margin-right: 4rem;  /* Espace à droite des boutons */
+  margin-right: 4rem; /* Espace à droite des boutons */
 }
-
 
 .map-sidebar-container {
   display: flex;
   width: 100%;
-  height: calc(100vh - 7rem);  /* Ajusté pour le nouveau header */
+  height: calc(100vh - 7rem); /* Ajusté pour le nouveau header */
   margin-top: 7rem;
 }
 
 .map-container {
-  flex: 1.6;  /* Ratio modifié pour donner plus de place à la sidebar */
+  flex: 1.6; /* Ratio modifié pour donner plus de place à la sidebar */
   height: 100%;
 }
 
@@ -82,19 +84,19 @@
 }
 
 .text-sidebar {
-  flex: 1;  /* Ratio modifié pour augmenter la largeur */
+  flex: 1; /* Ratio modifié pour augmenter la largeur */
   height: 100%;
   overflow-y: auto;
   background-color: white;
   padding: 1.5rem;
   border-left: 1px solid #e9ecef;
-  min-width: 450px;  /* Largeur minimum garantie */
+  min-width: 450px; /* Largeur minimum garantie */
 }
 
 .button {
   padding: 0.6rem 1.2rem;
   font-size: 1rem;
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
   font-weight: 500;
   color: white;
   background-color: #737373;
@@ -118,7 +120,7 @@
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
   font-weight: 400;
   font-size: 1rem;
   color: #333;

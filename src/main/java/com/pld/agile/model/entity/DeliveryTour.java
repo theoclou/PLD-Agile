@@ -165,4 +165,16 @@ public class DeliveryTour {
         this.arrivalTimes = arrivalTimes;
     }
 
+    @Override
+    public String toString() {
+        return "DeliveryTour{" +
+                "\ncourier=" + courier +
+                ", \nstartTime=" + startTime +
+                ", \nendTime=" + endTime +
+                ", \ndeliveryRequests=" + deliveryRequests +
+                ", \nroute=" + route +
+                ", \narrivalTimes=" + arrivalTimes +
+                '}';
+    }
+
 }
