@@ -438,18 +438,12 @@ public class Controller {
             Round currentRound = lastCommand != null ? lastCommand.getRound() : round;
             System.out.println("New round : " + currentRound.getDeliveryRequestList().size());
             response.put("status", "success");
-            System.out.println("1");
             response.put("message", "Undo successful");
-            System.out.println("2");
             response.put("currentDeliveryCount", currentRound.getDeliveryRequestList().size());
-            System.out.println("3");
             response.put("deliveryRequests", currentRound.getDeliveryRequestList());
-            System.out.println("4");
             if (currentRound.getTourAttribution() != null) {
-                System.out.println("4.5");
                 response.put("tours", currentRound.getTourAttribution());
             }
-            System.out.println("5");
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
