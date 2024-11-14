@@ -62,7 +62,7 @@ public class Round {
             courierList.add(new Courier(i));
         }
         this.plan = plan;
-        this.tourAttribution = new ArrayList<DeliveryTour>();
+        this.tourAttribution = new ArrayList<>();
     }
 
     /**
@@ -70,7 +70,7 @@ public class Round {
      */
     public void softReset() {
         KNN = new KMeansClustering();
-        tourAttribution = new ArrayList<DeliveryTour>();
+        tourAttribution = new ArrayList<>();
     }
 
     /**
@@ -79,10 +79,23 @@ public class Round {
      * @return a map where each {@code Courier} is assigned a {@code DeliveryTour}
      */
     public List<DeliveryTour> getTourAttribution() {
+//        if (tourAttribution == null || tourAttribution.isEmpty() ) {
+//            System.out.println("No tours have been computed yet.");
+//            return null;
+//        }
         for(DeliveryTour tour : tourAttribution){
             System.out.println("route : " + tour.getRoute());
         }
         return tourAttribution;
+    }
+
+    /**
+     * Sets the map of courier assignments to delivery tours.
+     *
+     * @param tourAttribution
+     */
+    public void setTourAttribution(List<DeliveryTour> tourAttribution) {
+        this.tourAttribution = tourAttribution;
     }
 
     /**

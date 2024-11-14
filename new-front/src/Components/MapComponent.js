@@ -96,11 +96,15 @@ const MapComponent = () => {
 
               if (response.ok) {
                 const result = await response.json();
+                console.log("Undo response:", result);
                 if (result.deliveryRequests) {
                   setDeliveryData((prev) => ({
                     ...prev,
                     deliveries: result.deliveryRequests,
                   }));
+                }
+                if (tourComputed) {
+                  updateTour(result);
                 }
               }
             } catch (error) {
@@ -118,13 +122,18 @@ const MapComponent = () => {
                 },
               });
 
+              console.log("response " + response.ok);
               if (response.ok) {
                 const result = await response.json();
+                console.log("Redo response:", result);
                 if (result.deliveryRequests) {
                   setDeliveryData((prev) => ({
                     ...prev,
                     deliveries: result.deliveryRequests,
                   }));
+                }
+                if (tourComputed) {
+                  updateTour(result);
                 }
               }
             } catch (error) {
@@ -364,7 +373,7 @@ const MapComponent = () => {
   };
 
   const updateTour = (data) => {
-    if (!data.tours) {
+    if (!data.tours || data.tours.length === 0) {
       console.error("No tours data received");
       return;
     }
@@ -414,6 +423,7 @@ const MapComponent = () => {
       deliveries: updatedDeliveries,
     }));
 
+    console.log("Updated delivery data:", updatedDeliveries);
     setTourComputed(true);
   };
 

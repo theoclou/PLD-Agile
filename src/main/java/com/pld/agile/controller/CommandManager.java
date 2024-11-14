@@ -1,26 +1,41 @@
 package com.pld.agile.controller;
 
 import com.pld.agile.controller.Command;
+import com.pld.agile.model.entity.Round;
 
 import java.util.Stack;
 
 public class CommandManager {
-    private Stack<Command> commandStack = new Stack<>(); // Stack to hold executed commands
-    private Stack<Command> undoStack = new Stack<>();    // Stack to hold undone commands
+    private Stack<Command> commandStack = new Stack<>();
+    private Stack<Command> undoStack = new Stack<>();
 
-    // Execute a command
     public void executeCommand(Command command) {
-        command.execute(); // Call the execute method
-        commandStack.push(command);   // Push command onto executed stack
-        undoStack.clear();            // Clear redo stack when a new command is executed
+        command.execute();
+        commandStack.push(command);
+        undoStack.clear();
+
+        // Update tourAttribution list
+        Round round = command.getRound();
+        if (command instanceof AddDeliveryPointCommand) {
+            round.setTourAttribution(((AddDeliveryPointCommand) command).getUpdatedTours());
+        } else if (command instanceof DeleteDeliveryCommand) {
+            round.setTourAttribution(((DeleteDeliveryCommand) command).getUpdatedTours());
+        }
     }
 
-    // Undo the last command
     public void undo() {
         if (!commandStack.isEmpty()) {
-            Command command = commandStack.pop(); // Get the last executed command
-            command.undo();                       // Call undo on the command
-            undoStack.push(command);              // Push the command onto the undo stack
+            Command command = commandStack.pop();
+            command.undo();
+            undoStack.push(command);
+
+            // Update tourAttribution list
+            Round round = command.getRound();
+            if (command instanceof AddDeliveryPointCommand) {
+                round.setTourAttribution(((AddDeliveryPointCommand) command).getUpdatedTours());
+            } else if (command instanceof DeleteDeliveryCommand) {
+                round.setTourAttribution(((DeleteDeliveryCommand) command).getUpdatedTours());
+            }
         }
     }
 
@@ -31,17 +46,23 @@ public class CommandManager {
         return null;
     }
 
-
-    // Redo the last undone command
     public void redo() {
         if (!undoStack.isEmpty()) {
-            Command command = undoStack.pop(); // Get the last undone command
-            command.execute();                  // Re-execute the command
-            commandStack.push(command);        // Push it back onto the executed stack
+            Command command = undoStack.pop();
+            command.execute();
+            commandStack.push(command);
+
+            // Update tourAttribution list
+            Round round = command.getRound();
+            if (command instanceof AddDeliveryPointCommand) {
+                round.setTourAttribution(((AddDeliveryPointCommand) command).getUpdatedTours());
+            } else if (command instanceof DeleteDeliveryCommand) {
+                round.setTourAttribution(((DeleteDeliveryCommand) command).getUpdatedTours());
+            }
         }
     }
 
-    public void clear() {
+    public void resetCommandStack() {
         commandStack.clear();
         undoStack.clear();
     }
