@@ -204,7 +204,7 @@ public class Controller {
             round.init(numberOfCouriers, map);
             round.computeRoundOptimized();
             List<DeliveryTour> tourAttribution = round.getTourAttribution();
-            commandManager = new CommandManager();
+            commandManager.clear();
 
             response.put("status", "success");
             response.put("message", "Tours computed successfully");
@@ -478,7 +478,7 @@ public class Controller {
      */
     @PostMapping("/resetCommands")
     public ResponseEntity<Void> resetCommands() {
-        commandManager = new CommandManager();
+        commandManager.clear();
         return ResponseEntity.ok().build();
     }
 

@@ -40,4 +40,9 @@ public class CommandManager {
             commandStack.push(command);        // Push it back onto the executed stack
         }
     }
+
+    public void clear() {
+        commandStack.clear();
+        undoStack.clear();
+    }
 }

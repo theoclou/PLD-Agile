@@ -54,6 +54,28 @@ const MapComponent = () => {
     setHelpPopupVisible(true);
   };
 
+  useEffect(() => {
+    const handleBeforeUnload = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/resetCommands", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          keepalive: true
+        });
+      } catch (error) {
+        console.error("Error resetting commands:", error);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
   // Add keyboard event listener for undo/redo
   useEffect(() => {
     const handleKeyDown = async (event) => {

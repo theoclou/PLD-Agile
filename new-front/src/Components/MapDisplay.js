@@ -24,7 +24,7 @@ const COURIER_COLORS = {
   7: "#FFD700",
 };
 
-const DEFAULT_SECTION_COLOR = "darkgrey";
+const DEFAULT_SECTION_COLOR = "#747055";
 
 const MapController = React.memo(({ bounds }) => {
   const map = useMap();
