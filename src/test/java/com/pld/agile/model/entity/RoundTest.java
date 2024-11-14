@@ -28,10 +28,14 @@ class RoundTest {
         Intersection intersection3 = new Intersection();
         intersection3.initialisation("26084216", 45.731358, 4.833629);
 
+        Intersection intersection4 = new Intersection();
+        intersection4.initialisation("222220", 45.731352, 4.833629);
+
         // Ajouter les intersections au plan
         plan.addIntersection(intersection1);
         plan.addIntersection(intersection2);
         plan.addIntersection(intersection3);
+        plan.addIntersection(intersection4);
 
         // Initialiser le round avec le plan
         round.init(2, plan);
@@ -77,6 +81,10 @@ class RoundTest {
         intersection1.initialisation("239603465", 45.752098, 4.902107);
         plan.addIntersection(intersection1); // Missing 1368674802 et 26084216
 
+        Intersection intersection2 = new Intersection();
+        intersection2.initialisation("222220", 45.752097, 4.902107);
+        plan.addIntersection(intersection2);
+
         // Initialiser le round avec le plan
         round.init(2, plan);
 
@@ -86,7 +94,7 @@ class RoundTest {
         });
 
         // Vérifier le message de l'exception
-        assertTrue(exception.getMessage().contains("The intersection '1368674802' doesn't exist !"));
+        assertTrue(exception.getMessage().contains("The intersection '1368674802' doesn't exist!"));
     }
 
 }
