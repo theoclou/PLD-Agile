@@ -312,4 +312,9 @@ public class BranchAndBound {
                 .boxed() // Convert IntStream to Stream<Integer>
                 .collect(Collectors.toList());
     }
+
+    public boolean getTimeExceeded()
+    {
+        return this.timeExceeded;
+    }
 }

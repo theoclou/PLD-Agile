@@ -44,6 +44,7 @@ public class Round {
     private Intersection warehouse;
     private KMeansClustering KNN = new KMeansClustering();
     private List<Solver> solverList = new ArrayList<>();
+    private List<Boolean> isOptimalList=new ArrayList<>();
 
     public Round() {
     }
@@ -62,7 +63,7 @@ public class Round {
             courierList.add(new Courier(i));
         }
         this.plan = plan;
-        this.tourAttribution = new ArrayList<DeliveryTour>();
+        this.tourAttribution = new ArrayList<>();
     }
 
     /**
@@ -70,7 +71,7 @@ public class Round {
      */
     public void softReset() {
         KNN = new KMeansClustering();
-        tourAttribution = new ArrayList<DeliveryTour>();
+        tourAttribution = new ArrayList<>();
     }
 
     /**
@@ -79,10 +80,23 @@ public class Round {
      * @return a map where each {@code Courier} is assigned a {@code DeliveryTour}
      */
     public List<DeliveryTour> getTourAttribution() {
+//        if (tourAttribution == null || tourAttribution.isEmpty() ) {
+//            System.out.println("No tours have been computed yet.");
+//            return null;
+//        }
         for(DeliveryTour tour : tourAttribution){
             System.out.println("route : " + tour.getRoute());
         }
         return tourAttribution;
+    }
+
+    /**
+     * Sets the map of courier assignments to delivery tours.
+     *
+     * @param tourAttribution
+     */
+    public void setTourAttribution(List<DeliveryTour> tourAttribution) {
+        this.tourAttribution = tourAttribution;
     }
 
     /**
@@ -125,7 +139,7 @@ public class Round {
             Solver solver = new Solver(plan, courierDeliveryIndices, new BnBStrategy()).init();
             solver.solve();
             solver.computePointsToBeServed();
-
+            isOptimalList.add(solver.getTimeExceeded());
             double bestCost = solver.getBestPossibleCost();
             double bestTime = bestCost / (COURIER_SPEED * 1000) * 3600; // In seconds
             LocalTime endTime = LocalTime.of(8, 0).plusSeconds((long) bestTime);
@@ -175,10 +189,18 @@ public class Round {
         deliveryRequestList.clear();
         warehouse = null;
         File xmlFile = null;
+        boolean isTemporaryFile = false; // Variable pour indiquer un fichier temporaire
+
         try {
             // Check if source is a file path or a MultipartFile
-            xmlFile = (source instanceof String) ? verifyFileExists((String) source)
-                    : createTemporaryFile((MultipartFile) source);
+            if (source instanceof String) {
+                xmlFile = verifyFileExists((String) source);
+            } else if (source instanceof MultipartFile) {
+                xmlFile = createTemporaryFile((MultipartFile) source);
+                isTemporaryFile = true; // Marque ce fichier comme temporaire
+            } else {
+                throw new IllegalArgumentException("Invalid source type.");
+            }
 
             Document document = parseXmlFile(xmlFile);
 
@@ -194,11 +216,12 @@ public class Round {
             e.printStackTrace();
             throw e;
         } finally {
-            if (xmlFile != null && xmlFile.exists()) {
+            if (isTemporaryFile && xmlFile != null && xmlFile.exists()) {
                 xmlFile.delete();
             }
         }
     }
+
 
     /**
      * Verifies if the file at the specified path exists.
@@ -610,7 +633,6 @@ public class Round {
             String currentStreetName = null;
             double accumulatedDistance = 0;
 
-            // We don't take the warehouse
             for (int i = 0; i < route.size() - 3; i++) {
                 Intersection currentIntersection = route.get(i);
                 Intersection nextIntersection = route.get(i + 1);
@@ -673,26 +695,9 @@ public class Round {
             fileContent.append("\nReturn to warehouse at: ")
                     .append(arrivalTimes.get(route.get(route.size() - 2)))
                     .append("\n\n");
-
-            /*System.out.println("sorted tour :");
-            System.out.println(sortedDeliveryRequests);
-            System.out.println("arrival times :");
-            System.out.println(arrivalTimes)*/
         }
 
-
-        String fileName = "";
-        try {
-            fileName = "./src/tours/delivery_tours_" +
-                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) +
-                    ".txt";
-            Path filePath = Paths.get(fileName);
-            Files.write(filePath, fileContent.toString().getBytes());
-        } catch (IOException e) {
-            System.err.println("Error writing report file: " + e.getMessage());
-        }
-
-        return fileName;
+        return fileContent.toString();
     }
 
     /**
@@ -717,6 +722,11 @@ public class Round {
     public void deleteWarehouse() {
         System.out.println("Trying to delete the warehouse");
         warehouse = null;
+    }
+
+    public List<Boolean> getIsOptimalList()
+    {
+        return this.isOptimalList;
     }
 }
 

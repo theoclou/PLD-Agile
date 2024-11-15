@@ -33,4 +33,5 @@ public interface SolvingStrategy {
      * @return the best cost as a {@code double} value
      */
     double getBestCost();
+    boolean getTimeExceeded();
 }

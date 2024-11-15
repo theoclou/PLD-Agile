@@ -6,7 +6,7 @@ import deliveryMarker from "../Assets/deliveryMarker.png";
 
 // Optimized DeliveryPointMarker component
 const DeliveryPointMarker = React.memo(
-  ({ delivery, highlighted, onMouseEnter, onMouseLeave }) => {
+  ({ delivery, highlighted, onMouseEnter, onMouseLeave, onClick }) => {
     const markerRef = useRef();
 
     const icon = L.icon({
@@ -16,20 +16,28 @@ const DeliveryPointMarker = React.memo(
       popupAnchor: [0, -10],
     });
 
+    const formatTime = (time) => {
+      if (!time) return "Not scheduled";
+      const { hours, minutes } = time;
+      return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+    };
+
     useEffect(() => {
       const marker = markerRef.current;
       if (marker) {
-        // Add event listeners directly on the marker instance
         marker.on("mouseover", () => onMouseEnter(delivery.deliveryAdress.id));
         marker.on("mouseout", onMouseLeave);
+        marker.on("click", () =>
+          onClick(delivery.deliveryAdress.id, delivery.courier?.id)
+        );
 
-        // Clean the event listeners when the component is destroyed
         return () => {
           marker.off("mouseover");
           marker.off("mouseout");
+          marker.off("click");
         };
       }
-    }, [onMouseEnter, onMouseLeave, delivery.deliveryAdress.id]);
+    }, [onMouseEnter, onMouseLeave, onClick, delivery]);
 
     return (
       <Marker
@@ -39,15 +47,22 @@ const DeliveryPointMarker = React.memo(
           delivery.deliveryAdress.longitude,
         ]}
         icon={icon}
+        eventHandlers={{
+          click: () =>
+            onClick(delivery.deliveryAdress.id, delivery.courier?.id),
+        }}
       >
         <Popup>
           <div className="popup-text">
-            Courier :{" "}
-            {delivery.courier === null ? "Unassigned" : delivery.courier.id}
-          <br />
-          {delivery.arrivalTime === null
-            ? ""
-            : "Arrival time : " + delivery.arrivalTime}
+            <p className="popup-paragraph">
+              Courier :{" "}
+              {delivery.courier === null ? "Unassigned" : delivery.courier.id}
+            </p>
+            {delivery.arrivalTime && (
+              <p className="popup-paragraph">
+                Arrival Time: {formatTime(delivery.arrivalTime)}
+              </p>
+            )}
           </div>
         </Popup>
       </Marker>
@@ -68,11 +83,13 @@ DeliveryPointMarker.propTypes = {
     arrivalTime: PropTypes.shape({
       hours: PropTypes.number.isRequired,
       minutes: PropTypes.number.isRequired,
+      seconds: PropTypes.number.isRequired,
     }),
   }).isRequired,
   highlighted: PropTypes.bool,
   onMouseEnter: PropTypes.func.isRequired,
   onMouseLeave: PropTypes.func.isRequired,
+  onClick: PropTypes.func.isRequired,
 };
 
 export default DeliveryPointMarker;

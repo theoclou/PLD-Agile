@@ -5,6 +5,7 @@ import java.util.*;
 
 import com.pld.agile.model.graph.CompleteGraph;
 import com.pld.agile.model.graph.Plan;
+import com.pld.agile.model.strategy.BnBStrategy;
 import com.pld.agile.model.strategy.SolvingStrategy;
 
 /**
@@ -451,5 +452,9 @@ public class Solver {
 
         System.out.println("Final arrival times: " + pointsWithTime);
     }
-
+    public boolean getTimeExceeded()
+    {
+        return solvingStrategy.getTimeExceeded();
+    }
 }
+

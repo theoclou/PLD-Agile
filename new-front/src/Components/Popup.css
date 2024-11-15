@@ -64,3 +64,8 @@
 .popup-button:active {
   transform: scale(0.98);
 }
+
+.popup-paragraph {
+  margin-bottom: "0px";
+  padding: "2px 0";
+}

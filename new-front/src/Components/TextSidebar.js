@@ -13,6 +13,34 @@ const TextSidebar = React.memo(
     onMouseLeaveDelivery,
   }) => {
     const [expandedDeliveries, setExpandedDeliveries] = useState({});
+    const deliveryRefs = useRef({});
+    const sidebarRef = useRef(null);
+
+    useEffect(() => {
+      if (highlightedDeliveryId) {
+        const delivery = deliveryData?.find(
+          (d) => d.deliveryAdress.id === highlightedDeliveryId
+        );
+
+        if (delivery?.courier) {
+          // Expand the courier's section
+          setExpandedDeliveries((prev) => ({
+            ...prev,
+            [delivery.courier.id]: true,
+          }));
+
+          // Wait for DOM update before scrolling
+          setTimeout(() => {
+            const element = deliveryRefs.current[highlightedDeliveryId];
+            if (element && sidebarRef.current) {
+              const sidebarTop = sidebarRef.current.getBoundingClientRect().top;
+              const elementTop = element.getBoundingClientRect().top;
+              sidebarRef.current.scrollTop += elementTop - sidebarTop - 200;
+            }
+          }, 100);
+        }
+      }
+    }, [highlightedDeliveryId, deliveryData]);
 
     const toggleDeliveryInfo = (courierId) => {
       setExpandedDeliveries((prevState) => ({
@@ -140,79 +168,78 @@ const TextSidebar = React.memo(
       const limitedSections = uniqueSections.slice(0, 2);
 
       return (
-        <div className="section-container" key={delivery.deliveryAdress.id}>
-          <div
-            onMouseEnter={() =>
-              onMouseEnterDelivery(delivery.deliveryAdress.id)
-            }
-            onMouseLeave={onMouseLeaveDelivery}
-            className={`delivery-item ${highlightedDeliveryId === delivery.deliveryAdress.id ? "highlighted" : ""}`}
-            style={{
-              backgroundColor:
-                highlightedDeliveryId === delivery.deliveryAdress.id
-                  ? "rgb(255, 233, 233)"
-                  : "transparent",
-              borderLeft: `4px solid ${courierId ? courierColors[courierId] : "#737373"}`,
-              paddingLeft: "12px",
-            }}
-          >
-            <div className="delivery-header">
-              <h3 className="section-title">Delivery Point</h3>
-              <div className="arrival-time">
-                <span className="arrival-label">Arrival : </span>
-                <span className="arrival-value">
-                  {formatTime(delivery.arrivalTime)}
+        <div
+          ref={(el) => (deliveryRefs.current[delivery.deliveryAdress.id] = el)}
+          className="section-container"
+          onMouseEnter={() => onMouseEnterDelivery(delivery.deliveryAdress.id)}
+          onMouseLeave={onMouseLeaveDelivery}
+          style={{
+            backgroundColor:
+              highlightedDeliveryId === delivery.deliveryAdress.id
+                ? "rgb(255, 233, 233)"
+                : "transparent",
+            borderLeft: `4px solid ${courierId ? courierColors[courierId] : "#737373"}`,
+            paddingLeft: "12px",
+          }}
+        >
+          <div className="delivery-header">
+            <h3 className="section-title">Delivery Point</h3>
+            <div className="arrival-time">
+              <span className="arrival-label">Arrival : </span>
+              <span className="arrival-value">
+                {formatTime(delivery.arrivalTime)}
+              </span>
+            </div>
+          </div>
+
+          <div className="warehouse-section">
+            <div className="delivery-info">
+              <div className="section-info">
+                <span className="section-info">Courier ID: </span>
+                <span
+                  className="section-info"
+                  style={{
+                    color: courierId ? courierColors[courierId] : "inherit",
+                  }}
+                >
+                  {courierId ? courierId : "Unassigned"}
                 </span>
               </div>
             </div>
 
-            <div className="warehouse-section">
-                <div className="section-info">
-                  <span className="section-info">Courier ID: </span>
-                  <span
-                    className="section-info"
-                    style={{
-                      color: courierId ? courierColors[courierId] : "inherit",
-                    }}
-                  >
-                    {courierId ? courierId : "Unassigned"}
-                  </span>
-                </div>
-              </div>
-
-              <div>
-                <span className="section-title">Sections around: </span>
-                <div className="section-list">
-                  {limitedSections.length > 0 ? (
-                    limitedSections.map((section, index) => (
-                      <div key={index} className="section-item">
-                        <div className="section-dot"></div>
-                        <span className="section-name">
-                          {section.name || "Undefined"}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <span className="no-sections">No connected sections</span>
-                  )}
-                </div>
+            <div>
+              <span className="section-title">Sections around: </span>
+              <div className="section-list">
+                {limitedSections.length > 0 ? (
+                  limitedSections.map((section, index) => (
+                    <div key={index} className="section-item">
+                      <div className="section-dot"></div>
+                      <span className="section-name">
+                        {section.name || "Undefined"}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <span className="no-sections">No connected sections</span>
+                )}
               </div>
             </div>
+          </div>
 
-            <div className="button-container">
-              <button
-                onClick={() => onDelete(delivery.deliveryAdress.id, courierId)}
-                className="deletebutton"
-              >
-                &times;
-              </button>
-            </div>
+          <div className="button-container">
+            <button
+              onClick={() => onDelete(delivery.deliveryAdress.id, courierId)}
+              className="deletebutton"
+            >
+              &times;
+            </button>
+          </div>
         </div>
       );
     };
 
     return (
-      <div className="textual-sidebar">
+      <div className="textual-sidebar" ref={sidebarRef}>
         {warehouse && (
           <div>
             <h2 className="section-title">Warehouse</h2>

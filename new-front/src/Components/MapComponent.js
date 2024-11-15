@@ -35,12 +35,73 @@ const MapComponent = () => {
   const [returnTimes, setReturnTimes] = useState([]);
   const [helpPopupVisible, setHelpPopupVisible] = useState(false);
   const [helpPopupMessage, setHelpPopupMessage] = useState("");
+  const [expandedCouriers, setExpandedCouriers] = useState({});
+
   const handleMouseEnterDelivery = (deliveryId) => {
     setHighlightedDeliveryId(deliveryId);
   };
   const handleMouseLeaveDelivery = () => {
     setHighlightedDeliveryId(null);
   };
+
+  const updateTour = useCallback(
+    (data) => {
+      if (!data.tours || data.tours.length === 0) {
+        console.error("No tours data received");
+        return;
+      }
+
+      // Update routes with courier information
+      const routesWithCourierInfo = data.tours.map((tour) => ({
+        path: tour.route,
+        courierId: tour.courier.id,
+      }));
+      setRoutesWithCouriers(routesWithCourierInfo);
+
+      // Update return times
+      const newReturnTimes = data.tours.map((tour) => tour.endTime);
+      setReturnTimes(newReturnTimes);
+
+      // Update delivery data with tour information
+      const updatedDeliveries = [];
+      data.tours.forEach((tour) => {
+        tour.deliveryRequests.forEach((delivery) => {
+          // Skip warehouse
+          if (delivery.deliveryAdress.id === deliveryData.warehouse?.id) return;
+
+          // Format the key as it appears in the arrivalTimes map
+          const arrivalTimeKey = `Intersection{id='${delivery.deliveryAdress.id}', latitude=${delivery.deliveryAdress.latitude}, longitude=${delivery.deliveryAdress.longitude}}`;
+
+          const arrivalTimeStr = tour.arrivalTimes[arrivalTimeKey];
+          let arrivalTime = null;
+
+          if (arrivalTimeStr) {
+            // Parse the time string (format "HH:mm:ss")
+            const [hours, minutes, seconds] = arrivalTimeStr
+              .split(":")
+              .map(Number);
+            arrivalTime = { hours, minutes, seconds };
+          }
+
+          updatedDeliveries.push({
+            ...delivery,
+            courier: tour.courier,
+            arrivalTime,
+          });
+        });
+      });
+
+      setDeliveryData((prevData) => ({
+        ...prevData,
+        deliveries: updatedDeliveries,
+      }));
+
+      console.log("Updated delivery data:", updatedDeliveries);
+      setTourComputed(true);
+    },
+    [deliveryData.warehouse]
+  );
+
   const handleHelpClick = () => {
     setHelpPopupMessage(
         <div>
@@ -67,17 +128,17 @@ const MapComponent = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          keepalive: true
+          keepalive: true,
         });
       } catch (error) {
         console.error("Error resetting commands:", error);
       }
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, []);
 
@@ -101,11 +162,15 @@ const MapComponent = () => {
 
               if (response.ok) {
                 const result = await response.json();
+                console.log("Undo response:", result);
                 if (result.deliveryRequests) {
                   setDeliveryData((prev) => ({
                     ...prev,
                     deliveries: result.deliveryRequests,
                   }));
+                }
+                if (tourComputed) {
+                  updateTour(result);
                 }
               }
             } catch (error) {
@@ -123,13 +188,18 @@ const MapComponent = () => {
                 },
               });
 
+              console.log("response " + response.ok);
               if (response.ok) {
                 const result = await response.json();
+                console.log("Redo response:", result);
                 if (result.deliveryRequests) {
                   setDeliveryData((prev) => ({
                     ...prev,
                     deliveries: result.deliveryRequests,
                   }));
+                }
+                if (tourComputed) {
+                  updateTour(result);
                 }
               }
             } catch (error) {
@@ -145,7 +215,7 @@ const MapComponent = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [deliveryLoaded]);
+  }, [deliveryLoaded, tourComputed, updateTour]);
 
   const handleFetchData = useCallback(async () => {
     try {
@@ -368,60 +438,6 @@ const MapComponent = () => {
     }
   };
 
-  const updateTour = (data) => {
-    if (!data.tours) {
-      console.error("No tours data received");
-      return;
-    }
-
-    // Update routes with courier information
-    const routesWithCourierInfo = data.tours.map((tour) => ({
-      path: tour.route,
-      courierId: tour.courier.id,
-    }));
-    setRoutesWithCouriers(routesWithCourierInfo);
-
-    // Update return times
-    const newReturnTimes = data.tours.map((tour) => tour.endTime);
-    setReturnTimes(newReturnTimes);
-
-    // Update delivery data with tour information
-    const updatedDeliveries = [];
-    data.tours.forEach((tour) => {
-      tour.deliveryRequests.forEach((delivery) => {
-        // Skip warehouse
-        if (delivery.deliveryAdress.id === deliveryData.warehouse?.id) return;
-
-        // Format the key as it appears in the arrivalTimes map
-        const arrivalTimeKey = `Intersection{id='${delivery.deliveryAdress.id}', latitude=${delivery.deliveryAdress.latitude}, longitude=${delivery.deliveryAdress.longitude}}`;
-
-        const arrivalTimeStr = tour.arrivalTimes[arrivalTimeKey];
-        let arrivalTime = null;
-
-        if (arrivalTimeStr) {
-          // Parse the time string (format "HH:mm:ss")
-          const [hours, minutes, seconds] = arrivalTimeStr
-            .split(":")
-            .map(Number);
-          arrivalTime = { hours, minutes, seconds };
-        }
-
-        updatedDeliveries.push({
-          ...delivery,
-          courier: tour.courier,
-          arrivalTime,
-        });
-      });
-    });
-
-    setDeliveryData((prevData) => ({
-      ...prevData,
-      deliveries: updatedDeliveries,
-    }));
-
-    setTourComputed(true);
-  };
-
   const handleAddDeliveryPoint = async (intersectionId, courierID = -1) => {
     //TODO : add courierID to the request
     console.log("delivery loaded " + deliveryLoaded);
@@ -526,31 +542,32 @@ const MapComponent = () => {
 
   const handleValidateTour = async () => {
     try {
-      const response = await fetch("http://localhost:8080/validateTours", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const response = await fetch("http://localhost:8080/downloadReport", {
+        method: "GET",
       });
 
-      const result = await response.json(); // D'abord récupérer le résultat
-
       if (!response.ok) {
-        throw new Error(result.message || "Failed to validate tours");
+        throw new Error("Failed to download report");
       }
 
-      if (result.status === "success") {
-        console.log("Tours validated successfully:", result.toursByCourier);
-        setPopupText("Alert Success");
-        setPopupMessage("Tours have been validated successfully!");
-        setPopupVisible(true);
-      } else {
-        throw new Error(result.message || "Unknown error occurred");
-      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `delivery_tours_${new Date().toISOString().slice(0, 19).replace(/:/g, "")}.txt`;
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      setPopupText("Success");
+      setPopupMessage("Tours have been validated and downloaded successfully!");
+      setPopupVisible(true);
     } catch (error) {
-      console.error("Error validating tours:", error);
+      console.error("Error downloading report:", error);
       setPopupText("Error");
-      setPopupMessage(error.message || "Error validating tours");
+      setPopupMessage(error.message || "Error downloading report");
       setPopupVisible(true);
     }
   };
@@ -616,6 +633,8 @@ const MapComponent = () => {
                 highlightedDeliveryId={highlightedDeliveryId}
                 onMouseEnterDelivery={handleMouseEnterDelivery}
                 onMouseLeaveDelivery={handleMouseLeaveDelivery}
+                expandedCouriers={expandedCouriers}
+                setExpandedCouriers={setExpandedCouriers}
               />
             </div>
           )}

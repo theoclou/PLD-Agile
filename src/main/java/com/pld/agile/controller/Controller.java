@@ -1,15 +1,14 @@
 package com.pld.agile.controller;
 
-import com.pld.agile.model.entity.*;
 import com.pld.agile.model.graph.Plan;
 import com.pld.agile.model.entity.Round;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalTime;
+
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.nio.file.Files;
@@ -17,12 +16,19 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.io.IOException;
 import java.util.*;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+
 
 import org.springframework.web.bind.annotation.PostMapping;
 import com.pld.agile.model.entity.DeliveryTour;
 import com.pld.agile.model.entity.DeliveryRequest;
 import com.pld.agile.model.entity.Intersection;
 import com.pld.agile.model.entity.Section;
+
+
 
 /**
  * REST Controller for managing delivery planning and map operations.
@@ -125,6 +131,7 @@ public class Controller {
      */
     @PostMapping("/loadDelivery")
     public ResponseEntity<Map<String, Object>> loadDelivery(@RequestParam("file") MultipartFile file) {
+        commandManager.resetCommandStack();
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(Collections.singletonMap("message", "File upload failed: No file selected."));
         }
@@ -197,6 +204,8 @@ public class Controller {
     public ResponseEntity<Map<String, Object>> computeTours() {
         Map<String, Object> response = new HashMap<>();
         try {
+            commandManager.resetCommandStack();
+
             map.softResetMap();
             map.preprocessData();
 
@@ -204,7 +213,6 @@ public class Controller {
             round.init(numberOfCouriers, map);
             round.computeRoundOptimized();
             List<DeliveryTour> tourAttribution = round.getTourAttribution();
-            commandManager.clear();
 
             response.put("status", "success");
             response.put("message", "Tours computed successfully");
@@ -239,7 +247,7 @@ public class Controller {
         Map<String, String> response = new HashMap<>();
 
         // Créer et exécuter la commande de suppression
-        DeleteDeliveryCommand command = new DeleteDeliveryCommand(round, deliveryRequestId);
+        DeleteDeliveryCommand command = new DeleteDeliveryCommand(round, deliveryRequestId, -1);
         commandManager.executeCommand(command);
 
         // Après l'exécution de la commande, round est automatiquement mis à jour
@@ -273,11 +281,12 @@ public class Controller {
             int courierId = Integer.parseInt(courierIdStr);
 
             //Delete the delivery request from the list
-            DeleteDeliveryCommand command = new DeleteDeliveryCommand(round, deliveryId);
+            DeleteDeliveryCommand command = new DeleteDeliveryCommand(round, deliveryId, courierId);
             commandManager.executeCommand(command);
 
             //Update the tour
-            List<DeliveryTour> updatedTours = round.updateLocalPoint(courierId, deliveryId, -1);
+            //List<DeliveryTour> updatedTours = round.updateLocalPoint(courierId, deliveryId, -1);
+            List<DeliveryTour> updatedTours = round.getTourAttribution();
 
             if (updatedTours != null) {
                 response.put("status", "success");
@@ -318,7 +327,7 @@ public class Controller {
         }
 
         // create and execute command
-        AddDeliveryPointCommand command = new AddDeliveryPointCommand(round, intersectionId);
+        AddDeliveryPointCommand command = new AddDeliveryPointCommand(round, intersectionId, -1);
         commandManager.executeCommand(command);
 
         DeliveryRequest newDeliveryRequest = round.getDeliveryRequestById(intersectionId);
@@ -385,11 +394,14 @@ public class Controller {
 
         try {
             // First update the list
-            AddDeliveryPointCommand command = new AddDeliveryPointCommand(round, intersectionId);
+            Integer courierIdInt = Integer.parseInt(courierId);
+
+            AddDeliveryPointCommand command = new AddDeliveryPointCommand(round, intersectionId, courierIdInt);
             commandManager.executeCommand(command);
 
             // Then the tour
-            List<DeliveryTour> updatedTours = round.updateLocalPoint(Integer.parseInt(courierId), intersectionId, 1);
+            //List<DeliveryTour> updatedTours = round.updateLocalPoint(courierIdInt, intersectionId, 1);
+            List<DeliveryTour> updatedTours = round.getTourAttribution();
 
             if(updatedTours != null) {
                 response.put("status", "success");
@@ -423,25 +435,29 @@ public class Controller {
     @PostMapping("/undo")
     public ResponseEntity<Map<String, Object>> undo() {
         Map<String, Object> response = new HashMap<>();
+        System.out.println("Undoing");
+
         try {
+            System.out.println("Old round : " + round.getDeliveryRequestList().size());
             commandManager.undo();
             Command lastCommand = commandManager.getLastCommand();
             Round currentRound = lastCommand != null ? lastCommand.getRound() : round;
-
-            if (currentRound.getTourAttribution().isEmpty()) {
-                // Avant compute
-                response.put("deliveryRequests", currentRound.getDeliveryRequestList());
-            } else {
-                // Après compute
+            System.out.println("New round : " + currentRound.getDeliveryRequestList().size());
+            response.put("status", "success");
+            response.put("message", "Undo successful");
+            response.put("currentDeliveryCount", currentRound.getDeliveryRequestList().size());
+            response.put("deliveryRequests", currentRound.getDeliveryRequestList());
+            if (currentRound.getTourAttribution() != null) {
                 response.put("tours", currentRound.getTourAttribution());
             }
 
-            response.put("status", "success");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("status", "error");
-            response.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            response.put("message", "Failed to undo: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
+            throw e;
+            //return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
@@ -451,20 +467,20 @@ public class Controller {
     @PostMapping("/redo")
     public ResponseEntity<Map<String, Object>> redo() {
         Map<String, Object> response = new HashMap<>();
+        System.out.println("Redoing");
         try {
+            System.out.println("Old round : " + round.getDeliveryRequestList().size());
             commandManager.redo();
             Command lastCommand = commandManager.getLastCommand();
             Round currentRound = lastCommand != null ? lastCommand.getRound() : round;
 
-            if (currentRound.getTourAttribution().isEmpty()) {
-                // Avant compute
-                response.put("deliveryRequests", currentRound.getDeliveryRequestList());
-            } else {
-                // Après compute
-                response.put("tours", currentRound.getTourAttribution());
-            }
-
             response.put("status", "success");
+            response.put("message", "Redo successful");
+            response.put("currentDeliveryCount", currentRound.getDeliveryRequestList().size());
+            response.put("deliveryRequests", currentRound.getDeliveryRequestList());
+            if (currentRound.getTourAttribution() != null) response.put("tours", currentRound.getTourAttribution());
+
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("status", "error");
@@ -478,27 +494,29 @@ public class Controller {
      */
     @PostMapping("/resetCommands")
     public ResponseEntity<Void> resetCommands() {
-        commandManager.clear();
+        commandManager.resetCommandStack();
         return ResponseEntity.ok().build();
     }
 
     /**
-     * Validates a delivery request
+     * Validates a delivery tour and generate a report.
      *
-     * @return String confirmation message with the validated request ID
+     * @return the file with headers to help the front to manipulate data
      */
-    @PostMapping("/validateTours")
-    public ResponseEntity<Map<String, Object>> validateTours() {
-        Map<String, Object> response = new HashMap<>();
+    @GetMapping("/downloadReport")
+    public ResponseEntity<byte[]> downloadReport() {
         try {
-            String reportFileName = round.generateTourReport();
-            response.put("status", "success");
-            response.put("reportFile", reportFileName);
-            return ResponseEntity.ok(response);
+            String content = round.generateTourReport();
+            byte[] reportBytes = content.getBytes(StandardCharsets.UTF_8);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.TEXT_PLAIN);
+            headers.setContentDispositionFormData("attachment",
+                    "delivery_tours_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".txt");
+
+            return new ResponseEntity<>(reportBytes, headers, HttpStatus.OK);
         } catch (Exception e) {
-            response.put("status", "error");
-            response.put("message", "Failed to validate tours: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }
