@@ -1,6 +1,7 @@
 com.pld.agile
 com.pld.agile.controller
 com.pld.agile.model
+com.pld.agile.model.algorithm
 com.pld.agile.model.algorithm.bnb
 com.pld.agile.model.algorithm.tsp
 com.pld.agile.model.entity

@@ -4,49 +4,57 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.pld.agile.model.entity.DeliveryRequest;
-import com.pld.agile.model.entity.DeliveryTour;
-import com.pld.agile.model.entity.Intersection;
-import com.pld.agile.model.entity.Round;
-import com.pld.agile.model.entity.Section;
+import com.pld.agile.model.entity.*;
 import com.pld.agile.model.graph.Plan;
 
 /**
- * REST Controller for managing delivery planning and map operations.
- * This controller handles operations related to courier management, map
- * loading,
- * delivery requests, and tour computation.
+ * The {@code Controller} class serves as a RESTful API for managing delivery planning
+ * and map operations within the application. It handles various tasks related to
+ * courier management, map loading, delivery requests, and computation of delivery tours.
  *
- * @RestController annotation indicates that this class serves REST endpoints
- * @CrossOrigin allows requests from the React frontend running on
- *              localhost:3000
+ * <p>
+ * This controller provides endpoints for operations such as updating the number of couriers,
+ * loading maps and delivery requests from files, computing delivery tours, managing
+ * delivery points, defining warehouse locations, and generating reports. It also
+ * supports undo and redo functionalities for delivery request modifications.
+ * </p>
+ *
+ * <p>
+ * The class is annotated with {@code @RestController} to define RESTful endpoints and
+ * {@code @CrossOrigin} to allow cross-origin requests from the React frontend running
+ * on {@code http://localhost:3000}.
+ * </p>
+ *
+ * <p>
+ * The controller interacts with the {@link Plan} and {@link Round} classes to manage
+ * the map and delivery round data respectively. It utilizes the Command design pattern
+ * through the {@link CommandManager} to enable undo and redo operations.
+ * </p>
+ *
+ * @see Plan
+ * @see Round
+ * @see CommandManager
+ * @see Command
+ *
+ * @version 1.0
+ * @since 2024-04-27
  */
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
 public class Controller {
+
     /**
-     * Command for undo/redo tasks
+     * Manages the execution, undoing, and redoing of commands.
+     * Implements the Command design pattern.
      */
     private CommandManager commandManager = new CommandManager();
+
     /**
      * Represents the city map with intersections and sections.
      */
@@ -63,7 +71,7 @@ public class Controller {
     private int numberOfCouriers = 2;
 
     /**
-     * Default constructor for the Controller class.
+     * Default constructor for the {@code Controller} class.
      */
     public Controller() {
     }
@@ -71,8 +79,8 @@ public class Controller {
     /**
      * Updates the number of available couriers.
      *
-     * @param payload A map containing the new courier count with key "count"
-     * @return ResponseEntity<Void> with HTTP 200 OK if successful
+     * @param payload A {@code Map} containing the new courier count with key "count".
+     * @return {@link ResponseEntity}&lt;{@code Void}&gt; with HTTP 200 OK if successful.
      */
     @PostMapping("/couriers")
     public ResponseEntity<Void> updateCouriers(@RequestBody Map<String, Integer> payload) {
@@ -84,7 +92,7 @@ public class Controller {
     /**
      * Retrieves information about available couriers.
      *
-     * @return String containing courier information
+     * @return A {@code String} containing courier information.
      */
     @GetMapping("/Couriers")
     public String getCouriers() {
@@ -95,9 +103,9 @@ public class Controller {
      * Loads a map from an XML file and initializes the delivery round.
      * Resets any existing map data before loading the new map.
      *
-     * @param file MultipartFile containing the XML map data
-     * @return ResponseEntity with a success/error message
-     * @throws IOException if there's an error reading the file
+     * @param file {@link MultipartFile} containing the XML map data.
+     * @return {@link ResponseEntity}&lt;{@code Map}&lt;{@code String}, {@code String}&gt;&gt;
+     *         with a success or error message.
      */
     @PostMapping("/loadMap")
     public ResponseEntity<Map<String, String>> loadMap(@RequestParam("file") MultipartFile file) {
@@ -129,13 +137,11 @@ public class Controller {
     }
 
     /**
-     * Loads delivery requests from a file and associates them with the current
-     * round.
+     * Loads delivery requests from a file and associates them with the current round.
      *
-     * @param file MultipartFile containing delivery request data
-     * @return ResponseEntity containing delivery requests, warehouse location, and
-     *         status message
-     * @throws IOException if there's an error reading the file
+     * @param file {@link MultipartFile} containing delivery request data.
+     * @return {@link ResponseEntity}&lt;{@code Map}&lt;{@code String}, {@code Object}&gt;&gt;
+     *         containing delivery requests, warehouse location, and status message.
      */
     @PostMapping("/loadDelivery")
     public ResponseEntity<Map<String, Object>> loadDelivery(@RequestParam("file") MultipartFile file) {
@@ -144,7 +150,7 @@ public class Controller {
             return ResponseEntity.badRequest()
                     .body(Collections.singletonMap("message", "File upload failed: No file selected."));
         }
-        // TODO empty the delivery request list to avoid duplicates
+        // TODO: Empty the delivery request list to avoid duplicates
 
         try {
             // Create response object
@@ -168,11 +174,10 @@ public class Controller {
     /**
      * Retrieves the current map data including intersections and sections.
      * Returns detailed information about each section including origin and
-     * destination
-     * intersections, length, and street name.
+     * destination intersections, length, and street name.
      *
-     * @return Map containing lists of intersections and detailed section
-     *         information
+     * @return A {@code Map} containing lists of intersections and detailed section
+     *         information.
      */
     @GetMapping("/map")
     public Map<String, Object> displayMap() {
@@ -212,7 +217,8 @@ public class Controller {
      * Computes delivery tours based on current delivery requests and courier
      * availability.
      *
-     * @return String indicating the status of tour computation
+     * @return {@link ResponseEntity}&lt;{@code Map}&lt;{@code String}, {@code Object}&gt;&gt;
+     *         indicating the status of tour computation and containing the computed tours.
      */
     @PostMapping("/compute")
     public ResponseEntity<Map<String, Object>> computeTours() {
@@ -242,7 +248,7 @@ public class Controller {
     /**
      * Retrieves computed delivery tours.
      *
-     * @return String containing tour information
+     * @return A {@code String} containing tour information.
      */
     @GetMapping("/tours")
     public String getTours() {
@@ -252,8 +258,9 @@ public class Controller {
     /**
      * Deletes a delivery request from the system.
      *
-     * @param deliveryRequestId The ID of the delivery request to be deleted
-     * @return String confirmation message with the deleted request ID
+     * @param deliveryRequestId The ID of the delivery request to be deleted.
+     * @return {@link ResponseEntity}&lt;{@code Map}&lt;{@code String}, {@code String}&gt;&gt;
+     *         confirmation message with the deleted request ID.
      */
     @DeleteMapping("/deleteDeliveryRequest")
     public ResponseEntity<Map<String, String>> deleteDeliveryRequest(@RequestBody String deliveryRequestId) {
@@ -272,11 +279,11 @@ public class Controller {
     }
 
     /**
-     * Deletes a delivery request from the system.
+     * Deletes a delivery request from the system and updates the corresponding courier's tour.
      *
-     * @param request Request containing "deliveryId" to be deleted and "courierId"
-     *                to update the tour
-     * @return String confirmation message with the deleted request ID
+     * @param request A {@link Map} containing "deliveryId" to be deleted and "courierId" to update the tour.
+     * @return {@link ResponseEntity}&lt;{@code Map}&gt; confirmation message with the deleted request ID
+     *         and updated tours, or an error message if the operation fails.
      */
     @DeleteMapping("/deleteDeliveryRequestWithCourier")
     public ResponseEntity<Map<String, Object>> deleteDeliveryRequestWithCourier(
@@ -301,8 +308,7 @@ public class Controller {
             commandManager.executeCommand(command);
 
             // Update the tour
-            // List<DeliveryTour> updatedTours = round.updateLocalPoint(courierId,
-            // deliveryId, -1);
+            // List<DeliveryTour> updatedTours = round.updateLocalPoint(courierId, deliveryId, -1);
             List<DeliveryTour> updatedTours = round.getTourAttribution();
 
             if (updatedTours != null) {
@@ -327,10 +333,11 @@ public class Controller {
     }
 
     /**
-     * Add a delivery request from the system.
+     * Adds a delivery request to the system.
      *
-     * @param request (json which contains the id of the selected intersection)
-     * @return Confirmation of the action
+     * @param request A {@link Map} containing the "intersectionId" of the selected intersection.
+     * @return {@link ResponseEntity}&lt;{@code Map}&gt; confirmation of the action with the added delivery request
+     *         and current delivery count, or an error message if the operation fails.
      */
     @PostMapping("/addDeliveryPointById")
     public ResponseEntity<Map<String, Object>> addDeliveryPoint(@RequestBody Map<String, String> request) {
@@ -343,7 +350,7 @@ public class Controller {
             return ResponseEntity.badRequest().body(response);
         }
 
-        // create and execute command
+        // Create and execute command
         AddDeliveryPointCommand command = new AddDeliveryPointCommand(round, intersectionId, -1);
         commandManager.executeCommand(command);
 
@@ -364,9 +371,8 @@ public class Controller {
     /**
      * Defines a warehouse location based on an intersection ID.
      *
-     * @param request A map containing the intersection ID to define as the
-     *                warehouse.
-     * @return {@link ResponseEntity} with a success or error message.
+     * @param request A {@link Map} containing the "intersectionId" to define as the warehouse.
+     * @return {@link ResponseEntity}&lt;{@code Map}&gt; with a success or error message and warehouse details.
      */
     @PostMapping("/defineWarehouseById")
     public ResponseEntity<Map<String, Object>> defineWarehouse(@RequestBody Map<String, String> request) {
@@ -379,7 +385,7 @@ public class Controller {
             return ResponseEntity.badRequest().body(response);
         }
 
-        // create and execute command
+        // Create and execute command
         DefineWarehousePointCommand command = new DefineWarehousePointCommand(round, intersectionId);
         commandManager.executeCommand(command);
 
@@ -399,10 +405,9 @@ public class Controller {
     /**
      * Adds a delivery point after the computation of delivery tours.
      *
-     * @param request A map containing the intersection ID and courier ID for the
-     *                delivery point.
-     * @return {@link ResponseEntity} containing the status and updated delivery
-     *         tours.
+     * @param request A {@link Map} containing the "intersectionId" and "courierID" for the delivery point.
+     * @return {@link ResponseEntity}&lt;{@code Map}&gt; containing the status and updated delivery tours,
+     *         or an error message if the operation fails.
      */
     @PostMapping("/addDeliveryPointByIdAfterCompute")
     public ResponseEntity<Map<String, Object>> addDeliveryPointAfterCompute(@RequestBody Map<String, String> request) {
@@ -430,8 +435,7 @@ public class Controller {
             commandManager.executeCommand(command);
 
             // Then the tour
-            // List<DeliveryTour> updatedTours = round.updateLocalPoint(courierIdInt,
-            // intersectionId, 1);
+            // List<DeliveryTour> updatedTours = round.updateLocalPoint(courierIdInt, intersectionId, 1);
             List<DeliveryTour> updatedTours = round.getTourAttribution();
 
             if (updatedTours != null) {
@@ -455,8 +459,8 @@ public class Controller {
     /**
      * Performs an undo operation on the last executed command.
      *
-     * @return {@link ResponseEntity} containing the updated delivery requests and
-     *         tours after the undo operation.
+     * @return {@link ResponseEntity}&lt;{@code Map}&gt; containing the updated delivery requests and
+     *         tours after the undo operation, or an error message if the operation fails.
      */
     @PostMapping("/undo")
     public ResponseEntity<Map<String, Object>> undo() {
@@ -483,16 +487,15 @@ public class Controller {
             response.put("message", "Failed to undo: " + e.getMessage());
             System.out.println("Error: " + e.getMessage());
             throw e;
-            // return
-            // ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            // return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
     /**
      * Performs a redo operation on the last undone command.
      *
-     * @return {@link ResponseEntity} containing the updated delivery requests and
-     *         tours after the redo operation.
+     * @return {@link ResponseEntity}&lt;{@code Map}&gt; containing the updated delivery requests and
+     *         tours after the redo operation, or an error message if the operation fails.
      */
     @PostMapping("/redo")
     public ResponseEntity<Map<String, Object>> redo() {
@@ -522,7 +525,7 @@ public class Controller {
     /**
      * Resets the command stack, clearing all executed and undone commands.
      *
-     * @return {@link ResponseEntity} with HTTP 200 OK if successful.
+     * @return {@link ResponseEntity}&lt;{@code Void}&gt; with HTTP 200 OK if successful.
      */
     @PostMapping("/resetCommands")
     public ResponseEntity<Void> resetCommands() {
@@ -533,7 +536,8 @@ public class Controller {
     /**
      * Generates and downloads a report of the current delivery tours.
      *
-     * @return {@link ResponseEntity} containing the generated report file.
+     * @return {@link ResponseEntity}&lt;{@code byte[]}&gt; containing the generated report file,
+     *         or an error response if the operation fails.
      */
     @GetMapping("/downloadReport")
     public ResponseEntity<byte[]> downloadReport() {
