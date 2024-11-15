@@ -110,9 +110,9 @@ const MapComponent = () => {
             <li><strong>Load a Map :</strong> Click the <em>'Load a Map'</em> button to load a map.</li>
             <li><strong>Load Deliveries :</strong> Click the <em>'Load Deliveries'</em> button to load a delivery request.</li>
             <li><strong>Adjust Couriers :</strong> Use the <em>'+'</em> and <em>'-'</em> buttons to add or remove delivery drivers.</li>
-            <li><strong>Add Delivery Point :</strong> Zoom into the map and click an intersection, then select <em>'Add to delivery points'</em>.</li>
-            <li><strong>Remove Delivery Point :</strong> Click the cross icon in the delivery list popup.</li>
-            <li><strong>Compute Routes :</strong> Click the <em>'Compute Tour'</em> button to generate delivery routes.</li>
+            <li><strong>Add Delivery Point :</strong> Zoom into the map and click an intersection, then select <em>'Add to delivery points' in the popup window</em>.</li>
+            <li><strong>Remove Delivery Point :</strong> Click the cross icon on the textual view.</li>
+            <li><strong>Compute Routes :</strong> Click the <em>'Export Tour'</em> button to download the report.</li>
         </ul>
   </div>
   )
