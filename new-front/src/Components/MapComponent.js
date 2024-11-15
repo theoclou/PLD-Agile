@@ -44,6 +44,15 @@ const MapComponent = () => {
     setHighlightedDeliveryId(null);
   };
 
+  useEffect(() => {
+    return () => {
+      // Cleanup function
+      setRoutesWithCouriers([]);
+      setReturnTimes([]);
+      setTourComputed(false);
+    };
+  }, [deliveryData.warehouse]); // Reset when warehouse changes
+
   const updateTour = useCallback(
     (data) => {
       if (!data.tours || data.tours.length === 0) {
@@ -51,39 +60,31 @@ const MapComponent = () => {
         return;
       }
 
-      // Update routes with courier information
-      const routesWithCourierInfo = data.tours.map((tour) => ({
+      // Create all new state objects before any updates
+      const newRoutesWithCourierInfo = data.tours.map((tour) => ({
         path: tour.route,
         courierId: tour.courier.id,
       }));
-      setRoutesWithCouriers(routesWithCourierInfo);
 
-      // Update return times
       const newReturnTimes = data.tours.map((tour) => tour.endTime);
-      setReturnTimes(newReturnTimes);
 
-      // Update delivery data with tour information
-      const updatedDeliveries = [];
+      const newDeliveries = [];
       data.tours.forEach((tour) => {
         tour.deliveryRequests.forEach((delivery) => {
-          // Skip warehouse
           if (delivery.deliveryAdress.id === deliveryData.warehouse?.id) return;
 
-          // Format the key as it appears in the arrivalTimes map
           const arrivalTimeKey = `Intersection{id='${delivery.deliveryAdress.id}', latitude=${delivery.deliveryAdress.latitude}, longitude=${delivery.deliveryAdress.longitude}}`;
-
           const arrivalTimeStr = tour.arrivalTimes[arrivalTimeKey];
-          let arrivalTime = null;
 
+          let arrivalTime = null;
           if (arrivalTimeStr) {
-            // Parse the time string (format "HH:mm:ss")
             const [hours, minutes, seconds] = arrivalTimeStr
               .split(":")
               .map(Number);
             arrivalTime = { hours, minutes, seconds };
           }
 
-          updatedDeliveries.push({
+          newDeliveries.push({
             ...delivery,
             courier: tour.courier,
             arrivalTime,
@@ -91,15 +92,26 @@ const MapComponent = () => {
         });
       });
 
-      setDeliveryData((prevData) => ({
-        ...prevData,
-        deliveries: updatedDeliveries,
+      // Perform all state updates in one batch
+      setRoutesWithCouriers(newRoutesWithCourierInfo);
+      setReturnTimes(newReturnTimes);
+      setDeliveryData((prev) => ({
+        ...prev,
+        deliveries: newDeliveries,
       }));
 
-      console.log("Updated delivery data:", updatedDeliveries);
-      setTourComputed(true);
+      console.log("Tour update completed:", {
+        routes: newRoutesWithCourierInfo,
+        returnTimes: newReturnTimes,
+        deliveries: newDeliveries,
+      });
     },
-    [deliveryData.warehouse]
+    [
+      deliveryData.warehouse,
+      setRoutesWithCouriers,
+      setReturnTimes,
+      setDeliveryData,
+    ]
   );
 
   const handleHelpClick = () => {
@@ -132,8 +144,16 @@ const MapComponent = () => {
             button to generate delivery routes.
           </li>
           <li>
-            <strong>Validate Tours :</strong> Click on the <em>'Validate' </em>{" "}
-            button to download the report.
+            <strong>Validate Tours :</strong> Click on the{" "}
+            <em>'Export Tour' </em> button to download the report.
+          </li>
+          <li>
+            <strong>Undo Action :</strong> Press <em>'Ctrl + Z' </em> on your
+            keyboard to undo an add or delete of a delivery point.
+          </li>
+          <li>
+            <strong>Redo Action :</strong> Press <em>'Ctrl + Y' </em> on your
+            keyboard to redo an add or delete of a delivery point.
           </li>
         </ul>
       </div>
@@ -460,9 +480,8 @@ const MapComponent = () => {
   };
 
   const handleAddDeliveryPoint = async (intersectionId, courierID = -1) => {
-    //TODO : add courierID to the request
     console.log("delivery loaded " + deliveryLoaded);
-    if (!deliveryLoaded) return; //TODO check ça
+    if (!deliveryLoaded) return;
     try {
       console.log("Adding delivery point with ID:", intersectionId);
       if (!tourComputed) {
@@ -535,6 +554,16 @@ const MapComponent = () => {
 
   const handleComputeTour = async () => {
     try {
+      setRoutesWithCouriers([]);
+      setReturnTimes([]);
+      setDeliveryData((prev) => ({
+        ...prev,
+        deliveries: prev.deliveries.map((delivery) => ({
+          ...delivery,
+          courier: null,
+          arrivalTime: null,
+        })),
+      }));
       // Set the number of couriers
       await setCourierNumber(courierCount);
       const response = await fetch("http://localhost:8080/compute", {
@@ -546,9 +575,12 @@ const MapComponent = () => {
 
       if (response.ok) {
         const data = await response.json();
-
-        updateTour(data);
-        setTourComputed(true);
+        if (data.status === "success" && data.tours) {
+          updateTour(data);
+          setTourComputed(true);
+        } else {
+          throw new Error(data.message || "Invalid tour data received");
+        }
       } else {
         throw new Error("Failed to compute tour");
       }
@@ -558,6 +590,9 @@ const MapComponent = () => {
       setPopupMessage("Error computing tour: " + error.message);
       setPopupVisible(true);
       setTourComputed(false); // Ajout de cette ligne
+
+      setRoutesWithCouriers([]);
+      setReturnTimes([]);
     }
   };
 
@@ -659,7 +694,7 @@ const MapComponent = () => {
                 onMouseLeaveDelivery={handleMouseLeaveDelivery}
                 expandedCouriers={expandedCouriers}
                 setExpandedCouriers={setExpandedCouriers}
-                returnTimes = {returnTimes}
+                returnTimes={returnTimes}
               />
             </div>
           )}

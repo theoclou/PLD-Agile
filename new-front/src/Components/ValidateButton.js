@@ -11,7 +11,7 @@ const ValidateButton = ({ onClick }) => {
         onClick={onClick}
       />
       <label htmlFor="validate-tour-button" className="button">
-        Validate Tour
+        Export Tour
       </label>
     </div>
   );

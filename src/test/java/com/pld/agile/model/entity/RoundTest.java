@@ -17,8 +17,8 @@ class RoundTest {
     public void testLoadRequests_ValidFile() throws Exception {
         Round round = new Round();
         Plan plan = new Plan();
-        
-        // Initialiser des intersections valides
+
+        // Initialize valid intersections
         Intersection intersection1 = new Intersection();
         intersection1.initialisation("239603465", 45.752098, 4.902107);
 
@@ -31,19 +31,19 @@ class RoundTest {
         Intersection intersection4 = new Intersection();
         intersection4.initialisation("222220", 45.731352, 4.833629);
 
-        // Ajouter les intersections au plan
+        // Add the intersections to the plan
         plan.addIntersection(intersection1);
         plan.addIntersection(intersection2);
         plan.addIntersection(intersection3);
         plan.addIntersection(intersection4);
 
-        // Initialiser le round avec le plan
+        // Initialize the round with the plan
         round.init(2, plan);
 
-        // Charger le fichier XML valide
+        // Load the valid XML File
         round.loadRequests("src/test/java/com/pld/agile/model/entity/roundTestValidData.xml");
 
-        // Vérifier que les DeliveryRequest sont bien ajoutés
+        // Verify that the deliveryRequest are loaded correctly
         assertEquals(3, round.getDeliveryRequestList().size());
     }
 
@@ -76,7 +76,7 @@ class RoundTest {
         Round round = new Round();
         Plan plan = new Plan();
 
-        // Ajouter seulement certaines intersections
+        // Only add a few intersections to the plan
         Intersection intersection1 = new Intersection();
         intersection1.initialisation("239603465", 45.752098, 4.902107);
         plan.addIntersection(intersection1); // Missing 1368674802 et 26084216
@@ -85,16 +85,15 @@ class RoundTest {
         intersection2.initialisation("222220", 45.752097, 4.902107);
         plan.addIntersection(intersection2);
 
-        // Initialiser le round avec le plan
+        // Initialize the round with the plan
         round.init(2, plan);
 
-        // Capturer l'exception
+        // Capture the exception
         Exception exception = assertThrows(InstanceNotFoundException.class, () -> {
             round.loadRequests("src/test/java/com/pld/agile/model/entity/roundTestValidData.xml");
         });
 
-        // Vérifier le message de l'exception
+        // Verify the exception message
         assertTrue(exception.getMessage().contains("The intersection '1368674802' doesn't exist!"));
     }
-
 }

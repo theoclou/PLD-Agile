@@ -96,8 +96,4 @@ class TSPTest {
 
 
     }
-
-    @Test
-    void getBestPath() {
-    }
 }

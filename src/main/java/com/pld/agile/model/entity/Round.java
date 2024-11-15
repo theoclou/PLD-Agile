@@ -105,7 +105,6 @@ public class Round {
      * the best route for each courier based on the delivery requests.
      */
     public void computeRound() {
-        // TODO
         // While the Delivery Request list isn't empty
         // we will launch the graph calculation, create a DeliveryTour ith the result,
         // assign it to a courier and update TourAttribution, then delete the
@@ -152,9 +151,8 @@ public class Round {
                 courierDeliveryRequests.add(deliveryRequest);
             }
 
-            // TODO remplir ceci avec les résultats du GPS
             Integer warehouseIndex = plan.getIndexById(warehouse.getId());
-            List<Integer> bestRouteIndexes = solver.getBestPossiblePath(); // jsp
+            List<Integer> bestRouteIndexes = solver.getBestPossiblePath();
             List<Intersection> bestRoute = new ArrayList<>();
             for (Integer index : bestRouteIndexes) {
                 bestRoute.add(plan.getIntersectionById(plan.getIdByIndex(index)));
@@ -358,6 +356,9 @@ public class Round {
     }
 
     public ArrayList<ArrayList<String>> computeRoundOptimized() {
+        // Reset states and solvers
+        solverList.clear();
+        tourAttribution.clear();
 
         // Definition of the groups of intersections to assign Couriers
         double[][] data = setUpData();
@@ -401,26 +402,14 @@ public class Round {
             // intersections
             List<Intersection> bestRoute = plan.computeTour(bestRouteIndexes);
 
-            //
-            // List<Intersection> bestRoute = new ArrayList<>(); // Might need to turn that
-            // into a String and only keep the
-            // // ID
-            // bestRoute.add(warehouse);
-            // for (Integer i : bestRouteIndexes) {
-            // bestRoute.add(plan.getIntersectionById(plan.getIdByIndex(i)));
-            // }
-            // bestRoute.add(warehouse);
 
             Map<Integer, LocalTime> arrivalTimesByIndex = solver.getPointsWithTime();
-            Map<Intersection, LocalTime> arrivalTimes = new HashMap<>(); // Might need to turn that into a String and
-                                                                         // only keep the ID
+            Map<Intersection, LocalTime> arrivalTimes = new HashMap<>();
 
             for (Map.Entry<Integer, LocalTime> entry : arrivalTimesByIndex.entrySet()) {
                 arrivalTimes.put(plan.getIntersectionById(plan.getIdByIndex(entry.getKey())), entry.getValue());
             }
-            LocalTime endTime = arrivalTimesByIndex.get(warehouseIndex); // TODO doesnt seem to work well, maybe
-                                                                         // warehouseIndex is not the right index or
-                                                                         // solver does not treat him first
+            LocalTime endTime = arrivalTimesByIndex.get(warehouseIndex);
 
             DeliveryTour courierDeliveryTour = new DeliveryTour(courier, endTime, courierDeliveryRequests, new ArrayList<>(bestRoute),
                     arrivalTimes);
@@ -521,7 +510,8 @@ public class Round {
      *                                  or if attempting to delete a non-existent
      *                                  intersection.
      */
-    private List<DeliveryTour> ComputeNewRound(Integer courierIndex, Integer intersectionIndex, int mode) {
+    private List<DeliveryTour> ComputeNewRound(Integer courierIndex,
+                                               Integer intersectionIndex, int mode) {
         if (courierIndex < 0 || courierIndex >= courierList.size()) {
             throw new IllegalArgumentException("Invalid courier index: " + courierIndex);
         }
@@ -534,14 +524,14 @@ public class Round {
         System.out.println("Before operation - Path: " + courierSolver.getBestPath());
 
         try {
+            // Update solver path based on mode
             if (mode == -1) {
                 courierSolver.deleteDeliveryPoint(intersectionIndex);
             } else if (mode == 1) {
                 courierSolver.addDeliveryPoint(intersectionIndex);
-            } else {
-                throw new IllegalArgumentException("Invalid mode: " + mode);
             }
 
+            // Recompute points
             courierSolver.computePointsToBeServed();
 
             // Get updated route information
@@ -549,7 +539,7 @@ public class Round {
             List<Intersection> bestRoute = plan.computeTour(bestRouteIndexes);
             Map<Integer, LocalTime> arrivalTimesByIndex = courierSolver.getPointsWithTime();
 
-            // Convert arrival times to intersection map
+            // Convert arrival times
             Map<Intersection, LocalTime> arrivalTimes = new HashMap<>();
             for (Map.Entry<Integer, LocalTime> entry : arrivalTimesByIndex.entrySet()) {
                 Intersection intersection = plan.getIntersectionById(plan.getIdByIndex(entry.getKey()));
@@ -558,7 +548,7 @@ public class Round {
                 }
             }
 
-            // Update delivery requests
+            // Create updated delivery requests
             List<DeliveryRequest> updatedDeliveryRequests = new ArrayList<>();
             for (Integer idx : bestRouteIndexes) {
                 Intersection intersection = plan.getIntersectionById(plan.getIdByIndex(idx));
@@ -569,7 +559,7 @@ public class Round {
                 }
             }
 
-            // Create updated tour
+            // Create new tour with updated information
             DeliveryTour updatedTour = new DeliveryTour(
                     courierList.get(courierIndex),
                     arrivalTimesByIndex.get(bestRouteIndexes.get(bestRouteIndexes.size() - 1)),
@@ -579,10 +569,11 @@ public class Round {
             );
 
             // Update tour attribution
-            tourAttribution.set(courierIndex, updatedTour);
+            List<DeliveryTour> newTours = new ArrayList<>(tourAttribution);
+            newTours.set(courierIndex, updatedTour);
 
             System.out.println("After operation - Updated path: " + courierSolver.getBestPath());
-            return new ArrayList<>(tourAttribution);
+            return newTours;
         } catch (Exception e) {
             System.err.println("Error in ComputeNewRound: " + e.getMessage());
             e.printStackTrace();
@@ -591,19 +582,24 @@ public class Round {
     }
 
     public List<DeliveryTour> updateLocalPoint(Integer courierIndex, String intersectionId, int mode) {
-        System.out.println("Updating local point - Courier: " + courierIndex + ", Intersection: " + intersectionId + ", Mode: " + mode);
-
-        Integer index = plan.getIndexById(intersectionId);
-        if (index == null) {
-            throw new IllegalArgumentException("Invalid intersection ID: " + intersectionId);
-        }
+        System.out.println("Updating local point - Courier: " + courierIndex +
+                ", Intersection: " + intersectionId + ", Mode: " + mode);
 
         try {
-            List<DeliveryTour> result = ComputeNewRound(courierIndex, index, mode);
-            System.out.println("Update completed successfully");
-            return result;
+            // Reset state to ensure clean computation
+            plan.softResetMap();
+            plan.preprocessData();
+
+            // Re-compute with updated state
+            List<DeliveryTour> result = ComputeNewRound(courierIndex, plan.getIndexById(intersectionId), mode);
+
+            // Important: Update the tourAttribution field
+            this.setTourAttribution(result);
+
+            System.out.println("Update completed. New tour size: " + result.size());
+            return new ArrayList<>(result);
         } catch (Exception e) {
-            System.err.println("Error updating local point: " + e.getMessage());
+            System.err.println("Error in updateLocalPoint: " + e.getMessage());
             e.printStackTrace();
             throw e;
         }
@@ -729,186 +725,3 @@ public class Round {
         return this.isOptimalList;
     }
 }
-
-
-
-
-
-    // /**
-    // * Loads delivery requests from an XML file.
-    // *
-    // * @param filePath the path to the XML file
-    // * @throws Exception if the file cannot be found or parsed, or if delivery
-    // * addresses are invalid
-    // */
-    // public void loadRequests(String filePath) throws Exception {
-    // try {
-    // File xmlFile = new File(filePath);
-    // // Verifying if the file exists
-    // if (!xmlFile.exists()) {
-    // throw new FileNotFoundException("The file '" + filePath + "' is not found.");
-    // }
-
-    // DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-    // DocumentBuilder builder = factory.newDocumentBuilder();
-    // Document document = builder.parse(xmlFile);
-
-    // // Reading the Requests
-    // NodeList requestsElements = document.getElementsByTagName("livraison");
-    // for (int i = 0; i < requestsElements.getLength(); i++) {
-    // Element element = (Element) requestsElements.item(i);
-    // String deliveryAdress = element.getAttribute("adresseLivraison");
-
-    // // Create the DeliveryRequest Object
-    // Intersection intersection = plan.getIntersectionById(deliveryAdress);
-    // if (intersection == null) {
-    // throw new InstanceNotFoundException("The intersection '" + deliveryAdress +
-    // "' doesn't exist !");
-    // }
-    // DeliveryRequest deliveryRequest = new DeliveryRequest(intersection);
-    // deliveryRequestList.add(deliveryRequest);
-    // }
-    // } catch (FileNotFoundException e) {
-    // e.printStackTrace();
-    // throw e; // Propagate exception if file not found
-    // } catch (SAXException e) {
-    // // Captures errors related to malformed XML parsing
-    // throw new Exception("Malformed XML file : : " + e.getMessage());
-    // } catch (InstanceNotFoundException e) {
-    // e.printStackTrace();
-    // throw e;
-    // }
-    // }
-
-    // /**
-    // * Loads delivery requests from an XML file.
-    // *
-    // * @param file the XML file as a MultipartFile
-    // * @throws Exception if the file cannot be found or parsed, or if delivery
-    // * addresses are invalid, or if there was no plan loaded
-    // */
-
-    // /**
-    // * Loads delivery requests from an XML file.
-    // *
-    // * @param file the XML file as a MultipartFile
-    // * @throws Exception if the file cannot be found or parsed, or if delivery
-    // * addresses are invalid, or if there was no plan loaded
-    // */
-    // public void loadRequestsByfile(MultipartFile file) throws Exception {
-    // File xmlFile = null;
-    // try {
-    // xmlFile = createTemporaryFile(file);
-
-    // Document document = parseXmlFile(xmlFile);
-    // loadWarehouse(document);
-    // loadDeliveryRequests(document);
-
-    // } catch (FileNotFoundException e) {
-    // e.printStackTrace();
-    // throw e;
-    // } catch (SAXException e) {
-    // throw new Exception("Malformed XML file: " + e.getMessage());
-    // } catch (InstanceNotFoundException | NoSuchElementException e) {
-    // e.printStackTrace();
-    // throw e;
-    // } finally {
-    // if (xmlFile != null && xmlFile.exists()) {
-    // xmlFile.delete();
-    // }
-    // }
-    // }
-
-    // /**
-    // * Creates a temporary file from the uploaded MultipartFile.
-    // *
-    // * @param file the MultipartFile containing the XML data
-    // * @return the created temporary File
-    // * @throws IOException if the file cannot be created or transferred
-    // */
-    // private File createTemporaryFile(MultipartFile file) throws IOException {
-    // File tempFile = File.createTempFile("tempFile", ".xml");
-    // file.transferTo(tempFile);
-    // return tempFile;
-    // }
-
-    // /**
-    // * Parses an XML file into a Document.
-    // *
-    // * @param xmlFile the XML file to parse
-    // * @return the parsed Document object
-    // * @throws Exception if the XML cannot be parsed
-    // */
-    // private Document parseXmlFile(File xmlFile) throws Exception {
-    // DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-    // DocumentBuilder builder = factory.newDocumentBuilder();
-    // return builder.parse(xmlFile);
-    // }
-
-    // /**
-    // * Loads the warehouse information from the XML document.
-    // *
-    // * @param document the XML document containing the warehouse data
-    // * @throws InstanceNotFoundException if the warehouse address does not exist
-    // in
-    // * the plan
-    // * @throws NoSuchElementException if no warehouse is found in the XML
-    // */
-    // private void loadWarehouse(Document document) throws
-    // InstanceNotFoundException, NoSuchElementException {
-    // NodeList warehouseElements = document.getElementsByTagName("entrepot");
-    // if (warehouseElements.getLength() == 0) {
-    // throw new NoSuchElementException("No warehouse found in the file.");
-    // }
-
-    // Element warehouseElement = (Element) warehouseElements.item(0);
-    // String warehouseAddress = warehouseElement.getAttribute("adresse");
-    // Intersection warehouseIntersection =
-    // plan.getIntersectionById(warehouseAddress);
-    // if (warehouseIntersection == null) {
-    // throw new InstanceNotFoundException("The warehouse intersection '" +
-    // warehouseAddress + "' doesn't exist!");
-    // }
-
-    // warehouse = warehouseIntersection;
-    // }
-
-    // /**
-    // * Loads delivery requests from the XML document and adds them to the
-    // * deliveryRequestList.
-    // *
-    // * @param document the XML document containing the delivery request data
-    // * @throws InstanceNotFoundException if any delivery address does not exist in
-    // * the plan
-    // * @throws NoSuchElementException if no delivery requests are found in the
-    // * XML
-    // */
-    // private void loadDeliveryRequests(Document document) throws
-    // InstanceNotFoundException, NoSuchElementException {
-    // NodeList requestsElements = document.getElementsByTagName("livraison");
-    // if (requestsElements.getLength() == 0) {
-    // throw new NoSuchElementException("No delivery requests found in the file.");
-    // }
-
-    // List<DeliveryRequest> tempDeliveryRequestList = new ArrayList<>();
-    // for (int i = 0; i < requestsElements.getLength(); i++) {
-    // Element element = (Element) requestsElements.item(i);
-    // String deliveryAddress = element.getAttribute("adresseLivraison");
-
-    // if (plan == null) {
-    // throw new InstanceNotFoundException(
-    // "No plan loaded. Please load a plan before loading delivery requests.");
-    // }
-
-    // Intersection intersection = plan.getIntersectionById(deliveryAddress);
-    // if (intersection == null) {
-    // throw new InstanceNotFoundException("The intersection '" + deliveryAddress +
-    // "' doesn't exist!");
-    // }
-
-    // DeliveryRequest deliveryRequest = new DeliveryRequest(intersection);
-    // tempDeliveryRequestList.add(deliveryRequest);
-    // }
-
-    // deliveryRequestList = tempDeliveryRequestList;
-    // }
