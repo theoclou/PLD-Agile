@@ -82,7 +82,8 @@ const MapMarker = React.memo(
                 )}
               </>
             ) : (
-              <button onClick={() => setWarehouse(intersection.id)}>
+              <button onClick={() => setWarehouse(intersection.id)}
+                      className="popup-button">
                 Define as warehouse
               </button>
             )}

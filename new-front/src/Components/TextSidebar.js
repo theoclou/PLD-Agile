@@ -74,41 +74,43 @@ const TextSidebar = React.memo(
       return (
         <div className="textual-sidebar">
           {warehouse && (
-            <div className="under-section-container">
-              <h2 className="section-title">Warehouse</h2>
-              <div className="warehouse-section">
+              <div className="under-section-container">
+                <h2 className="section-title">Warehouse</h2>
                 <div className="section-info">
                   <h3 className="section-title">Warehouse #{warehouse.id}</h3>
                 </div>
-                <div className="section-info">
-                  <span className="section-title">Sections around: </span>
-                  <div className="section-list">
+
+                <span className="section-title">Sections around: </span>
+              <br/>
+
+                <div className="section-list">
+                  <div className="section-info">
                     {(() => {
                       const relatedSections = sections.filter(
-                        (section) =>
-                          section.origin.id === warehouse.id.toString() ||
-                          section.destination.id === warehouse.id.toString()
+                          (section) =>
+                              section.origin.id === warehouse.id.toString() ||
+                              section.destination.id === warehouse.id.toString()
                       );
 
                       const uniqueSections = Array.from(
-                        new Set(relatedSections.map((section) => section.name))
+                          new Set(relatedSections.map((section) => section.name))
                       ).map((name) =>
-                        relatedSections.find((section) => section.name === name)
+                          relatedSections.find((section) => section.name === name)
                       );
 
                       const limitedSections = uniqueSections.slice(0, 2);
 
                       return limitedSections.length > 0 ? (
-                        limitedSections.map((section, index) => (
-                          <div key={index} className="section-item">
-                            <div className="section-dot"></div>
-                            <span className="section-name">
+                          limitedSections.map((section, index) => (
+                              <div key={index} className="section-item">
+                                <div className="section-dot"></div>
+                                <span className="section-name">
                               {section.name || "Undefined"}
                             </span>
-                          </div>
-                        ))
+                              </div>
+                          ))
                       ) : (
-                        <span className="no-sections">
+                          <span className="no-sections">
                           No connected sections
                         </span>
                       );
@@ -116,7 +118,6 @@ const TextSidebar = React.memo(
                   </div>
                 </div>
               </div>
-            </div>
           )}
           <p className="text-gray-500">No delivery points available</p>
         </div>
@@ -166,7 +167,6 @@ const TextSidebar = React.memo(
             </div>
 
             <div className="warehouse-section">
-              <div className="delivery-info">
                 <div className="section-info">
                   <span className="section-info">Courier ID: </span>
                   <span
@@ -207,7 +207,6 @@ const TextSidebar = React.memo(
                 &times;
               </button>
             </div>
-          </div>
         </div>
       );
     };
@@ -215,13 +214,10 @@ const TextSidebar = React.memo(
     return (
       <div className="textual-sidebar">
         {warehouse && (
-          <div className="warehouse-container">
+          <div>
             <h2 className="section-title">Warehouse</h2>
             <div className="section-container">
-              <div className="section-info">
-                <h3 className="section-title">Warehouse</h3>
-              </div>
-              <div className="section-info">
+                <div>
                 <span className="section-title">Sections around: </span>
                 <div className="section-list">
                   {(() => {
