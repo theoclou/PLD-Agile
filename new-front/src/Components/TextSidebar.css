@@ -209,3 +209,7 @@
 .highlighted {
   transition: background-color 0.3s ease;
 }
+
+.spacing {
+  height: 20px;
+}

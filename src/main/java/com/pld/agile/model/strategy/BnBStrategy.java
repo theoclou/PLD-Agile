@@ -56,4 +56,8 @@ public class BnBStrategy implements SolvingStrategy {
     public double getBestCost() {
         return bestCost;
     }
+    public boolean getTimeExceeded()
+    {
+        return bnb.getTimeExceeded();
+    }
 }

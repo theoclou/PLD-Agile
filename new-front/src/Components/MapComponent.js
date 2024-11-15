@@ -104,14 +104,19 @@ const MapComponent = () => {
 
   const handleHelpClick = () => {
     setHelpPopupMessage(
-      "Here are some tips to use the application.\n" +
-        "Click on the 'Load Map' button to load a map.\n" +
-        "Click on the 'Load Deliveries' button to load a delivery request.\n" +
-        "Use the '+' and '-' buttons to add or remove delivery drivers.\n" +
-        "To add a delivery point, zoom in on the map and click on the desired intersection, then click 'Add to delivery points'.\n" +
-        "To remove a delivery point, click the cross in the popup window.\n" +
-        "Click on the 'Compute Tour' button to calculate the delivery routes.\n"
-    );
+        <div>
+          <h2 className="popup-title"> How to Use the Application</h2>
+          <ul>
+            <li><strong>Load a Map :</strong> Click the <em>'Load a Map'</em> button to load a map.</li>
+            <li><strong>Load Deliveries :</strong> Click the <em>'Load Deliveries'</em> button to load a delivery request.</li>
+            <li><strong>Adjust Couriers :</strong> Use the <em>'+'</em> and <em>'-'</em> buttons to add or remove delivery drivers.</li>
+            <li><strong>Add Delivery Point :</strong> Zoom into the map and click an intersection, then select <em>'Add to delivery points'</em>.</li>
+            <li><strong>Remove Delivery Point :</strong> Click the cross icon in the delivery list popup.</li>
+            <li><strong>Compute Routes :</strong> Click the <em>'Compute Tour'</em> button to generate delivery routes.</li>
+        </ul>
+  </div>
+  )
+    ;
     setHelpPopupVisible(true);
   };
 
@@ -630,6 +635,7 @@ const MapComponent = () => {
                 onMouseLeaveDelivery={handleMouseLeaveDelivery}
                 expandedCouriers={expandedCouriers}
                 setExpandedCouriers={setExpandedCouriers}
+                returnTimes = {returnTimes}
               />
             </div>
           )}
