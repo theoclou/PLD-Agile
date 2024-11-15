@@ -1,18 +1,27 @@
 package com.pld.agile.model.strategy;
 
-import com.pld.agile.model.graph.CompleteGraph;
-import com.pld.agile.model.graph.Graph;
-import com.pld.agile.model.algorithm.tsp.TSP;
-import com.pld.agile.model.algorithm.tsp.TSP1;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import com.pld.agile.model.algorithm.tsp.TSP;
+import com.pld.agile.model.algorithm.tsp.TSP1;
+import com.pld.agile.model.graph.CompleteGraph;
+
 /**
- * The {@code TspStrategy} class implements the {@code SolvingStrategy} interface
- * and solves the Traveling Salesman Problem (TSP) using a TSP solver. This class
- * follows the strategy pattern for solving the TSP and uses a {@code TSP} solver
- * to find the optimal path and cost.
+ * The {@code TspStrategy} class implements the {@link SolvingStrategy} interface
+ * and provides a strategy for solving the Traveling Salesman Problem (TSP) using a
+ * specific TSP solver.
+ * 
+ * <p>
+ * This class leverages the {@link TSP} algorithm to compute the optimal solution
+ * for the TSP, including the best path and the associated cost. It follows the
+ * strategy design pattern to provide flexibility in the choice of solving
+ * algorithms.
+ * </p>
+ * 
+ * @author
+ * @version 1.0
+ * @since 2024-04-27
  */
 public class TspStrategy implements SolvingStrategy {
     private TSP tsp;
@@ -21,53 +30,67 @@ public class TspStrategy implements SolvingStrategy {
 
     /**
      * Constructs a new {@code TspStrategy} instance, initializing the {@code TSP} solver
-     * and setting up an empty list to store the best path.
+     * with a default implementation ({@link TSP1}) and preparing an empty list to
+     * store the best path.
      */
     public TspStrategy() {
-        this.tsp = new TSP1();  // Initializing with a specific TSP implementation
-        this.bestPath = new ArrayList<Integer>();
+        this.tsp = new TSP1(); // Initializing with a specific TSP implementation
+        this.bestPath = new ArrayList<>();
     }
 
     /**
-     * Solves the Traveling Salesman Problem (TSP) using a provided cost matrix
-     * that represents the complete graph. The solution is computed using the
-     * TSP solver, and the best path and cost are stored.
+     * Solves the Traveling Salesman Problem (TSP) using a given complete graph.
+     * 
+     * <p>
+     * This method employs the {@link TSP} solver to compute the optimal solution
+     * for the TSP within a fixed iteration limit. The best path and cost are then
+     * stored for retrieval.
+     * </p>
      *
-     * @param g the complete graph 
+     * @param g the {@link CompleteGraph} representing the cost matrix of the graph
      */
     @Override
     public void solve(CompleteGraph g) {
-        // int nbVertices = completeGraph.size();  // Get the number of vertices in the graph
-        // Graph g = new CompleteGraph(nbVertices, completeGraph);  // Create a graph from the cost matrix
-        long startTime = System.currentTimeMillis();  // Start time tracking for the solution process
-        tsp.searchSolution(20000, g);  // Run the TSP solver with a limit of 20,000 iterations
+        long startTime = System.currentTimeMillis(); // Start time tracking
+        tsp.searchSolution(20000, g); // Solve with an iteration limit of 20,000
 
-        // Print the solution cost and the time taken
-        System.out.print("Clsassic solver solution of cost " + tsp.getSolutionCost() + " found in "
-                + (System.currentTimeMillis() - startTime) + "ms : ");
+        // Log the solution details
+        System.out.print("Classic solver solution of cost " + tsp.getSolutionCost() + " found in "
+                + (System.currentTimeMillis() - startTime) + "ms: ");
 
-        // Retrieve the solution path and store it in the bestPath list
+        // Retrieve and store the solution path
         for (int i = 0; i < g.getNbVertices(); i++) {
             int iSol = tsp.getSolution(i);
             System.out.print(iSol + " ");
             bestPath.add(iSol);
         }
-        System.out.println("0");  // Print the return to the starting point
+        System.out.println("0"); // Return to the starting point
     }
 
     /**
-     * Returns the best path found by the TSP solver.
+     * Retrieves the best path computed by the TSP solver.
+     * 
+     * <p>
+     * The best path represents the optimal order of vertices to visit to minimize
+     * the total travel cost. The path is a closed loop, returning to the starting
+     * point.
+     * </p>
      *
      * @return the best path as a {@code List<Integer>} of vertex indices
      */
     @Override
     public List<Integer> getBestPath() {
-        bestPath.add(bestPath.get(0));
+        bestPath.add(bestPath.get(0)); // Ensure the path loops back to the start
         return bestPath;
     }
 
     /**
-     * Returns the best cost found by the TSP solver.
+     * Retrieves the best cost associated with the best path computed by the TSP solver.
+     * 
+     * <p>
+     * The best cost represents the total cost of the optimal route as determined
+     * by the solver.
+     * </p>
      *
      * @return the best cost as a {@code double} value
      */
@@ -75,8 +98,19 @@ public class TspStrategy implements SolvingStrategy {
     public double getBestCost() {
         return bestCost;
     }
-    public boolean getTimeExceeded()
-    {
+
+    /**
+     * Indicates whether the solving process exceeded the time limit.
+     * 
+     * <p>
+     * This implementation always returns {@code false} as the TSP solver in this
+     * strategy does not include time-based termination.
+     * </p>
+     *
+     * @return {@code false} to indicate that no time limit was exceeded
+     */
+    @Override
+    public boolean getTimeExceeded() {
         return false;
     }
 }

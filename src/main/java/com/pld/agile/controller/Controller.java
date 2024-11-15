@@ -30,15 +30,15 @@ import com.pld.agile.model.entity.Round;
 import com.pld.agile.model.entity.Section;
 import com.pld.agile.model.graph.Plan;
 
-
-
 /**
  * REST Controller for managing delivery planning and map operations.
- * This controller handles operations related to courier management, map loading,
+ * This controller handles operations related to courier management, map
+ * loading,
  * delivery requests, and tour computation.
  *
  * @RestController annotation indicates that this class serves REST endpoints
- * @CrossOrigin allows requests from the React frontend running on localhost:3000
+ * @CrossOrigin allows requests from the React frontend running on
+ *              localhost:3000
  */
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -102,7 +102,8 @@ public class Controller {
     @PostMapping("/loadMap")
     public ResponseEntity<Map<String, String>> loadMap(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body(Collections.singletonMap("message", "File upload failed: No file selected."));
+            return ResponseEntity.badRequest()
+                    .body(Collections.singletonMap("message", "File upload failed: No file selected."));
         }
 
         map.resetMap();
@@ -115,32 +116,38 @@ public class Controller {
             if (map.getIntersections().size() > 0) {
                 return ResponseEntity.ok(Collections.singletonMap("message", "Plan loaded successfully."));
             } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("error", "No valid intersections loaded. Please check the file."));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                        Collections.singletonMap("error", "No valid intersections loaded. Please check the file."));
             }
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("message", "File upload failed: " + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("message", "File upload failed: " + e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("message", "Error loading map: " + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("message", "Error loading map: " + e.getMessage()));
         }
     }
 
     /**
-     * Loads delivery requests from a file and associates them with the current round.
+     * Loads delivery requests from a file and associates them with the current
+     * round.
      *
      * @param file MultipartFile containing delivery request data
-     * @return ResponseEntity containing delivery requests, warehouse location, and status message
+     * @return ResponseEntity containing delivery requests, warehouse location, and
+     *         status message
      * @throws IOException if there's an error reading the file
      */
     @PostMapping("/loadDelivery")
     public ResponseEntity<Map<String, Object>> loadDelivery(@RequestParam("file") MultipartFile file) {
         commandManager.resetCommandStack();
         if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body(Collections.singletonMap("message", "File upload failed: No file selected."));
+            return ResponseEntity.badRequest()
+                    .body(Collections.singletonMap("message", "File upload failed: No file selected."));
         }
-        //TODO empty the delivery request list to avoid duplicates
+        // TODO empty the delivery request list to avoid duplicates
 
         try {
-            //Create response object
+            // Create response object
             Map<String, Object> response = new HashMap<>();
             round.loadRequests(file);
             List<DeliveryRequest> deliveryRequestList = round.getDeliveryRequestList();
@@ -150,18 +157,22 @@ public class Controller {
             response.put("message", "Delivery points loaded successfully");
             return ResponseEntity.ok(response);
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("message", "File upload failed: " + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("message", "File upload failed: " + e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("message", "Error loading map: " + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("message", "Error loading map: " + e.getMessage()));
         }
     }
 
     /**
      * Retrieves the current map data including intersections and sections.
-     * Returns detailed information about each section including origin and destination
+     * Returns detailed information about each section including origin and
+     * destination
      * intersections, length, and street name.
      *
-     * @return Map containing lists of intersections and detailed section information
+     * @return Map containing lists of intersections and detailed section
+     *         information
      */
     @GetMapping("/map")
     public Map<String, Object> displayMap() {
@@ -198,7 +209,8 @@ public class Controller {
     }
 
     /**
-     * Computes delivery tours based on current delivery requests and courier availability.
+     * Computes delivery tours based on current delivery requests and courier
+     * availability.
      *
      * @return String indicating the status of tour computation
      */
@@ -262,11 +274,13 @@ public class Controller {
     /**
      * Deletes a delivery request from the system.
      *
-     * @param request Request containing "deliveryId" to be deleted and "courierId" to update the tour
+     * @param request Request containing "deliveryId" to be deleted and "courierId"
+     *                to update the tour
      * @return String confirmation message with the deleted request ID
      */
     @DeleteMapping("/deleteDeliveryRequestWithCourier")
-    public ResponseEntity<Map<String, Object>> deleteDeliveryRequestWithCourier(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> deleteDeliveryRequestWithCourier(
+            @RequestBody Map<String, String> request) {
         Map<String, Object> response = new HashMap<>();
 
         System.out.println("Received request: " + request);
@@ -282,12 +296,13 @@ public class Controller {
         try {
             int courierId = Integer.parseInt(courierIdStr);
 
-            //Delete the delivery request from the list
+            // Delete the delivery request from the list
             DeleteDeliveryCommand command = new DeleteDeliveryCommand(round, deliveryId, courierId);
             commandManager.executeCommand(command);
 
-            //Update the tour
-            //List<DeliveryTour> updatedTours = round.updateLocalPoint(courierId, deliveryId, -1);
+            // Update the tour
+            // List<DeliveryTour> updatedTours = round.updateLocalPoint(courierId,
+            // deliveryId, -1);
             List<DeliveryTour> updatedTours = round.getTourAttribution();
 
             if (updatedTours != null) {
@@ -346,6 +361,13 @@ public class Controller {
         }
     }
 
+    /**
+     * Defines a warehouse location based on an intersection ID.
+     *
+     * @param request A map containing the intersection ID to define as the
+     *                warehouse.
+     * @return {@link ResponseEntity} with a success or error message.
+     */
     @PostMapping("/defineWarehouseById")
     public ResponseEntity<Map<String, Object>> defineWarehouse(@RequestBody Map<String, String> request) {
         Map<String, Object> response = new HashMap<>();
@@ -356,7 +378,6 @@ public class Controller {
             response.put("message", "Intersection ID is required");
             return ResponseEntity.badRequest().body(response);
         }
-
 
         // create and execute command
         DefineWarehousePointCommand command = new DefineWarehousePointCommand(round, intersectionId);
@@ -375,8 +396,16 @@ public class Controller {
         }
     }
 
-    @PostMapping("/addDeliveryPointByIdAfterCompute") 
-    public ResponseEntity<Map<String,Object>> addDeliveryPointAfterCompute(@RequestBody Map<String, String> request){
+    /**
+     * Adds a delivery point after the computation of delivery tours.
+     *
+     * @param request A map containing the intersection ID and courier ID for the
+     *                delivery point.
+     * @return {@link ResponseEntity} containing the status and updated delivery
+     *         tours.
+     */
+    @PostMapping("/addDeliveryPointByIdAfterCompute")
+    public ResponseEntity<Map<String, Object>> addDeliveryPointAfterCompute(@RequestBody Map<String, String> request) {
         Map<String, Object> response = new HashMap<>();
         System.out.println("Request received : " + request);
         String intersectionId = request.get("intersectionId");
@@ -401,33 +430,33 @@ public class Controller {
             commandManager.executeCommand(command);
 
             // Then the tour
-            //List<DeliveryTour> updatedTours = round.updateLocalPoint(courierIdInt, intersectionId, 1);
+            // List<DeliveryTour> updatedTours = round.updateLocalPoint(courierIdInt,
+            // intersectionId, 1);
             List<DeliveryTour> updatedTours = round.getTourAttribution();
 
-            if(updatedTours != null) {
+            if (updatedTours != null) {
                 response.put("status", "success");
                 response.put("message", "Delivery point added successfully");
                 response.put("tours", updatedTours);
                 return ResponseEntity.ok(response);
             } else {
-            response.put("status", "error");
-            response.put("message", "Failed to add delivery point");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }} catch (Exception e) {
+                response.put("status", "error");
+                response.put("message", "Failed to add delivery point");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+        } catch (Exception e) {
             response.put("status", "error");
             response.put("message", "Error: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
 
-
-
-
     }
 
-
-
     /**
-     * Undo function
+     * Performs an undo operation on the last executed command.
+     *
+     * @return {@link ResponseEntity} containing the updated delivery requests and
+     *         tours after the undo operation.
      */
     @PostMapping("/undo")
     public ResponseEntity<Map<String, Object>> undo() {
@@ -454,12 +483,16 @@ public class Controller {
             response.put("message", "Failed to undo: " + e.getMessage());
             System.out.println("Error: " + e.getMessage());
             throw e;
-            //return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            // return
+            // ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
     /**
-     * Redo function
+     * Performs a redo operation on the last undone command.
+     *
+     * @return {@link ResponseEntity} containing the updated delivery requests and
+     *         tours after the redo operation.
      */
     @PostMapping("/redo")
     public ResponseEntity<Map<String, Object>> redo() {
@@ -475,8 +508,8 @@ public class Controller {
             response.put("message", "Redo successful");
             response.put("currentDeliveryCount", currentRound.getDeliveryRequestList().size());
             response.put("deliveryRequests", currentRound.getDeliveryRequestList());
-            if (currentRound.getTourAttribution() != null) response.put("tours", currentRound.getTourAttribution());
-
+            if (currentRound.getTourAttribution() != null)
+                response.put("tours", currentRound.getTourAttribution());
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -487,7 +520,9 @@ public class Controller {
     }
 
     /**
-     * reinit commands
+     * Resets the command stack, clearing all executed and undone commands.
+     *
+     * @return {@link ResponseEntity} with HTTP 200 OK if successful.
      */
     @PostMapping("/resetCommands")
     public ResponseEntity<Void> resetCommands() {
@@ -496,9 +531,9 @@ public class Controller {
     }
 
     /**
-     * Validates a delivery tour and generate a report.
+     * Generates and downloads a report of the current delivery tours.
      *
-     * @return the file with headers to help the front to manipulate data
+     * @return {@link ResponseEntity} containing the generated report file.
      */
     @GetMapping("/downloadReport")
     public ResponseEntity<byte[]> downloadReport() {
@@ -509,7 +544,8 @@ public class Controller {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.TEXT_PLAIN);
             headers.setContentDispositionFormData("attachment",
-                    "delivery_tours_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".txt");
+                    "delivery_tours_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
+                            + ".txt");
 
             return new ResponseEntity<>(reportBytes, headers, HttpStatus.OK);
         } catch (Exception e) {
