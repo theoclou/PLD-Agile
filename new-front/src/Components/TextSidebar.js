@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import "./TextSidebar.css";
 
@@ -104,10 +104,7 @@ const TextSidebar = React.memo(
           {warehouse && (
               <div className="under-section-container">
                 <h2 className="section-title">Warehouse</h2>
-                <div className="section-info">
-                  <h3 className="section-title">Warehouse #{warehouse.id}</h3>
-                </div>
-
+                  <div>
                 <span className="section-title">Sections around: </span>
               <br/>
 
@@ -144,6 +141,7 @@ const TextSidebar = React.memo(
                       );
                     })()}
                   </div>
+                </div>
                 </div>
               </div>
           )}
