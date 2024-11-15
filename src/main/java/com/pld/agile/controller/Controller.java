@@ -1,32 +1,34 @@
 package com.pld.agile.controller;
 
-import com.pld.agile.model.graph.Plan;
-import com.pld.agile.model.entity.Round;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.io.IOException;
-import java.util.*;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-
-
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import com.pld.agile.model.entity.DeliveryTour;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.pld.agile.model.entity.DeliveryRequest;
+import com.pld.agile.model.entity.DeliveryTour;
 import com.pld.agile.model.entity.Intersection;
+import com.pld.agile.model.entity.Round;
 import com.pld.agile.model.entity.Section;
+import com.pld.agile.model.graph.Plan;
 
 
 
@@ -246,11 +248,11 @@ public class Controller {
         System.out.println("Received deliveryRequestId: " + deliveryRequestId);
         Map<String, String> response = new HashMap<>();
 
-        // Créer et exécuter la commande de suppression
+        // Create and execute delete command
         DeleteDeliveryCommand command = new DeleteDeliveryCommand(round, deliveryRequestId, -1);
         commandManager.executeCommand(command);
 
-        // Après l'exécution de la commande, round est automatiquement mis à jour
+        // Round is automatically updated after command execution
         System.out.println("Nombre de livraisons restantes : " + round.getDeliveryRequestList().size());
 
         response.put("message", "Delivery request deleted successfully.");
@@ -373,8 +375,7 @@ public class Controller {
         }
     }
 
-    @PostMapping("/addDeliveryPointByIdAfterCompute") //TODO adapter avec Command Pattern ?
-    //TODO rajouter deliveryPoint dans la liste de Round
+    @PostMapping("/addDeliveryPointByIdAfterCompute") 
     public ResponseEntity<Map<String,Object>> addDeliveryPointAfterCompute(@RequestBody Map<String, String> request){
         Map<String, Object> response = new HashMap<>();
         System.out.println("Request received : " + request);
@@ -419,10 +420,6 @@ public class Controller {
         }
 
 
-
-        // create and execute command
-//        AddDeliveryPointCommand command = new AddDeliveryPointCommand(round, intersectionId);
-//        commandManager.executeCommand(command);
 
 
     }

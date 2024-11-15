@@ -1,8 +1,18 @@
 package com.pld.agile.model.entity;
 
-import com.pld.agile.model.strategy.BnBStrategy;
-import com.pld.agile.model.graph.Plan;
-import com.pld.agile.model.Solver;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+
+import javax.management.InstanceNotFoundException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.springframework.web.multipart.MultipartFile;
 import org.w3c.dom.Document;
@@ -10,47 +20,86 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import javax.management.InstanceNotFoundException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
+import com.pld.agile.model.Solver;
 import com.pld.agile.model.algorithm.KMeansClustering;
+import com.pld.agile.model.graph.Plan;
+import com.pld.agile.model.strategy.BnBStrategy;
 
 /**
  * The {@code Round} class represents a round of deliveries managed by a fleet
- * of couriers.
- * It manages the assignment of delivery requests to couriers, computes delivery
- * tours,
- * and tracks the delivery information.
+ * of couriers. It manages the assignment of delivery requests to couriers,
+ * computes delivery tours, and tracks the delivery information.
+ *
+ * <p>
+ * This class handles the core functionality of initializing couriers, loading
+ * delivery requests from XML files, computing optimized delivery tours using
+ * clustering and routing algorithms, and managing the state of delivery rounds.
+ * </p>
+ *
+ * @author 
+ * @version 1.0
+ * @since 2024-04-27
  */
 public class Round {
+    /**
+     * The speed of the courier in kilometers per hour.
+     */
     private static final double COURIER_SPEED = 15.0; // km/h
 
+    /**
+     * The plan containing intersections and sections.
+     */
     private Plan plan;
-    private List<Courier> courierList = new ArrayList<>();
-    private List<DeliveryRequest> deliveryRequestList = new ArrayList<>();
-    private List<DeliveryTour> tourAttribution = new ArrayList<>();
-    private Intersection warehouse;
-    private KMeansClustering KNN = new KMeansClustering();
-    private List<Solver> solverList = new ArrayList<>();
-    private List<Boolean> isOptimalList=new ArrayList<>();
 
+    /**
+     * The list of couriers participating in the delivery round.
+     */
+    private List<Courier> courierList = new ArrayList<>();
+
+    /**
+     * The list of delivery requests to be fulfilled in the round.
+     */
+    private List<DeliveryRequest> deliveryRequestList = new ArrayList<>();
+
+    /**
+     * The list of delivery tours assigned to couriers.
+     */
+    private List<DeliveryTour> tourAttribution = new ArrayList<>();
+
+    /**
+     * The warehouse location for the delivery round.
+     */
+    private Intersection warehouse;
+
+    /**
+     * The K-Means clustering instance for grouping delivery points.
+     */
+    private KMeansClustering KNN = new KMeansClustering();
+
+    /**
+     * The list of solvers used to compute delivery tours for couriers.
+     */
+    private List<Solver> solverList = new ArrayList<>();
+
+    /**
+     * The list indicating whether the computed tours are optimal.
+     */
+    private List<Boolean> isOptimalList = new ArrayList<>();
+
+    /**
+     * Constructs a new {@code Round} instance.
+     */
     public Round() {
     }
 
     /**
      * Initializes the round with the specified number of couriers and a plan.
+     *
+     * <p>
+     * This method sets up the couriers based on the provided quantity and assigns
+     * the given plan to the round. It clears any existing courier and tour
+     * assignments to ensure a fresh start.
+     * </p>
      *
      * @param CourierQuantity the number of couriers to initialize
      * @param plan            the {@code Plan} object containing intersections and
@@ -67,7 +116,13 @@ public class Round {
     }
 
     /**
-     * Soft resets the round by clearing KNN and tourAttribution.
+     * Soft resets the round by clearing the K-Means clustering instance and
+     * resetting the tour attributions.
+     *
+     * <p>
+     * This method allows for re-computation of delivery tours without altering
+     * the loaded delivery requests or couriers.
+     * </p>
      */
     public void softReset() {
         KNN = new KMeansClustering();
@@ -75,44 +130,47 @@ public class Round {
     }
 
     /**
-     * Returns the map of courier assignments to delivery tours.
+     * Retrieves the list of delivery tours assigned to couriers.
      *
-     * @return a map where each {@code Courier} is assigned a {@code DeliveryTour}
+     * <p>
+     * This method prints the routes of each delivery tour for debugging
+     * purposes and returns the current list of tour attributions.
+     * </p>
+     *
+     * @return a {@code List} of {@code DeliveryTour} objects representing the
+     *         courier assignments
      */
     public List<DeliveryTour> getTourAttribution() {
-//        if (tourAttribution == null || tourAttribution.isEmpty() ) {
-//            System.out.println("No tours have been computed yet.");
-//            return null;
-//        }
-        for(DeliveryTour tour : tourAttribution){
+        for (DeliveryTour tour : tourAttribution) {
             System.out.println("route : " + tour.getRoute());
         }
         return tourAttribution;
     }
 
     /**
-     * Sets the map of courier assignments to delivery tours.
+     * Sets the list of delivery tours assigned to couriers.
      *
-     * @param tourAttribution
+     * @param tourAttribution the {@code List} of {@code DeliveryTour} objects to be
+     *                        assigned
      */
     public void setTourAttribution(List<DeliveryTour> tourAttribution) {
         this.tourAttribution = tourAttribution;
     }
 
     /**
-     * Computes and assigns delivery tours to couriers. This method uses a solver to
-     * compute
-     * the best route for each courier based on the delivery requests.
+     * Computes and assigns delivery tours to couriers.
+     *
+     * <p>
+     * This method uses a solver to compute the best route for each courier based
+     * on the delivery requests. It distributes delivery points among couriers,
+     * solves for optimal routes, and assigns the resulting tours to each courier.
+     * </p>
      */
     public void computeRound() {
-        // While the Delivery Request list isn't empty
-        // we will launch the graph calculation, create a DeliveryTour ith the result,
-        // assign it to a courier and update TourAttribution, then delete the
-        // DeliveryRequest we used from the list
-        List<Integer> indexedID = new ArrayList<Integer>();
-
+        // Clone the list to avoid modifying the original during iteration
         List<DeliveryRequest> remainingDeliveries = new ArrayList<>(deliveryRequestList);
 
+        // Determine base number of deliveries per courier and any extras
         int baseDeliveriesPerCourier = remainingDeliveries.size() / courierList.size();
         int extraDeliveries = remainingDeliveries.size() % courierList.size();
         int currentIndex = 0;
@@ -121,65 +179,70 @@ public class Round {
             List<Integer> courierDeliveryIndices = new ArrayList<>();
             courierDeliveryIndices.add(plan.getIndexById(warehouse.getId()));
 
-            // Number of deliveries for this Courier
+            // Calculate number of deliveries for this courier
             int deliveriesForThisCourier = baseDeliveriesPerCourier + (extraDeliveries > 0 ? 1 : 0);
 
-            // Delivery attribution
+            // Assign deliveries to this courier
             for (int i = 0; i < deliveriesForThisCourier && currentIndex < remainingDeliveries.size(); i++) {
                 DeliveryRequest delivery = remainingDeliveries.get(currentIndex);
                 courierDeliveryIndices.add(plan.getIndexById(delivery.getDeliveryAdress().getId()));
                 currentIndex++;
             }
 
-            // Solve the courier tour : To keep after change of code (creation of delivery
-            // tour)
-            System.out.println(
-                    "Courier " + courier.getId() + " is assigned " + courierDeliveryIndices.size() + " deliveries.");
+            // Initialize and solve the delivery tour for this courier
+            System.out.println("Courier " + courier.getId() + " is assigned " + courierDeliveryIndices.size() + " deliveries.");
             Solver solver = new Solver(plan, courierDeliveryIndices, new BnBStrategy()).init();
             solver.solve();
             solver.computePointsToBeServed();
             isOptimalList.add(solver.getTimeExceeded());
             double bestCost = solver.getBestPossibleCost();
-            double bestTime = bestCost / (COURIER_SPEED * 1000) * 3600; // In seconds
+            double bestTime = bestCost / (COURIER_SPEED * 1000) * 3600; // Convert to seconds
             LocalTime endTime = LocalTime.of(8, 0).plusSeconds((long) bestTime);
 
+            // Create delivery requests for this courier
             List<DeliveryRequest> courierDeliveryRequests = new ArrayList<>();
             for (Integer requestIndex : courierDeliveryIndices) {
-                DeliveryRequest deliveryRequest = new DeliveryRequest(
-                        plan.getIntersectionById(plan.getIdByIndex(requestIndex)));
+                DeliveryRequest deliveryRequest = new DeliveryRequest(plan.getIntersectionById(plan.getIdByIndex(requestIndex)));
                 deliveryRequest.setCourier(courier);
                 courierDeliveryRequests.add(deliveryRequest);
             }
 
-            Integer warehouseIndex = plan.getIndexById(warehouse.getId());
+            // Retrieve the best route
             List<Integer> bestRouteIndexes = solver.getBestPossiblePath();
             List<Intersection> bestRoute = new ArrayList<>();
             for (Integer index : bestRouteIndexes) {
                 bestRoute.add(plan.getIntersectionById(plan.getIdByIndex(index)));
             }
 
+            // Map arrival times to intersections
             Map<Integer, LocalTime> arrivalTimesByIndex = solver.getPointsWithTime();
             Map<Intersection, LocalTime> arrivalTimes = new HashMap<>();
             for (Map.Entry<Integer, LocalTime> entry : arrivalTimesByIndex.entrySet()) {
                 arrivalTimes.put(plan.getIntersectionById(plan.getIdByIndex(entry.getKey())), entry.getValue());
             }
 
+            // Create and assign the delivery tour
             DeliveryTour courierDeliveryTour = new DeliveryTour(courier, endTime, courierDeliveryRequests, new ArrayList<>(bestRoute),
                     arrivalTimes);
 
             tourAttribution.add(courierDeliveryTour);
 
+            // Decrement extra deliveries count
             extraDeliveries--;
         }
     }
 
-
     /**
-     * Loads delivery requests from an XML file given either a file path or a
-     * MultipartFile.
+     * Loads delivery requests from an XML file.
      *
-     * @param source either a file path (String) or a MultipartFile containing the
-     *               XML data
+     * <p>
+     * This method accepts either a file path or a {@code MultipartFile} containing
+     * the XML data. It parses the XML to extract warehouse and delivery request
+     * information and populates the corresponding lists.
+     * </p>
+     *
+     * @param source either a file path (String) or a {@code MultipartFile} containing
+     *               the XML data
      * @throws Exception if the file cannot be found or parsed, or if delivery
      *                   addresses are invalid
      */
@@ -187,21 +250,23 @@ public class Round {
         deliveryRequestList.clear();
         warehouse = null;
         File xmlFile = null;
-        boolean isTemporaryFile = false; // Variable pour indiquer un fichier temporaire
+        boolean isTemporaryFile = false; // Indicates if the file is temporary
 
         try {
-            // Check if source is a file path or a MultipartFile
+            // Determine the type of source and process accordingly
             if (source instanceof String) {
                 xmlFile = verifyFileExists((String) source);
             } else if (source instanceof MultipartFile) {
                 xmlFile = createTemporaryFile((MultipartFile) source);
-                isTemporaryFile = true; // Marque ce fichier comme temporaire
+                isTemporaryFile = true; // Mark as temporary
             } else {
                 throw new IllegalArgumentException("Invalid source type.");
             }
 
+            // Parse the XML file
             Document document = parseXmlFile(xmlFile);
 
+            // Load warehouse and delivery requests from the XML
             loadWarehouse(document);
             loadDeliveryRequests(document);
 
@@ -214,18 +279,18 @@ public class Round {
             e.printStackTrace();
             throw e;
         } finally {
+            // Clean up temporary files if any
             if (isTemporaryFile && xmlFile != null && xmlFile.exists()) {
                 xmlFile.delete();
             }
         }
     }
 
-
     /**
      * Verifies if the file at the specified path exists.
      *
      * @param filePath the path to the file
-     * @return the File object if the file exists
+     * @return the {@code File} object if the file exists
      * @throws FileNotFoundException if the file does not exist
      */
     private File verifyFileExists(String filePath) throws FileNotFoundException {
@@ -237,10 +302,10 @@ public class Round {
     }
 
     /**
-     * Creates a temporary file from the uploaded MultipartFile.
+     * Creates a temporary file from the uploaded {@code MultipartFile}.
      *
-     * @param file the MultipartFile containing the XML data
-     * @return the created temporary File
+     * @param file the {@code MultipartFile} containing the XML data
+     * @return the created temporary {@code File}
      * @throws IOException if the file cannot be created or transferred
      */
     private File createTemporaryFile(MultipartFile file) throws IOException {
@@ -250,10 +315,10 @@ public class Round {
     }
 
     /**
-     * Parses an XML file into a Document.
+     * Parses an XML file into a {@code Document}.
      *
      * @param xmlFile the XML file to parse
-     * @return the parsed Document object
+     * @return the parsed {@code Document} object
      * @throws Exception if the XML cannot be parsed
      */
     private Document parseXmlFile(File xmlFile) throws Exception {
@@ -288,7 +353,7 @@ public class Round {
 
     /**
      * Loads delivery requests from the XML document and adds them to the
-     * deliveryRequestList.
+     * {@code deliveryRequestList}.
      *
      * @param document the XML document containing the delivery request data
      * @throws InstanceNotFoundException if any delivery address does not exist in
@@ -324,6 +389,12 @@ public class Round {
         deliveryRequestList = tempDeliveryRequestList;
     }
 
+    /**
+     * Sets up the data array from the current list of delivery requests.
+     *
+     * @return a two-dimensional array of doubles representing the coordinates of
+     *         delivery points
+     */
     private double[][] setUpData() {
         List<DeliveryRequest> remainingDeliveries = new ArrayList<>(deliveryRequestList);
         double[][] data = new double[remainingDeliveries.size()][2];
@@ -340,6 +411,16 @@ public class Round {
         return data;
     }
 
+    /**
+     * Converts cluster groups of delivery point indices into their corresponding
+     * intersection IDs.
+     *
+     * @param groups an {@code ArrayList} of {@code ArrayList<Integer>} where each
+     *               inner list contains indices of delivery points assigned to a
+     *               cluster
+     * @return an {@code ArrayList} of {@code ArrayList<String>} containing the
+     *         intersection IDs for each cluster
+     */
     private ArrayList<ArrayList<String>> getIntersectionGroups(ArrayList<ArrayList<Integer>> groups) {
         List<DeliveryRequest> remainingDeliveries = new ArrayList<>(deliveryRequestList);
 
@@ -355,19 +436,35 @@ public class Round {
         return intersectionsClusters;
     }
 
+    /**
+     * Computes an optimized delivery round by clustering delivery points and
+     * assigning them to couriers.
+     *
+     * <p>
+     * This method uses K-Means clustering to group delivery points based on their
+     * geographical coordinates and assigns each group to a courier. It then
+     * computes the optimal delivery tour for each courier using the Branch and
+     * Bound strategy.
+     * </p>
+     *
+     * @return an {@code ArrayList} of {@code ArrayList<String>} where each inner
+     *         list contains the intersection IDs assigned to a courier
+     */
     public ArrayList<ArrayList<String>> computeRoundOptimized() {
-        // Reset states and solvers
+        // Reset solvers and tour attributions
         solverList.clear();
         tourAttribution.clear();
 
-        // Definition of the groups of intersections to assign Couriers
+        // Prepare data for clustering
         double[][] data = setUpData();
         System.out.println("Number of Couriers in the round: " + courierList.size());
         Integer couriersNumber = courierList.size();
+
+        // Perform K-Means clustering
         ArrayList<ArrayList<Integer>> groups = KNN.predictClusters(data, couriersNumber);
         ArrayList<ArrayList<String>> finalGroups = getIntersectionGroups(groups);
 
-        // Assigning the groups to the couriers
+        // Assign clusters to couriers and compute delivery tours
         Integer index = 0;
         for (Courier courier : courierList) {
             List<String> group = finalGroups.get(index);
@@ -377,40 +474,38 @@ public class Round {
                 courierDeliveryIndices.add(plan.getIndexById(intersectionId));
             }
 
-            // Solve the courier tour : To keep after change of code (creation of delivery
-            // tour)
-            System.out.println(
-                    "Courier " + courier.getId() + " is assigned " + courierDeliveryIndices.size() + " deliveries.");
+            // Initialize and solve the delivery tour for this courier
+            System.out.println("Courier " + courier.getId() + " is assigned " + courierDeliveryIndices.size() + " deliveries.");
             Solver solver = new Solver(plan, courierDeliveryIndices, new BnBStrategy()).init();
             solver.solve();
             solver.computePointsToBeServed();
             solverList.add(solver);
             double bestCost = solver.getBestPossibleCost();
-            double bestTime = bestCost / (COURIER_SPEED * 1000) * 3600; // In seconds
+            double bestTime = bestCost / (COURIER_SPEED * 1000) * 3600; // Convert to seconds
 
+            // Create delivery requests for this courier
             List<DeliveryRequest> courierDeliveryRequests = new ArrayList<>();
             for (Integer requestIndex : courierDeliveryIndices) {
-                DeliveryRequest deliveryRequest = new DeliveryRequest(
-                        plan.getIntersectionById(plan.getIdByIndex(requestIndex)));
+                DeliveryRequest deliveryRequest = new DeliveryRequest(plan.getIntersectionById(plan.getIdByIndex(requestIndex)));
                 deliveryRequest.setCourier(courier);
                 courierDeliveryRequests.add(deliveryRequest);
             }
 
-            Integer warehouseIndex = plan.getIndexById(warehouse.getId());
-            List<Integer> bestRouteIndexes = solver.getBestPossiblePath(); // jsp
-            // Turning the path between delivery points into a global path with all
-            // intersections
+            // Retrieve the best route
+            List<Integer> bestRouteIndexes = solver.getBestPossiblePath(); // Placeholder comment
+            // Convert route indices to intersection objects
             List<Intersection> bestRoute = plan.computeTour(bestRouteIndexes);
 
-
+            // Map arrival times to intersections
             Map<Integer, LocalTime> arrivalTimesByIndex = solver.getPointsWithTime();
             Map<Intersection, LocalTime> arrivalTimes = new HashMap<>();
 
             for (Map.Entry<Integer, LocalTime> entry : arrivalTimesByIndex.entrySet()) {
                 arrivalTimes.put(plan.getIntersectionById(plan.getIdByIndex(entry.getKey())), entry.getValue());
             }
-            LocalTime endTime = arrivalTimesByIndex.get(warehouseIndex);
+            LocalTime endTime = arrivalTimesByIndex.get(plan.getIndexById(warehouse.getId()));
 
+            // Create and assign the delivery tour
             DeliveryTour courierDeliveryTour = new DeliveryTour(courier, endTime, courierDeliveryRequests, new ArrayList<>(bestRoute),
                     arrivalTimes);
             tourAttribution.add(courierDeliveryTour);
@@ -421,32 +516,47 @@ public class Round {
         return finalGroups;
     }
 
+    /**
+     * Retrieves the warehouse intersection for the round.
+     *
+     * @return the {@code Intersection} object representing the warehouse
+     */
     public Intersection getWarehouse() {
         return warehouse;
     }
 
+    /**
+     * Retrieves the plan associated with the round.
+     *
+     * @return the {@code Plan} object containing intersections and sections
+     */
     public Plan getPlan() {
         return plan;
     }
 
     /**
-     * Returns the list of couriers for this round.
+     * Retrieves the list of couriers participating in the round.
      *
-     * @return the list of {@code Courier} objects
+     * @return the {@code List} of {@code Courier} objects
      */
     public List<Courier> getCourierList() {
         return courierList;
     }
 
     /**
-     * Returns the list of delivery requests for this round.
+     * Retrieves the list of delivery requests for the round.
      *
-     * @return the list of {@code DeliveryRequest} objects
+     * @return the {@code List} of {@code DeliveryRequest} objects
      */
     public List<DeliveryRequest> getDeliveryRequestList() {
         return deliveryRequestList;
     }
 
+    /**
+     * Retrieves the list of intersection IDs for all delivery requests.
+     *
+     * @return a {@code List} of {@code String} containing intersection IDs
+     */
     public List<String> getDeliveryIntersectionsList() {
         List<String> deliveryIntersections = new ArrayList<>();
         for (DeliveryRequest deliveryRequest : deliveryRequestList) {
@@ -455,10 +565,19 @@ public class Round {
         return deliveryIntersections;
     }
 
+    /**
+     * Clears all delivery requests from the round.
+     */
     public void clearDeliveryRequests() {
         this.deliveryRequestList.clear();
     }
 
+    /**
+     * Retrieves a delivery request by its intersection ID.
+     *
+     * @param deliveryRequestId the ID of the delivery request to retrieve
+     * @return the {@code DeliveryRequest} object if found, otherwise {@code null}
+     */
     public DeliveryRequest getDeliveryRequestById(String deliveryRequestId) {
         for (DeliveryRequest deliveryRequest : deliveryRequestList) {
             if (deliveryRequestId.trim().equals(deliveryRequest.getDeliveryAdress().getId().trim())) {
@@ -468,6 +587,13 @@ public class Round {
         return null;
     }
 
+    /**
+     * Deletes a delivery request by its intersection ID.
+     *
+     * @param deliveryRequestId the ID of the delivery request to delete
+     * @return {@code true} if the delivery request was successfully deleted,
+     *         {@code false} otherwise
+     */
     public boolean deleteDeliveryRequest(String deliveryRequestId) {
         System.out.println("Trying to delete delivery request with ID: " + deliveryRequestId);
         DeliveryRequest deliveryRequest = getDeliveryRequestById(deliveryRequestId);
@@ -476,12 +602,17 @@ public class Round {
 
     /**
      * Adds a delivery request for the specified intersection ID.
-     * 
-     * @param intersectionId The unique identifier of the intersection to add as a
-     *                       delivery point.
-     * @return DeliveryRequest The newly created delivery request associated with
-     *         the intersection. Returns null if the intersection ID is not found in
-     *         the plan's intersection map.
+     *
+     * <p>
+     * This method creates a new {@code DeliveryRequest} associated with the given
+     * intersection and adds it to the delivery request list.
+     * </p>
+     *
+     * @param intersectionId the unique identifier of the intersection to add as a
+     *                       delivery point
+     * @return the newly created {@code DeliveryRequest} associated with the
+     *         intersection, or {@code null} if the intersection ID is not found in
+     *         the plan's intersection map
      */
     public DeliveryRequest addDeliveryIntersection(String intersectionId) {
         intersectionId = intersectionId.trim();
@@ -498,17 +629,23 @@ public class Round {
     }
 
     /**
-     * Updates the delivery tour for a specified courier by adding or deleting an
-     * intersection point.
+     * Computes a new round by updating the delivery tour for a specified courier.
      *
-     * @param courierIndex      The index of the courier in the courierList.
-     * @param intersectionIndex The index of the intersection to add or delete.
-     * @param mode              The operation mode: -1 to delete the intersection, 1
-     *                          to add.
-     * @throws IllegalArgumentException if the courier index is invalid, the
-     *                                  intersection index is invalid,
-     *                                  or if attempting to delete a non-existent
-     *                                  intersection.
+     * <p>
+     * This method updates the delivery tour by adding or deleting an intersection
+     * point based on the mode. It recalculates the optimal route for the courier
+     * and updates the tour attributions accordingly.
+     * </p>
+     *
+     * @param courierIndex      the index of the courier in the {@code courierList}
+     * @param intersectionIndex the index of the intersection to add or delete
+     * @param mode              the operation mode: {@code -1} to delete the intersection,
+     *                          {@code 1} to add
+     * @return a {@code List} of updated {@code DeliveryTour} objects
+     * @throws IllegalArgumentException if the courier index or intersection index is
+     *                                  invalid, or if attempting to delete a
+     *                                  non-existent intersection
+     * @throws IllegalStateException    if the solver for the courier is not initialized
      */
     private List<DeliveryTour> ComputeNewRound(Integer courierIndex,
                                                Integer intersectionIndex, int mode) {
@@ -531,7 +668,7 @@ public class Round {
                 courierSolver.addDeliveryPoint(intersectionIndex);
             }
 
-            // Recompute points
+            // Recompute points to be served
             courierSolver.computePointsToBeServed();
 
             // Get updated route information
@@ -539,7 +676,7 @@ public class Round {
             List<Intersection> bestRoute = plan.computeTour(bestRouteIndexes);
             Map<Integer, LocalTime> arrivalTimesByIndex = courierSolver.getPointsWithTime();
 
-            // Convert arrival times
+            // Convert arrival times to Intersection keys
             Map<Intersection, LocalTime> arrivalTimes = new HashMap<>();
             for (Map.Entry<Integer, LocalTime> entry : arrivalTimesByIndex.entrySet()) {
                 Intersection intersection = plan.getIntersectionById(plan.getIdByIndex(entry.getKey()));
@@ -548,7 +685,7 @@ public class Round {
                 }
             }
 
-            // Create updated delivery requests
+            // Create updated delivery requests based on the new route
             List<DeliveryRequest> updatedDeliveryRequests = new ArrayList<>();
             for (Integer idx : bestRouteIndexes) {
                 Intersection intersection = plan.getIntersectionById(plan.getIdByIndex(idx));
@@ -568,7 +705,7 @@ public class Round {
                     arrivalTimes
             );
 
-            // Update tour attribution
+            // Update tour attributions
             List<DeliveryTour> newTours = new ArrayList<>(tourAttribution);
             newTours.set(courierIndex, updatedTour);
 
@@ -581,6 +718,24 @@ public class Round {
         }
     }
 
+    /**
+     * Updates the delivery tour for a specified courier by adding or deleting an
+     * intersection point.
+     *
+     * <p>
+     * This method recalculates the delivery tour for the specified courier by
+     * adding or removing a delivery point. It updates the tour attributions to
+     * reflect the changes.
+     * </p>
+     *
+     * @param courierIndex   the index of the courier in the {@code courierList}
+     * @param intersectionId the ID of the intersection to add or delete
+     * @param mode           the operation mode: {@code -1} to delete the intersection,
+     *                       {@code 1} to add
+     * @return a {@code List} of updated {@code DeliveryTour} objects
+     * @throws IllegalArgumentException if the courier index is invalid
+     * @throws IllegalStateException    if an error occurs during the update process
+     */
     public List<DeliveryTour> updateLocalPoint(Integer courierIndex, String intersectionId, int mode) {
         System.out.println("Updating local point - Courier: " + courierIndex +
                 ", Intersection: " + intersectionId + ", Mode: " + mode);
@@ -593,7 +748,7 @@ public class Round {
             // Re-compute with updated state
             List<DeliveryTour> result = ComputeNewRound(courierIndex, plan.getIndexById(intersectionId), mode);
 
-            // Important: Update the tourAttribution field
+            // Update the tourAttribution field
             this.setTourAttribution(result);
 
             System.out.println("Update completed. New tour size: " + result.size());
@@ -605,9 +760,17 @@ public class Round {
         }
     }
 
-
     /**
-     *generate a save of the current tour in a file text
+     * Generates a report of the current delivery tours and saves it to a text
+     * file.
+     *
+     * <p>
+     * The report includes details such as courier IDs, their assigned delivery
+     * points, arrival and departure times, and routes taken. The generated report
+     * is returned as a {@code String}.
+     * </p>
+     *
+     * @return a {@code String} containing the formatted delivery tours report
      */
     public String generateTourReport() {
         StringBuilder fileContent = new StringBuilder();
@@ -697,7 +860,19 @@ public class Round {
     }
 
     /**
-     * define a warehouse on an intersection
+     * Defines the warehouse location by setting it to the specified intersection
+     * ID.
+     *
+     * <p>
+     * This method updates the warehouse location for the round. If the provided
+     * intersection ID does not exist in the plan's intersection map, the method
+     * returns {@code null}.
+     * </p>
+     *
+     * @param intersectionId the unique identifier of the intersection to set as
+     *                       warehouse
+     * @return the {@code Intersection} object representing the new warehouse, or
+     *         {@code null} if the intersection ID is invalid
      */
     public Intersection defineWarehousePoint(String intersectionId) {
         intersectionId = intersectionId.trim();
@@ -713,15 +888,26 @@ public class Round {
     }
 
     /**
-     * delete the warehouse of an intersection
+     * Deletes the current warehouse location.
+     *
+     * <p>
+     * This method removes the warehouse assignment from the round by setting it
+     * to {@code null}.
+     * </p>
      */
     public void deleteWarehouse() {
         System.out.println("Trying to delete the warehouse");
         warehouse = null;
     }
 
-    public List<Boolean> getIsOptimalList()
-    {
+    /**
+     * Retrieves the list indicating whether each courier's delivery tour is
+     * optimal.
+     *
+     * @return a {@code List} of {@code Boolean} values where each element corresponds
+     *         to a courier's tour optimization status
+     */
+    public List<Boolean> getIsOptimalList() {
         return this.isOptimalList;
     }
 }
