@@ -82,6 +82,7 @@ src
 
 ## Running the Application
 
+### A/ From the source code
 Note : you need a recent version of java like 21 for example.
 
 1. **Clone the repository**:
@@ -91,23 +92,28 @@ Note : you need a recent version of java like 21 for example.
     ```
 
 2. **Launch the web server**:
-    Launch the application in the file with the same name (SpringApplication.run(Application.class, args)) or use the command mvn spring-boot:run in the terminal.
-    Important Note : To avoid compilation and installation problems (like maven or things in the pom.xml), work on the IDE Intellij and just launch the project.
+   Launch the application in the file with the same name (SpringApplication.run(Application.class, args)) or use the command mvn spring-boot:run in the terminal.
+   Important Note : To avoid compilation and installation problems (like maven or things in the pom.xml), work on the IDE Intellij and just launch the project.
 
 3. **Launch the front project**:
-    Install nodeJS (20.18.0)
-    Use npm to install all useful packages with the command "npm install"
-    In a new terminal, go to the repo new-front and use the command "npm start" : it will start the front project
-    See the Readme in the repo new-front for more informations..
+   Install nodeJS (20.18.0)
+   Use npm to install all useful packages with the command "npm install"
+   In a new terminal, go to the repo new-front and use the command "npm start" : it will start the front project
+   See the Readme in the repo new-front for more informations..
+
+### B/ From the jar file
+
+1. **Run the jar file**:
+   The jar file is in the target folder. You can run it with the command "java -jar PLD-Agile-0.0.1-SNAPSHOT.jar" in the terminal, or run it with IntelliJ.
 
 ## Running the Tests
 
 You can run the unit tests with two methods:
 - **Using Maven**:
-    Go in the `src/test/java` folder and run the following command: mvn test
+  Go in the `src/test/java` folder and run the following command: mvn test
 - **Using an IDE**:
-    Open the project in an IDE like IntelliJ and run the tests manually from the test folder.
-  
+  Open the project in an IDE like IntelliJ and run the tests manually from the test folder.
+
 ## Customizing Input
 
 You can customize the input data by editing the XML files in the `src/resources/data/` folder:
@@ -119,6 +125,7 @@ Make sure the format adheres to the expected XML structure, and modify `filePath
 ## Key Classes (How it is implemented ?)
 
 - **Application.java**: The main entry point for the application.
+- **Round.java**: Represents all delivery tours for each courier.
 - **Solver.java**: Manages the TSP solving process using different strategies.
 - **Plan.java**: Represents the city map, including intersections (verticies) and sections (edges) which will allow us to build a graph later.
 - **DeliveryRequest.java**: Represents a delivery task, including pickup and drop-off locations.
@@ -135,6 +142,6 @@ Note : Go to the code to see all the classes and and all their features to under
 
 ## Contributing
 
-Project made at INSA Lyon as part of the course on the aglie method.
+Project made at INSA Lyon as part of the course on the AGILE method.
 Contributors: SOULET Audrey, BOUZIANE Abderrahmane, CLOUSCARD Théo, MARIAT Quentin, CATHERINE Noam
     
