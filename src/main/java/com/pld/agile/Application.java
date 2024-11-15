@@ -15,7 +15,6 @@ import com.pld.agile.model.strategy.BnBStrategy;
 @SpringBootApplication
 public class Application {
 	public static void main(String[] args) {
-
 		// Launch App
 		 SpringApplication.run(Application.class, args);
 	}

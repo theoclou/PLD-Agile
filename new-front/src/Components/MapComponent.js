@@ -147,6 +147,14 @@ const MapComponent = () => {
             <strong>Validate Tours :</strong> Click on the{" "}
             <em>'Export Tour' </em> button to download the report.
           </li>
+          <li>
+            <strong>Undo Action :</strong> Press <em>'Ctrl + Z' </em> on your
+            keyboard to undo an add or delete of a delivery point.
+          </li>
+          <li>
+            <strong>Redo Action :</strong> Press <em>'Ctrl + Y' </em> on your
+            keyboard to redo an add or delete of a delivery point.
+          </li>
         </ul>
       </div>
     );
