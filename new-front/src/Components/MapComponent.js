@@ -104,19 +104,40 @@ const MapComponent = () => {
 
   const handleHelpClick = () => {
     setHelpPopupMessage(
-        <div>
-          <h2 className="popup-title"> How to Use the Application</h2>
-          <ul>
-            <li><strong>Load a Map :</strong> Click the <em>'Load a Map'</em> button to load a map.</li>
-            <li><strong>Load Deliveries :</strong> Click the <em>'Load Deliveries'</em> button to load a delivery request.</li>
-            <li><strong>Adjust Couriers :</strong> Use the <em>'+'</em> and <em>'-'</em> buttons to add or remove delivery drivers.</li>
-            <li><strong>Add Delivery Point :</strong> Zoom into the map and click an intersection, then select <em>'Add to delivery points'</em>.</li>
-            <li><strong>Remove Delivery Point :</strong> Click the cross icon in the delivery list popup.</li>
-            <li><strong>Compute Routes :</strong> Click the <em>'Compute Tour'</em> button to generate delivery routes.</li>
+      <div>
+        <h2 className="popup-title"> How to Use the Application</h2>
+        <ul>
+          <li>
+            <strong>Load a Map :</strong> Click the <em>'Load a Map'</em> button
+            to load a map.
+          </li>
+          <li>
+            <strong>Load Deliveries :</strong> Click the{" "}
+            <em>'Load Deliveries'</em> button to load a delivery request.
+          </li>
+          <li>
+            <strong>Adjust Couriers :</strong> Use the <em>'+'</em> and{" "}
+            <em>'-'</em> buttons to add or remove delivery drivers.
+          </li>
+          <li>
+            <strong>Add Delivery Point :</strong> Zoom into the map and click an
+            intersection, then select <em>'Add to delivery points'</em>.
+          </li>
+          <li>
+            <strong>Remove Delivery Point :</strong> click the cross on the
+            textual view.
+          </li>
+          <li>
+            <strong>Compute Routes :</strong> Click the <em>'Compute Tour'</em>{" "}
+            button to generate delivery routes.
+          </li>
+          <li>
+            <strong>Validate Tours :</strong> Click on the <em>'Validate' </em>{" "}
+            button to download the report.
+          </li>
         </ul>
-  </div>
-  )
-    ;
+      </div>
+    );
     setHelpPopupVisible(true);
   };
 
@@ -554,7 +575,10 @@ const MapComponent = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `delivery_tours_${new Date().toISOString().slice(0, 19).replace(/:/g, "")}.txt`;
+      link.download = `delivery_tours_${new Date()
+        .toISOString()
+        .slice(0, 19)
+        .replace(/:/g, "")}.txt`;
 
       document.body.appendChild(link);
       link.click();

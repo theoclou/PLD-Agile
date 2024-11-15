@@ -19,7 +19,9 @@ const DeliveryPointMarker = React.memo(
     const formatTime = (time) => {
       if (!time) return "Not scheduled";
       const { hours, minutes } = time;
-      return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+      return `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}`;
     };
 
     useEffect(() => {
@@ -27,14 +29,10 @@ const DeliveryPointMarker = React.memo(
       if (marker) {
         marker.on("mouseover", () => onMouseEnter(delivery.deliveryAdress.id));
         marker.on("mouseout", onMouseLeave);
-        marker.on("click", () =>
-          onClick(delivery.deliveryAdress.id, delivery.courier?.id)
-        );
 
         return () => {
           marker.off("mouseover");
           marker.off("mouseout");
-          marker.off("click");
         };
       }
     }, [onMouseEnter, onMouseLeave, onClick, delivery]);
