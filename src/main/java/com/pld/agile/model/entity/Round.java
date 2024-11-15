@@ -356,6 +356,9 @@ public class Round {
     }
 
     public ArrayList<ArrayList<String>> computeRoundOptimized() {
+        // Reset states and solvers
+        solverList.clear();
+        tourAttribution.clear();
 
         // Definition of the groups of intersections to assign Couriers
         double[][] data = setUpData();
@@ -399,26 +402,14 @@ public class Round {
             // intersections
             List<Intersection> bestRoute = plan.computeTour(bestRouteIndexes);
 
-            //
-            // List<Intersection> bestRoute = new ArrayList<>(); // Might need to turn that
-            // into a String and only keep the
-            // // ID
-            // bestRoute.add(warehouse);
-            // for (Integer i : bestRouteIndexes) {
-            // bestRoute.add(plan.getIntersectionById(plan.getIdByIndex(i)));
-            // }
-            // bestRoute.add(warehouse);
 
             Map<Integer, LocalTime> arrivalTimesByIndex = solver.getPointsWithTime();
-            Map<Intersection, LocalTime> arrivalTimes = new HashMap<>(); // Might need to turn that into a String and
-                                                                         // only keep the ID
+            Map<Intersection, LocalTime> arrivalTimes = new HashMap<>();
 
             for (Map.Entry<Integer, LocalTime> entry : arrivalTimesByIndex.entrySet()) {
                 arrivalTimes.put(plan.getIntersectionById(plan.getIdByIndex(entry.getKey())), entry.getValue());
             }
-            LocalTime endTime = arrivalTimesByIndex.get(warehouseIndex); // TODO doesnt seem to work well, maybe
-                                                                         // warehouseIndex is not the right index or
-                                                                         // solver does not treat him first
+            LocalTime endTime = arrivalTimesByIndex.get(warehouseIndex);
 
             DeliveryTour courierDeliveryTour = new DeliveryTour(courier, endTime, courierDeliveryRequests, new ArrayList<>(bestRoute),
                     arrivalTimes);
@@ -519,7 +510,8 @@ public class Round {
      *                                  or if attempting to delete a non-existent
      *                                  intersection.
      */
-    private List<DeliveryTour> ComputeNewRound(Integer courierIndex, Integer intersectionIndex, int mode) {
+    private List<DeliveryTour> ComputeNewRound(Integer courierIndex,
+                                               Integer intersectionIndex, int mode) {
         if (courierIndex < 0 || courierIndex >= courierList.size()) {
             throw new IllegalArgumentException("Invalid courier index: " + courierIndex);
         }
@@ -532,14 +524,14 @@ public class Round {
         System.out.println("Before operation - Path: " + courierSolver.getBestPath());
 
         try {
+            // Update solver path based on mode
             if (mode == -1) {
                 courierSolver.deleteDeliveryPoint(intersectionIndex);
             } else if (mode == 1) {
                 courierSolver.addDeliveryPoint(intersectionIndex);
-            } else {
-                throw new IllegalArgumentException("Invalid mode: " + mode);
             }
 
+            // Recompute points
             courierSolver.computePointsToBeServed();
 
             // Get updated route information
@@ -547,7 +539,7 @@ public class Round {
             List<Intersection> bestRoute = plan.computeTour(bestRouteIndexes);
             Map<Integer, LocalTime> arrivalTimesByIndex = courierSolver.getPointsWithTime();
 
-            // Convert arrival times to intersection map
+            // Convert arrival times
             Map<Intersection, LocalTime> arrivalTimes = new HashMap<>();
             for (Map.Entry<Integer, LocalTime> entry : arrivalTimesByIndex.entrySet()) {
                 Intersection intersection = plan.getIntersectionById(plan.getIdByIndex(entry.getKey()));
@@ -556,7 +548,7 @@ public class Round {
                 }
             }
 
-            // Update delivery requests
+            // Create updated delivery requests
             List<DeliveryRequest> updatedDeliveryRequests = new ArrayList<>();
             for (Integer idx : bestRouteIndexes) {
                 Intersection intersection = plan.getIntersectionById(plan.getIdByIndex(idx));
@@ -567,7 +559,7 @@ public class Round {
                 }
             }
 
-            // Create updated tour
+            // Create new tour with updated information
             DeliveryTour updatedTour = new DeliveryTour(
                     courierList.get(courierIndex),
                     arrivalTimesByIndex.get(bestRouteIndexes.get(bestRouteIndexes.size() - 1)),
@@ -577,10 +569,11 @@ public class Round {
             );
 
             // Update tour attribution
-            tourAttribution.set(courierIndex, updatedTour);
+            List<DeliveryTour> newTours = new ArrayList<>(tourAttribution);
+            newTours.set(courierIndex, updatedTour);
 
             System.out.println("After operation - Updated path: " + courierSolver.getBestPath());
-            return new ArrayList<>(tourAttribution);
+            return newTours;
         } catch (Exception e) {
             System.err.println("Error in ComputeNewRound: " + e.getMessage());
             e.printStackTrace();
@@ -589,19 +582,24 @@ public class Round {
     }
 
     public List<DeliveryTour> updateLocalPoint(Integer courierIndex, String intersectionId, int mode) {
-        System.out.println("Updating local point - Courier: " + courierIndex + ", Intersection: " + intersectionId + ", Mode: " + mode);
-
-        Integer index = plan.getIndexById(intersectionId);
-        if (index == null) {
-            throw new IllegalArgumentException("Invalid intersection ID: " + intersectionId);
-        }
+        System.out.println("Updating local point - Courier: " + courierIndex +
+                ", Intersection: " + intersectionId + ", Mode: " + mode);
 
         try {
-            List<DeliveryTour> result = ComputeNewRound(courierIndex, index, mode);
-            System.out.println("Update completed successfully");
-            return result;
+            // Reset state to ensure clean computation
+            plan.softResetMap();
+            plan.preprocessData();
+
+            // Re-compute with updated state
+            List<DeliveryTour> result = ComputeNewRound(courierIndex, plan.getIndexById(intersectionId), mode);
+
+            // Important: Update the tourAttribution field
+            this.setTourAttribution(result);
+
+            System.out.println("Update completed. New tour size: " + result.size());
+            return new ArrayList<>(result);
         } catch (Exception e) {
-            System.err.println("Error updating local point: " + e.getMessage());
+            System.err.println("Error in updateLocalPoint: " + e.getMessage());
             e.printStackTrace();
             throw e;
         }

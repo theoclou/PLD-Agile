@@ -203,14 +203,11 @@ public class Solver {
             );
         }
 
-        System.out.println("Path validation successful");
     }
 
     public List<Integer> addDeliveryPoint(Integer intersection) {
-        System.out.println("Current state before addition:");
         System.out.println("Vertices: " + vertices);
-        System.out.println("Best path: " + bestPath);
-        System.out.println("Attempting to add intersection: " + intersection);
+
 
         // Store the current state
         List<Integer> oldVertices = new ArrayList<>(vertices);
@@ -250,21 +247,14 @@ public class Solver {
         // Update index mappings
         updateIndexMappings(oldVertices, vertices);
 
-        System.out.println("State after addition:");
-        System.out.println("Updated vertices: " + vertices);
-        System.out.println("Updated best path: " + bestPath);
-        System.out.println("Insertion position: " + bestInsertionIndex);
-        System.out.println("Detour cost: " + minimumDetour);
+
 
         return new ArrayList<>(bestPath);
     }
 
 
     public List<Integer> deleteDeliveryPoint(Integer intersection) {
-        System.out.println("Current state before deletion:");
         System.out.println("Vertices: " + vertices);
-        System.out.println("Best path: " + bestPath);
-        System.out.println("Attempting to delete intersection: " + intersection);
 
         // Find the intersection in our current vertices
         int vertexIndex = vertices.indexOf(intersection);
@@ -301,10 +291,6 @@ public class Solver {
             }
         }
 
-        System.out.println("State after deletion:");
-        System.out.println("Updated vertices: " + vertices);
-        System.out.println("Updated best path: " + bestPath);
-        System.out.println("Graph size: " + g.getNbVertices());
 
         return bestPath;
     }
@@ -342,7 +328,6 @@ public class Solver {
             this.bestPath = getBestPath();
         }
         int servedPoints = (int) resultPoint.get("served");
-        System.out.println("We will serve :" + servedPoints + " points");
         List<Integer> bestPathSubList = bestPath.subList(0, servedPoints + 1);
         if (servedPoints > 0 && bestPathSubList.getFirst() != bestPathSubList.getLast()) {
             bestPathSubList.add(bestPathSubList.getFirst());
@@ -372,7 +357,6 @@ public class Solver {
             // Initialize bestPath if empty
             if (this.bestPath == null || this.bestPath.isEmpty()) {
                 this.bestPath = getBestPath();
-                System.out.println("Initialized path: " + this.bestPath);
             }
 
             // Now validate the path when we know it's not empty
@@ -390,7 +374,6 @@ public class Solver {
 
 
     private void pointsToBeServed() {
-        System.out.println("Computing times for path: " + this.bestPath);
 
         Map<Integer, LocalTime> pointsWithTime = new HashMap<>();
         double currentCost = 0.0;
@@ -400,7 +383,6 @@ public class Solver {
         double timeLimitInSeconds = 8.0 * 60.0 * 60.0;
         int pathSize = this.bestPath.size();
 
-        System.out.println("Computing times for path: " + this.bestPath);
 
         // Add the departure time for the starting point
         pointsWithTime.put(this.bestPath.get(0), currentTime);
@@ -433,8 +415,7 @@ public class Solver {
             totalTimeInSeconds += travelTimeSeconds;
             currentTime = currentTime.plusSeconds((long)travelTimeSeconds);
 
-            System.out.printf("From %d to %d: distance=%.2fm, time=%.2fs, arrival=%s%n",
-                    currentPosition, nextPosition, distanceMeters, travelTimeSeconds, currentTime);
+
 
             // Check if the time limit is exceeded
             if (totalTimeInSeconds > timeLimitInSeconds) {
@@ -450,7 +431,6 @@ public class Solver {
         resultPoint.put("cost", currentCost);
         resultPoint.put("pointsWithTime", pointsWithTime);
 
-        System.out.println("Final arrival times: " + pointsWithTime);
     }
     public boolean getTimeExceeded()
     {
