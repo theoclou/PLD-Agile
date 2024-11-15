@@ -108,6 +108,9 @@ Note : you need a recent version of java like 21 for example.
 1. **Run the jar file**:
    The jar file is in the target folder. You can run it with the command "java -jar PLD-Agile-0.0.1-SNAPSHOT.jar" in the terminal, or run it with IntelliJ.
 
+2. **Go to the localhost**:
+   Go to the localhost:8080 in your browser to see the application.
+
 ## Running the Tests
 
 You can run the unit tests with two methods:
