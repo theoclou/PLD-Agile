@@ -11,6 +11,7 @@ const TextSidebar = React.memo(
     highlightedDeliveryId,
     onMouseEnterDelivery,
     onMouseLeaveDelivery,
+    returnTimes
   }) => {
     const [expandedDeliveries, setExpandedDeliveries] = useState({});
     const deliveryRefs = useRef({});
@@ -104,44 +105,44 @@ const TextSidebar = React.memo(
           {warehouse && (
               <div className="under-section-container">
                 <h2 className="section-title">Warehouse</h2>
-                  <div>
-                <span className="section-title">Sections around: </span>
-              <br/>
+                <div>
+                  <span className="section-title">Sections around: </span>
+                  <br/>
 
-                <div className="section-list">
-                  <div className="section-info">
-                    {(() => {
-                      const relatedSections = sections.filter(
-                          (section) =>
-                              section.origin.id === warehouse.id.toString() ||
-                              section.destination.id === warehouse.id.toString()
-                      );
+                  <div className="section-list">
+                    <div className="section-info">
+                      {(() => {
+                        const relatedSections = sections.filter(
+                            (section) =>
+                                section.origin.id === warehouse.id.toString() ||
+                                section.destination.id === warehouse.id.toString()
+                        );
 
-                      const uniqueSections = Array.from(
-                          new Set(relatedSections.map((section) => section.name))
-                      ).map((name) =>
-                          relatedSections.find((section) => section.name === name)
-                      );
+                        const uniqueSections = Array.from(
+                            new Set(relatedSections.map((section) => section.name))
+                        ).map((name) =>
+                            relatedSections.find((section) => section.name === name)
+                        );
 
-                      const limitedSections = uniqueSections.slice(0, 2);
+                        const limitedSections = uniqueSections.slice(0, 2);
 
-                      return limitedSections.length > 0 ? (
-                          limitedSections.map((section, index) => (
-                              <div key={index} className="section-item">
-                                <div className="section-dot"></div>
-                                <span className="section-name">
+                        return limitedSections.length > 0 ? (
+                            limitedSections.map((section, index) => (
+                                <div key={index} className="section-item">
+                                  <div className="section-dot"></div>
+                                  <span className="section-name">
                               {section.name || "Undefined"}
                             </span>
-                              </div>
-                          ))
-                      ) : (
-                          <span className="no-sections">
+                                </div>
+                            ))
+                        ) : (
+                            <span className="no-sections">
                           No connected sections
                         </span>
-                      );
-                    })()}
+                        );
+                      })()}
+                    </div>
                   </div>
-                </div>
                 </div>
               </div>
           )}
@@ -195,10 +196,10 @@ const TextSidebar = React.memo(
               <div className="section-info">
                 <span className="section-info">Courier ID: </span>
                 <span
-                  className="section-info"
-                  style={{
-                    color: courierId ? courierColors[courierId] : "inherit",
-                  }}
+                    className="section-info"
+                    style={{
+                      color: courierId ? courierColors[courierId] : "inherit",
+                    }}
                 >
                   {courierId ? courierId : "Unassigned"}
                 </span>
@@ -209,84 +210,97 @@ const TextSidebar = React.memo(
               <span className="section-title">Sections around: </span>
               <div className="section-list">
                 {limitedSections.length > 0 ? (
-                  limitedSections.map((section, index) => (
-                    <div key={index} className="section-item">
-                      <div className="section-dot"></div>
-                      <span className="section-name">
-                        {section.name || "Undefined"}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <span className="no-sections">No connected sections</span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="button-container">
-            <button
-              onClick={() => onDelete(delivery.deliveryAdress.id, courierId)}
-              className="deletebutton"
-            >
-              &times;
-            </button>
-          </div>
-        </div>
-      );
-    };
-
-    return (
-      <div className="textual-sidebar" ref={sidebarRef}>
-        {warehouse && (
-          <div>
-            <h2 className="section-title">Warehouse</h2>
-            <div className="section-container">
-                <div>
-                <span className="section-title">Sections around: </span>
-                <div className="section-list">
-                  {(() => {
-                    const relatedSections = sections.filter(
-                      (section) =>
-                        section.origin.id === warehouse.id.toString() ||
-                        section.destination.id === warehouse.id.toString()
-                    );
-                    const uniqueSections = Array.from(
-                      new Set(relatedSections.map((section) => section.name))
-                    ).map((name) =>
-                      relatedSections.find((section) => section.name === name)
-                    );
-                    const limitedSections = uniqueSections.slice(0, 2);
-                    return limitedSections.length > 0 ? (
-                      limitedSections.map((section, index) => (
+                    limitedSections.map((section, index) => (
                         <div key={index} className="section-item">
                           <div className="section-dot"></div>
                           <span className="section-name">
-                            {section.name || "Undefined"}
-                          </span>
+                        {section.name || "Undefined"}
+                      </span>
                         </div>
-                      ))
-                    ) : (
-                      <span className="no-sections">No connected sections</span>
-                    );
-                  })()}
-                </div>
+                    ))
+                ) : (
+                    <span className="no-sections">No connected sections</span>
+                )}
               </div>
             </div>
-          </div>
-        )}
 
-        {groupedDeliveries.unassigned?.length > 0 && (
-          <div>
-            <h2 className="section-title">Unassigned Delivery Points</h2>
-            {groupedDeliveries.unassigned.map((delivery) =>
-              renderDeliveryPoint(delivery)
+            </div>
+
+            <div className="button-container">
+              <button
+                  onClick={() => onDelete(delivery.deliveryAdress.id, courierId)}
+                  className="deletebutton"
+              >
+                &times;
+              </button>
+            </div>
+          </div>
+          );
+          };
+
+          return (
+          <div className="textual-sidebar" ref={sidebarRef}>
+            {warehouse && (
+                <div>
+                  <h2 className="section-title">Warehouse</h2>
+                  <div className="section-container">
+                    <div>
+                      <span className="section-title">Sections around : </span>
+                      <div className="section-list">
+                        {(() => {
+                          const relatedSections = sections.filter(
+                              (section) =>
+                                  section.origin.id === warehouse.id.toString() ||
+                                  section.destination.id === warehouse.id.toString()
+                          );
+                          const uniqueSections = Array.from(
+                              new Set(relatedSections.map((section) => section.name))
+                          ).map((name) =>
+                              relatedSections.find((section) => section.name === name)
+                          );
+                          const limitedSections = uniqueSections.slice(0, 2);
+                          return limitedSections.length > 0 ? (
+                              limitedSections.map((section, index) => (
+                                  <div key={index} className="section-item">
+                                    <div className="section-dot"></div>
+                                    <span className="section-name">
+                            {section.name || "Undefined"}
+                          </span>
+                                  </div>
+                              ))
+                          ) : (
+                              <span className="no-sections">No connected sections</span>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                    <div className="spacing"></div>
+                    <div>
+                      <span className="section-title">Return Times : </span>
+                      <div className="section-list">
+                        {returnTimes.map((time, index) => (
+                            <div key={index} className="section-item">
+                              <div className="section-dot"></div>
+                              <span className="section-name">Courier {index} : {time}</span>
+                            </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
             )}
-          </div>
-        )}
 
-        {Object.entries(groupedDeliveries)
-          .filter(([courierId]) => courierId !== "unassigned")
+            {groupedDeliveries.unassigned?.length > 0 && (
+                <div>
+                  <h2 className="section-title">Unassigned Delivery Points</h2>
+                  {groupedDeliveries.unassigned.map((delivery) =>
+                      renderDeliveryPoint(delivery)
+                  )}
+                </div>
+            )}
+
+            {Object.entries(groupedDeliveries)
+                .filter(([courierId]) => courierId !== "unassigned")
           .map(([courierId, deliveries]) => (
             <div key={courierId}>
               <h2

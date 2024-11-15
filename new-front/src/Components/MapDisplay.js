@@ -105,13 +105,11 @@ const MapDisplay = ({
     [deliveryData]
   );
 
-  // Nouvelle fonction pour trouver la route et le coursier associé à une section
   const findRouteAndCourier = useCallback(
     (origin, destination) => {
       const sectionKey = `${origin.id}-${destination.id}`;
       const reverseSectionKey = `${destination.id}-${origin.id}`;
 
-      // Stocker toutes les utilisations de la section
       const sectionUsages = [];
 
       routes.forEach((route, routeIndex) => {
@@ -204,16 +202,14 @@ const MapDisplay = ({
           );
         }
 
-        // Calculer l'angle pour le décalage
         const angle = Math.atan2(
           destination.latitude - origin.latitude,
           destination.longitude - origin.longitude
         );
         const perpAngle = angle + Math.PI / 2;
 
-        // Retourner plusieurs polylines pour chaque usage
         return usages.map((usage, usageIndex) => {
-          const offset = (usageIndex - (usages.length - 1) / 2) * 0.00005; // Ajuster cette valeur pour le décalage
+          const offset = (usageIndex - (usages.length - 1) / 2) * 0.00005;
           const offsetLatLngs = latLngs.map(([lat, lng]) => [
             lat + offset * Math.sin(perpAngle),
             lng + offset * Math.cos(perpAngle),
