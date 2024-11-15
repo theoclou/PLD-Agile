@@ -12,6 +12,7 @@ It focuses on distributing delivery requests, where couriers start from a wareho
 - [Running the Tests](#running-the-tests)
 - [Customizing Input](#customizing-input)
 - [Key Classes (How it is implemented ?)](#key-classes(how-it-is-implemented-?))
+- [Documentation](#documentation)
 - [Future Improvements](#future-improvements)
 - [Contributing](#contributing)
 
@@ -77,6 +78,7 @@ src
 ├── data                                 # XML files for city plans and delivery requests                          
 └── test
     └── java/com/pld/agile               # Unit tests
+└── javaDoc
 └── ...
 ```
 
@@ -132,7 +134,12 @@ Make sure the format adheres to the expected XML structure, and modify `filePath
 - **BranchAndBound.java**: Implements the Branch and Bound algorithm for solving the TSP.
 - **CompleteGraph.java**: Represents a complete graph used for solving the TSP.
 
-Note : Go to the code to see all the classes and and all their features to understand how it works precisely.
+Note : Go to the code to see all the classes and all their features to understand how it works precisely.
+
+## Documentation
+
+The project includes JavaDoc documentation for all classes and methods. You can read it in the src/javaDoc folder.
+Run the index.html file in your browser to view the documentation.
 
 ## Future Improvements
 
