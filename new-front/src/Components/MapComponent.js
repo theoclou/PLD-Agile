@@ -460,9 +460,8 @@ const MapComponent = () => {
   };
 
   const handleAddDeliveryPoint = async (intersectionId, courierID = -1) => {
-    //TODO : add courierID to the request
     console.log("delivery loaded " + deliveryLoaded);
-    if (!deliveryLoaded) return; //TODO check ça
+    if (!deliveryLoaded) return;
     try {
       console.log("Adding delivery point with ID:", intersectionId);
       if (!tourComputed) {
